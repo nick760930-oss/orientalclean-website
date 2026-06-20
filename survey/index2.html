@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客戶評價回饋 — 東方繩洗 ORIENTAL CLEAN</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══ Reset ═══ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;font-size:16px;}
+
+/* ═══ Brand tokens (取自官網) ═══ */
+:root{
+  --cyan:#16d6e8;
+  --cyan-bright:#37e6f5;
+  --cyan-deep:#0fa8b8;
+  --cyan-glow:rgba(22,214,232,0.45);
+  --navy:#0a2738;
+  --navy-deep:#061a26;
+  --teal:#16475c;
+  --glass:rgba(255,255,255,0.07);
+  --glass-2:rgba(255,255,255,0.04);
+  --glass-border:rgba(255,255,255,0.14);
+  --glass-border-hi:rgba(22,214,232,0.5);
+  --white:#ffffff;
+  --txt:#eaf6f9;
+  --txt2:#a8c4d2;
+  --txt3:#6e8da0;
+  --amber:#ffc24b;
+  --red:#ff6b6b;
+}
+
+body{
+  background:var(--navy-deep);
+  color:var(--txt);
+  font-family:'Noto Sans TC',sans-serif;
+  font-weight:300;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* ═══ Background atmosphere ═══ */
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.bg-grad{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(22,71,92,0.6), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 90% 20%, rgba(22,214,232,0.10), transparent 55%),
+    linear-gradient(170deg, var(--navy) 0%, var(--navy-deep) 70%);
+}
+.bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(22,214,232,0.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(22,214,232,0.05) 1px,transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse 100% 80% at 50% 0%,#000,transparent 75%);
+}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(90px);}
+.orb-a{width:480px;height:480px;background:radial-gradient(circle,rgba(22,214,232,0.18),transparent 70%);top:-120px;right:-80px;}
+.orb-b{width:420px;height:420px;background:radial-gradient(circle,rgba(15,168,184,0.12),transparent 70%);bottom:200px;left:-140px;}
+
+/* ═══ Navbar (官網導覽) ═══ */
+.nav{
+  position:sticky;top:0;z-index:60;
+  background:linear-gradient(90deg, rgba(7,27,40,0.94), rgba(11,42,60,0.88));
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(22,214,232,0.16);
+  box-shadow:0 1px 0 rgba(22,214,232,0.06), 0 8px 24px rgba(0,0,0,0.25);
+}
+.nav-inner{
+  max-width:1200px;margin:0 auto;
+  height:68px;padding:0 28px;
+  display:flex;align-items:center;justify-content:center;gap:24px;
+}
+.nav-logo{display:flex;align-items:center;gap:11px;text-decoration:none;flex-shrink:0;}
+.nav-logo-txt{display:flex;flex-direction:column;gap:2px;}
+.nav-logo-cn{font-size:21px;font-weight:900;color:#fff;letter-spacing:3px;line-height:1;}
+.nav-logo-en{font-family:'DM Mono',monospace;font-size:8.5px;color:rgba(255,255,255,0.55);letter-spacing:3.5px;line-height:1;}
+
+/* ═══ Hero ═══ */
+.hero{position:relative;z-index:1;text-align:center;padding:64px 24px 44px;}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(22,214,232,0.08);border:1px solid rgba(22,214,232,0.35);
+  backdrop-filter:blur(8px);
+  border-radius:24px;padding:8px 20px;margin-bottom:26px;
+  font-size:12px;color:var(--cyan-bright);letter-spacing:2px;
+  box-shadow:0 0 20px rgba(22,214,232,0.12), inset 0 0 12px rgba(22,214,232,0.06);
+}
+.hero-badge svg{width:14px;height:14px;}
+.hero h1{
+  font-size:36px;font-weight:900;color:#fff;
+  letter-spacing:4px;line-height:1.35;margin-bottom:14px;
+}
+.hero h1 .hl{
+  color:var(--cyan);
+  text-shadow:0 0 24px var(--cyan-glow);
+  display:block;
+}
+.hero-sub{font-size:14px;color:var(--txt2);letter-spacing:1.5px;line-height:2;}
+
+/* ═══ Info chips ═══ */
+.infobar{
+  position:relative;z-index:1;
+  max-width:760px;margin:0 auto 8px;
+  display:flex;flex-wrap:wrap;justify-content:center;gap:10px;
+  padding:0 24px;
+}
+.info-chip{
+  display:flex;align-items:center;gap:8px;
+  background:var(--glass-2);border:1px solid var(--glass-border);
+  backdrop-filter:blur(8px);
+  border-radius:10px;padding:10px 18px;
+  font-size:12px;color:var(--txt2);letter-spacing:.5px;
+}
+.info-chip strong{color:var(--cyan-bright);font-weight:500;}
+.info-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);flex-shrink:0;}
+
+/* ═══ Main ═══ */
+.main{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:32px 24px 90px;}
+
+/* ═══ Glass section card ═══ */
+.section{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:16px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  margin-bottom:18px;
+  overflow:hidden;
+  box-shadow:0 8px 32px rgba(0,0,0,0.25);
+  transition:border-color .3s;
+}
+.section:hover{border-color:var(--glass-border-hi);}
+
+.section-head{
+  display:flex;align-items:center;gap:13px;
+  padding:20px 26px;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.section-num{
+  font-family:'DM Mono',monospace;font-size:13px;font-weight:500;
+  color:#04222a;background:var(--cyan);
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 14px var(--cyan-glow);flex-shrink:0;
+}
+.section-title{font-size:16px;font-weight:700;color:#fff;letter-spacing:2px;}
+.section-en{font-family:'DM Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:2px;margin-left:auto;}
+
+.section-body{padding:26px;}
+
+/* ═══ Fields ═══ */
+.field{margin-bottom:20px;}
+.field:last-child{margin-bottom:0;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+label.lbl{
+  display:block;font-size:12px;font-weight:700;color:var(--txt2);
+  letter-spacing:1px;margin-bottom:8px;
+}
+label.lbl .req{color:var(--cyan);margin-left:3px;}
+
+.input-wrap{display:flex;align-items:stretch;}
+.input-wrap input{border-radius:10px 0 0 10px;}
+.input-wrap .unit{
+  background:rgba(22,214,232,0.10);
+  border:1px solid var(--glass-border);border-left:none;
+  border-radius:0 10px 10px 0;
+  padding:0 16px;display:flex;align-items:center;
+  font-size:13px;color:var(--cyan-bright);white-space:nowrap;
+}
+
+input[type=text],input[type=number],select,textarea{
+  width:100%;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--glass-border);
+  border-radius:10px;
+  padding:12px 15px;
+  font-size:14px;font-family:'Noto Sans TC',sans-serif;font-weight:400;
+  color:#fff;outline:none;
+  transition:border-color .2s,background .2s,box-shadow .2s;
+  appearance:none;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--cyan);
+  background:rgba(22,214,232,0.06);
+  box-shadow:0 0 0 3px rgba(22,214,232,0.12);
+}
+input::placeholder,textarea::placeholder{color:var(--txt3);font-weight:300;}
+input[readonly]{background:rgba(255,255,255,0.02);color:var(--txt3);cursor:not-allowed;}
+
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2316d6e8'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 15px center;
+  padding-right:38px;cursor:pointer;
+}
+select option{background:var(--navy);color:#fff;}
+
+textarea{resize:vertical;min-height:96px;line-height:1.7;}
+
+.divider{border:none;border-top:1px solid rgba(255,255,255,0.08);margin:22px 0;}
+
+/* ═══ Star rating rows ═══ */
+.star-row{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:15px 4px;border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.star-row:last-child{border-bottom:none;}
+
+.star-label{display:flex;align-items:center;gap:12px;}
+.star-icon{
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  background:rgba(22,214,232,0.12);border:1px solid rgba(22,214,232,0.25);
+  display:flex;align-items:center;justify-content:center;
+}
+.star-icon svg{width:16px;height:16px;}
+.star-name{font-size:14px;font-weight:500;color:#fff;letter-spacing:.5px;}
+.star-name small{display:block;font-size:11px;color:var(--txt3);font-weight:300;margin-top:1px;}
+
+.stars{display:inline-flex;flex-direction:row-reverse;gap:3px;}
+.stars input{display:none;}
+.stars label{
+  font-size:27px;line-height:1;color:rgba(255,255,255,0.16);
+  cursor:pointer;user-select:none;
+  transition:color .12s,transform .12s;
+}
+.stars label:hover,.stars label:hover~label,.stars input:checked~label{
+  color:var(--amber);text-shadow:0 0 12px rgba(255,194,75,0.5);
+}
+.stars label:hover{transform:scale(1.2);}
+
+/* ═══ Toggle ═══ */
+#pt-toggle{display:none;}
+.toggle-row{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  cursor:pointer;padding:6px 0;
+}
+.toggle-main{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;letter-spacing:.5px;}
+.toggle-sub{font-size:12px;color:var(--txt3);}
+.sw{
+  width:52px;height:28px;border-radius:14px;flex-shrink:0;position:relative;
+  background:rgba(255,255,255,0.10);border:1px solid var(--glass-border);
+  transition:background .3s,border-color .3s;
+}
+.sw::after{
+  content:'';position:absolute;width:20px;height:20px;border-radius:50%;
+  background:var(--txt3);top:3px;left:3px;transition:transform .3s,background .3s;
+}
+#pt-toggle:checked+.toggle-row .sw{background:rgba(22,214,232,0.25);border-color:var(--cyan);}
+#pt-toggle:checked+.toggle-row .sw::after{transform:translateX(24px);background:var(--cyan);box-shadow:0 0 10px var(--cyan-glow);}
+
+.personnel-panel{display:none;margin-top:8px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.08);animation:slideIn .25s ease;}
+#pt-toggle:checked~.personnel-panel{display:block;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ═══ Personnel cards ═══ */
+.pcard{
+  background:var(--glass-2);border:1px solid var(--glass-border);
+  border-radius:12px;padding:18px 20px;margin-bottom:12px;position:relative;
+  transition:border-color .2s;
+}
+.pcard:hover{border-color:var(--glass-border-hi);}
+.pcard-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.pcard-avatar{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--teal),rgba(22,214,232,0.4));
+  border:1px solid rgba(22,214,232,0.4);
+  color:var(--cyan-bright);font-family:'DM Mono',monospace;font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+.pcard-inputs{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.pcard-inputs input{font-size:13px;padding:9px 11px;}
+.pcard-stars-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.pcard-stars-label{font-size:12px;font-weight:700;color:var(--txt2);letter-spacing:1px;white-space:nowrap;}
+.pcard .stars label{font-size:23px;}
+.pcard textarea{font-size:13px;min-height:58px;}
+.pcard-remove{
+  position:absolute;top:12px;right:12px;background:none;border:none;cursor:pointer;
+  color:var(--txt3);font-size:20px;line-height:1;padding:2px 7px;border-radius:6px;
+  transition:background .15s,color .15s;
+}
+.pcard-remove:hover{background:rgba(255,107,107,0.15);color:var(--red);}
+
+.add-pcard-btn{
+  width:100%;padding:12px;
+  background:transparent;border:1px dashed rgba(22,214,232,0.35);
+  border-radius:12px;color:var(--cyan);
+  font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;
+  cursor:pointer;transition:background .2s,border-color .2s;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.add-pcard-btn:hover{background:rgba(22,214,232,0.08);border-color:var(--cyan);}
+
+/* ═══ Chips ═══ */
+.chip-group{display:flex;flex-wrap:wrap;gap:9px;}
+.chip-group input{display:none;}
+.chip{
+  display:inline-block;padding:8px 17px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);
+  border-radius:8px;font-size:13px;font-weight:400;color:var(--txt2);
+  cursor:pointer;user-select:none;letter-spacing:.5px;transition:all .15s;
+}
+.chip:hover{border-color:var(--cyan);color:#fff;}
+.chip-group input:checked+.chip{
+  background:var(--cyan);border-color:var(--cyan);color:#04222a;font-weight:700;
+  box-shadow:0 0 14px var(--cyan-glow);
+}
+
+/* ═══ NPS ═══ */
+.nps-row{display:flex;gap:5px;flex-wrap:wrap;}
+.nps-row input{display:none;}
+.nps-label{
+  width:42px;height:42px;border-radius:9px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:14px;color:var(--txt2);
+  cursor:pointer;user-select:none;transition:all .15s;
+}
+.nps-label:hover{border-color:var(--cyan);color:#fff;}
+.nps-row input:checked+.nps-label{
+  background:var(--cyan);border-color:var(--cyan);color:#04222a;font-weight:700;
+  box-shadow:0 0 14px var(--cyan-glow);
+}
+.nps-hint{display:flex;justify-content:space-between;margin-top:8px;}
+.nps-hint span{font-size:11px;color:var(--txt3);}
+
+/* ═══ Submit ═══ */
+.submit-wrap{margin-top:32px;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.submit-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,var(--cyan-bright),var(--cyan-deep));
+  color:#04222a;border:none;border-radius:30px;
+  padding:17px 56px;font-family:'Noto Sans TC',sans-serif;
+  font-size:17px;font-weight:900;letter-spacing:4px;cursor:pointer;
+  box-shadow:0 0 28px var(--cyan-glow);
+  transition:transform .15s,box-shadow .2s;position:relative;overflow:hidden;
+}
+.submit-btn::before{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);
+  transition:left .5s;
+}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 0 40px var(--cyan-glow);}
+.submit-btn:hover::before{left:100%;}
+.submit-btn:active{transform:translateY(0);}
+.submit-note{font-size:12px;color:var(--txt3);text-align:center;line-height:1.9;letter-spacing:.5px;}
+
+.err-msg{display:none;font-size:11px;color:var(--red);margin-top:6px;letter-spacing:.5px;}
+input.invalid{border-color:var(--red)!important;}
+
+/* ═══ Footer ═══ */
+.footer{
+  position:relative;z-index:1;text-align:center;
+  padding:32px 24px;border-top:1px solid rgba(255,255,255,0.06);
+  background:rgba(6,26,38,0.5);
+}
+.footer-name{font-size:14px;font-weight:700;color:var(--txt2);letter-spacing:4px;margin-bottom:6px;font-style:italic;}
+.footer-info{font-family:'DM Mono',monospace;font-size:10px;color:var(--txt3);letter-spacing:1.5px;line-height:1.8;}
+
+/* ═══ Success overlay ═══ */
+.overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(6,26,38,0.94);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;flex-direction:column;gap:22px;
+  text-align:center;padding:32px;animation:fadein .35s ease;
+}
+.overlay.show{display:flex;}
+@keyframes fadein{from{opacity:0;}to{opacity:1;}}
+.overlay-check{
+  width:84px;height:84px;border-radius:50%;
+  background:rgba(22,214,232,0.12);border:2px solid var(--cyan);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 40px var(--cyan-glow);
+  animation:popIn .45s cubic-bezier(.17,.67,.34,1.35) both;
+}
+.overlay-check svg{width:40px;height:40px;color:var(--cyan);}
+@keyframes popIn{from{transform:scale(.4);opacity:0;}to{transform:scale(1);opacity:1;}}
+.overlay-title{font-size:26px;font-weight:900;color:#fff;letter-spacing:4px;}
+.overlay-sub{font-size:14px;color:var(--txt2);letter-spacing:1px;line-height:2;}
+.overlay-tag{font-family:'DM Mono',monospace;font-size:10px;color:rgba(22,214,232,0.5);letter-spacing:3px;border-top:1px solid rgba(22,214,232,0.2);padding-top:16px;margin-top:4px;}
+
+/* ═══ Responsive ═══ */
+@media(max-width:680px){
+  .hero{padding:44px 20px 32px;}
+  .hero h1{font-size:26px;letter-spacing:2px;}
+  .section-body{padding:20px 18px;}
+  .field-row{grid-template-columns:1fr;}
+  .pcard-inputs{grid-template-columns:1fr;}
+  .stars label{font-size:24px;}
+  .nps-label{width:38px;height:38px;font-size:13px;}
+  .submit-btn{padding:15px 40px;font-size:15px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-layer">
+  <div class="bg-grad"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+</div>
+
+<!-- Navbar -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="https://orientalclean.com.tw/" target="_blank" rel="noopener">
+      <div class="nav-logo-txt">
+        <div class="nav-logo-cn">東方繩洗</div>
+        <div class="nav-logo-en">ORIENTAL CLEAN</div>
+      </div>
+    </a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="hero-badge">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#37e6f5" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+    案場完工 ・ 住戶意見回饋
+  </div>
+  <h1>感謝您的配合<span class="hl">您的評價是我們前進的動力</span></h1>
+  <p class="hero-sub">本次高空外牆工程已順利完工 誠摯邀請您給予寶貴意見</p>
+</header>
+
+<!-- Info chips (管理端帶入) -->
+<div class="infobar">
+  <div class="info-chip"><div class="info-dot"></div>案場：<strong id="ib-project">——</strong></div>
+  <div class="info-chip"><div class="info-dot"></div>施工期間：<strong id="ib-period">——</strong></div>
+  <div class="info-chip"><div class="info-dot"></div>負責人：<strong id="ib-pm">——</strong></div>
+</div>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- 01 基本資料 -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">01</span>
+      <span class="section-title">住戶基本資料</span>
+      <span class="section-en">BASIC INFO</span>
+    </div>
+    <div class="section-body">
+      <div class="field-row field">
+        <div class="field">
+          <label class="lbl" for="floor">棟別 ／ 樓層<span class="req">＊</span></label>
+          <div class="input-wrap">
+            <input type="text" id="floor" placeholder="例：B棟 18" maxlength="10">
+            <div class="unit">樓</div>
+          </div>
+          <div class="err-msg" id="err-floor">請填寫棟別與樓層</div>
+        </div>
+        <div class="field">
+          <label class="lbl" for="unit">戶號<span class="req">＊</span></label>
+          <div class="input-wrap">
+            <input type="text" id="unit" placeholder="例：1802" maxlength="8">
+            <div class="unit">號</div>
+          </div>
+          <div class="err-msg" id="err-unit">請填寫戶號</div>
+        </div>
+      </div>
+      <div class="field-row field" style="margin-bottom:0;">
+        <div class="field" style="margin-bottom:0;">
+          <label class="lbl">社區 ／ 案場名稱</label>
+          <input type="text" id="community" placeholder="由管理端自動帶入" readonly>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="lbl">施工日期區間</label>
+          <input type="text" id="daterange" placeholder="由管理端自動帶入" readonly>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 整體評分 -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">02</span>
+      <span class="section-title">整體服務評分</span>
+      <span class="section-en">OVERALL</span>
+    </div>
+    <div class="section-body" style="padding-top:8px;padding-bottom:8px;">
+
+      <div class="star-row">
+        <div class="star-label">
+          <div class="star-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#16d6e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg></div>
+          <div class="star-name">施工品質<small>整體完工效果是否達到預期</small></div>
+        </div>
+        <div class="stars">
+          <input type="radio" name="quality" id="q5" value="5"><label for="q5">★</label>
+          <input type="radio" name="quality" id="q4" value="4"><label for="q4">★</label>
+          <input type="radio" name="quality" id="q3" value="3"><label for="q3">★</label>
+          <input type="radio" name="quality" id="q2" value="2"><label for="q2">★</label>
+          <input type="radio" name="quality" id="q1" value="1"><label for="q1">★</label>
+        </div>
+      </div>
+
+      <div class="star-row">
+        <div class="star-label">
+          <div class="star-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#16d6e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+          <div class="star-name">人員服務態度<small>禮儀、溝通與現場應對</small></div>
+        </div>
+        <div class="stars">
+          <input type="radio" name="attitude" id="a5" value="5"><label for="a5">★</label>
+          <input type="radio" name="attitude" id="a4" value="4"><label for="a4">★</label>
+          <input type="radio" name="attitude" id="a3" value="3"><label for="a3">★</label>
+          <input type="radio" name="attitude" id="a2" value="2"><label for="a2">★</label>
+          <input type="radio" name="attitude" id="a1" value="1"><label for="a1">★</label>
+        </div>
+      </div>
+
+      <div class="star-row">
+        <div class="star-label">
+          <div class="star-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#16d6e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg></div>
+          <div class="star-name">施工時程配合<small>是否按計畫進行並事前告知</small></div>
+        </div>
+        <div class="stars">
+          <input type="radio" name="schedule" id="s5" value="5"><label for="s5">★</label>
+          <input type="radio" name="schedule" id="s4" value="4"><label for="s4">★</label>
+          <input type="radio" name="schedule" id="s3" value="3"><label for="s3">★</label>
+          <input type="radio" name="schedule" id="s2" value="2"><label for="s2">★</label>
+          <input type="radio" name="schedule" id="s1" value="1"><label for="s1">★</label>
+        </div>
+      </div>
+
+      <div class="star-row">
+        <div class="star-label">
+          <div class="star-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#16d6e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.06A2 2 0 0 0 8.5 12.6L2.36 11.02a.5.5 0 0 1 0-.96L8.5 8.48A2 2 0 0 0 9.94 7.04l1.58-6.14a.5.5 0 0 1 .96 0l1.58 6.14A2 2 0 0 0 15.5 8.48l6.14 1.58a.5.5 0 0 1 0 .96L15.5 12.6a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" transform="translate(0 1.5) scale(0.92)"/><path d="M20 17v3"/><path d="M21.5 18.5h-3"/></svg></div>
+          <div class="star-name">現場清潔整理<small>施工後環境整潔狀況</small></div>
+        </div>
+        <div class="stars">
+          <input type="radio" name="clean" id="c5" value="5"><label for="c5">★</label>
+          <input type="radio" name="clean" id="c4" value="4"><label for="c4">★</label>
+          <input type="radio" name="clean" id="c3" value="3"><label for="c3">★</label>
+          <input type="radio" name="clean" id="c2" value="2"><label for="c2">★</label>
+          <input type="radio" name="clean" id="c1" value="1"><label for="c1">★</label>
+        </div>
+      </div>
+
+      <div class="star-row">
+        <div class="star-label">
+          <div class="star-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#16d6e8" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+          <div class="star-name">安全防護措施<small>施工期間對住戶安全的保護</small></div>
+        </div>
+        <div class="stars">
+          <input type="radio" name="safety" id="sf5" value="5"><label for="sf5">★</label>
+          <input type="radio" name="safety" id="sf4" value="4"><label for="sf4">★</label>
+          <input type="radio" name="safety" id="sf3" value="3"><label for="sf3">★</label>
+          <input type="radio" name="safety" id="sf2" value="2"><label for="sf2">★</label>
+          <input type="radio" name="safety" id="sf1" value="1"><label for="sf1">★</label>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 03 個別人員評價 -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">03</span>
+      <span class="section-title">個別人員評價</span>
+      <span class="section-en">PERSONNEL</span>
+    </div>
+    <div class="section-body">
+      <input type="checkbox" id="pt-toggle">
+      <label for="pt-toggle" class="toggle-row">
+        <div>
+          <div class="toggle-main">針對特定施工人員進行評分</div>
+          <div class="toggle-sub">如對某位人員印象深刻，可展開填寫個人評價</div>
+        </div>
+        <div class="sw"></div>
+      </label>
+
+      <div class="personnel-panel" id="personnel-panel">
+        <div class="pcard" id="pcard-1">
+          <button type="button" class="pcard-remove" onclick="removeCard(this)" aria-label="移除">×</button>
+          <div class="pcard-header">
+            <div class="pcard-avatar">P1</div>
+            <div class="pcard-inputs">
+              <input type="text" placeholder="姓名 ／ 工號" autocomplete="off">
+              <input type="text" placeholder="職務（繩索技術員…）" autocomplete="off">
+            </div>
+          </div>
+          <div class="pcard-stars-row">
+            <span class="pcard-stars-label">評分</span>
+            <div class="stars">
+              <input type="radio" name="p1r" id="p1r5" value="5"><label for="p1r5">★</label>
+              <input type="radio" name="p1r" id="p1r4" value="4"><label for="p1r4">★</label>
+              <input type="radio" name="p1r" id="p1r3" value="3"><label for="p1r3">★</label>
+              <input type="radio" name="p1r" id="p1r2" value="2"><label for="p1r2">★</label>
+              <input type="radio" name="p1r" id="p1r1" value="1"><label for="p1r1">★</label>
+            </div>
+          </div>
+          <textarea placeholder="備註（例：主動告知施工進度、態度親切友善…）"></textarea>
+        </div>
+
+        <button type="button" class="add-pcard-btn" onclick="addCard()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          新增人員
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 反饋事項 -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">04</span>
+      <span class="section-title">意見反饋</span>
+      <span class="section-en">FEEDBACK</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label class="lbl">施工期間是否造成不便？（可複選）<span class="req">＊</span></label>
+        <div class="chip-group">
+          <input type="checkbox" id="ch-noise"   value="噪音"><label class="chip" for="ch-noise">噪音干擾</label>
+          <input type="checkbox" id="ch-dust"    value="粉塵"><label class="chip" for="ch-dust">粉塵飛散</label>
+          <input type="checkbox" id="ch-water"   value="水漬"><label class="chip" for="ch-water">水漬滴落</label>
+          <input type="checkbox" id="ch-block"   value="通道"><label class="chip" for="ch-block">通道阻礙</label>
+          <input type="checkbox" id="ch-privacy" value="隱私"><label class="chip" for="ch-privacy">隱私顧慮</label>
+          <input type="checkbox" id="ch-other"   value="其他"><label class="chip" for="ch-other">其他</label>
+          <input type="checkbox" id="ch-none"    value="無"><label class="chip" for="ch-none">無不便</label>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="field">
+        <label class="lbl" for="comment">具體意見或建議</label>
+        <textarea id="comment" rows="5" placeholder="請描述您的具體意見，包含正面回饋或改善建議……"></textarea>
+      </div>
+
+      <hr class="divider">
+
+      <div class="field">
+        <label class="lbl">推薦意願（NPS）</label>
+        <div class="nps-row">
+          <input type="radio" name="nps" id="n0" value="0"><label class="nps-label" for="n0">0</label>
+          <input type="radio" name="nps" id="n1" value="1"><label class="nps-label" for="n1">1</label>
+          <input type="radio" name="nps" id="n2" value="2"><label class="nps-label" for="n2">2</label>
+          <input type="radio" name="nps" id="n3" value="3"><label class="nps-label" for="n3">3</label>
+          <input type="radio" name="nps" id="n4" value="4"><label class="nps-label" for="n4">4</label>
+          <input type="radio" name="nps" id="n5" value="5"><label class="nps-label" for="n5">5</label>
+          <input type="radio" name="nps" id="n6" value="6"><label class="nps-label" for="n6">6</label>
+          <input type="radio" name="nps" id="n7" value="7"><label class="nps-label" for="n7">7</label>
+          <input type="radio" name="nps" id="n8" value="8"><label class="nps-label" for="n8">8</label>
+          <input type="radio" name="nps" id="n9" value="9"><label class="nps-label" for="n9">9</label>
+          <input type="radio" name="nps" id="n10" value="10"><label class="nps-label" for="n10">10</label>
+        </div>
+        <div class="nps-hint"><span>0 完全不推薦</span><span>10 非常樂意推薦</span></div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="field" style="margin-bottom:0;">
+        <label class="lbl">是否同意以匿名方式引用本評價作為案例參考？</label>
+        <div class="chip-group">
+          <input type="radio" name="consent" id="con-yes" value="yes"><label class="chip" for="con-yes">✓ 同意引用</label>
+          <input type="radio" name="consent" id="con-no"  value="no"><label class="chip" for="con-no">不同意</label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Submit -->
+  <div class="submit-wrap">
+    <button class="submit-btn" type="button" onclick="submitForm()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+      送出評價
+    </button>
+    <p class="submit-note">本評價表資料僅供東方繩洗有限公司內部品質管理使用<br>不對外公開個人識別資訊，請放心填寫</p>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-name">東方繩洗 ORIENTAL CLEAN</div>
+  <div class="footer-info">ORIENTAL CLEAN CO., LTD. 統編 83365645 臺北市中正區忠孝西路一段72號2樓之5</div>
+</footer>
+
+<!-- Success overlay -->
+<div class="overlay" id="overlay">
+  <div class="overlay-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+  <div class="overlay-title">感謝您的評價</div>
+  <div class="overlay-sub">您的意見已成功送出<br>東方繩洗將持續以專業守護您的居住品質</div>
+  <div class="overlay-tag">ORIENTAL CLEAN — QUALITY &amp; SAFETY FIRST</div>
+</div>
+
+<script>
+let cardCount = 1;
+// 網頁載入完成後，自動執行帶入資料的動作
+window.addEventListener('DOMContentLoaded', () => {
+  // 解析網址後方的參數
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // 取得對應的數值（如果網址沒有設定，就顯示預設的 '——' 或空白）
+  const project = urlParams.get('project') || '——';
+  const period = urlParams.get('period') || '——';
+  const pm = urlParams.get('pm') || '——';
+
+  // 1. 替換畫面上方的「Info chips」標籤內容
+  document.getElementById('ib-project').innerText = project;
+  document.getElementById('ib-period').innerText = period;
+  document.getElementById('ib-pm').innerText = pm;
+
+  // 2. 替換畫面中間「01 基本資料」的唯讀輸入框內容
+  const communityInput = document.getElementById('community');
+  const daterangeInput = document.getElementById('daterange');
+  
+  if (communityInput) communityInput.value = (project !== '——') ? project : '';
+  if (daterangeInput) daterangeInput.value = (period !== '——') ? period : '';
+});
+function addCard() {
+  cardCount++;
+  const panel = document.getElementById('personnel-panel');
+  const btn = panel.querySelector('.add-pcard-btn');
+  const n = cardCount;
+  const div = document.createElement('div');
+  div.className = 'pcard';
+  div.id = 'pcard-' + n;
+  div.innerHTML = `
+    <button type="button" class="pcard-remove" onclick="removeCard(this)" aria-label="移除">×</button>
+    <div class="pcard-header">
+      <div class="pcard-avatar">P${n}</div>
+      <div class="pcard-inputs">
+        <input type="text" placeholder="姓名 ／ 工號" autocomplete="off">
+        <input type="text" placeholder="職務（繩索技術員…）" autocomplete="off">
+      </div>
+    </div>
+    <div class="pcard-stars-row">
+      <span class="pcard-stars-label">評分</span>
+      <div class="stars">
+        <input type="radio" name="p${n}r" id="p${n}r5" value="5"><label for="p${n}r5">★</label>
+        <input type="radio" name="p${n}r" id="p${n}r4" value="4"><label for="p${n}r4">★</label>
+        <input type="radio" name="p${n}r" id="p${n}r3" value="3"><label for="p${n}r3">★</label>
+        <input type="radio" name="p${n}r" id="p${n}r2" value="2"><label for="p${n}r2">★</label>
+        <input type="radio" name="p${n}r" id="p${n}r1" value="1"><label for="p${n}r1">★</label>
+      </div>
+    </div>
+    <textarea placeholder="備註（例：主動告知施工進度、態度親切友善…）"></textarea>`;
+  div.style.cssText = 'opacity:0;transform:translateY(-8px);transition:opacity .25s,transform .25s';
+  panel.insertBefore(div, btn);
+  requestAnimationFrame(() => { div.style.opacity = '1'; div.style.transform = 'translateY(0)'; });
+}
+
+function removeCard(btn) {
+  const c = btn.closest('.pcard');
+  c.style.cssText = 'opacity:0;transform:scale(.97);transition:opacity .2s,transform .2s';
+  setTimeout(() => c.remove(), 220);
+}
+
+async function submitForm() {
+ let ok = true;
+  const f = document.getElementById('floor');
+  const u = document.getElementById('unit');
+  const ef = document.getElementById('err-floor');
+  const eu = document.getElementById('err-unit');
+  
+  f.classList.remove('invalid');
+  u.classList.remove('invalid');
+  ef.style.display = 'none';
+  eu.style.display = 'none';
+  
+  const currentFloor = f.value.trim();
+  const currentUnit = u.value.trim();
+
+  // 🌟 修正：防重複送出 (必須「棟別」與「戶號」同時相同才阻擋)
+  const uniqueKey = currentFloor + '_' + currentUnit;
+  if (currentFloor && currentUnit && localStorage.getItem('oriental_clean_' + uniqueKey) === 'yes') {
+    alert('系統紀錄顯示，您已經成功送出過【' + currentFloor + ' ' + currentUnit + '】的評價囉！感謝您的寶貴回饋。');
+    return; 
+  }
+  
+  if (!currentFloor) { f.classList.add('invalid'); ef.style.display = 'block'; ok = false; }
+  if (!currentUnit) { u.classList.add('invalid'); eu.style.display = 'block'; ok = false; }
+  if (!ok) { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+
+  const submitBtn = document.querySelector('.submit-btn');
+  const originalBtnText = submitBtn.innerHTML;
+  submitBtn.innerHTML = '資料傳送中...';
+  submitBtn.style.pointerEvents = 'none';
+
+  const getRadioVal = (name) => document.querySelector(`input[name="${name}"]:checked`)?.value || "未評分";
+  const getCheckedVals = (selector) => Array.from(document.querySelectorAll(selector))
+    .filter(cb => cb.checked).map(cb => cb.value).join("、") || "無";
+
+  let personnelData = [];
+  document.querySelectorAll('.pcard').forEach((card) => {
+    const inputs = card.querySelectorAll('.pcard-inputs input');
+    const name = inputs[0] ? inputs[0].value.trim() : '';
+    const role = inputs[1] ? inputs[1].value.trim() : '';
+    const textarea = card.querySelector('textarea');
+    const note = textarea ? textarea.value.trim() : '';
+    const checkedStar = card.querySelector('.stars input[type="radio"]:checked');
+    const starValue = checkedStar ? checkedStar.value : '未評分';
+
+    if (name || role || note || starValue !== '未評分') {
+      personnelData.push(`【${name || '未具名'} | ${role || '未填寫職務'}】${starValue}星，備註：${note || '無'}`);
+    }
+  });
+  const personnelText = personnelData.length > 0 ? personnelData.join('\n') : '無個別人員評價';
+
+  // 🌟 修正：改用 URLSearchParams 格式，保證 100% 成功穿越 Google 的安全阻擋
+  const params = new URLSearchParams();
+  params.append('community', document.getElementById('community') ? document.getElementById('community').value : '');
+  params.append('floor', currentFloor);
+  params.append('unit', currentUnit);
+  params.append('quality', getRadioVal('quality'));
+  params.append('attitude', getRadioVal('attitude'));
+  params.append('schedule', getRadioVal('schedule'));
+  params.append('clean', getRadioVal('clean'));
+  params.append('safety', getRadioVal('safety'));
+  params.append('inconvenience', getCheckedVals('.chip-group input[type="checkbox"]'));
+  params.append('comment', document.getElementById('comment').value.trim());
+  params.append('nps', getRadioVal('nps'));
+  params.append('consent', getRadioVal('consent'));
+  params.append('personnel', personnelText);
+
+  // 您的專屬 API 網址 (維持不變)
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbzUevsVnk-H_2pV7JjdDlWAwZW8gOOuXea-1D97-F0TfIoap14S4aPdwlw1vlmNM8Qx/exec';
+
+  try {
+    await fetch(scriptURL, {
+      method: 'POST',
+      body: params // 這裡直接傳送 params，不再需要設定 no-cors
+    });
+    
+    // 🌟 記憶這組「棟別_戶號」
+    localStorage.setItem('oriental_clean_' + uniqueKey, 'yes');
+
+    document.getElementById('overlay').classList.add('show');
+    setTimeout(() => {
+      window.location.href = 'https://orientalclean.com.tw/';
+    }, 3000);
+
+  } catch (error) {
+    console.error('傳送失敗:', error);
+    alert('系統連線發生異常，請稍後再試。');
+    submitBtn.innerHTML = originalBtnText;
+    submitBtn.style.pointerEvents = 'auto';
+  }
+}
+</script>
+</body>
+</html>
