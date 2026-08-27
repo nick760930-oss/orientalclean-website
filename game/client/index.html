@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<title>Mini RPG</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #14151c;
+    color: #eee;
+    font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    overflow: hidden;
+    height: 100%;
+  }
+  #login {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 30%, #232538, #0f1016);
+  }
+  #login .card {
+    background: #1c1e2a;
+    padding: 32px 36px;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    width: 320px;
+    text-align: center;
+  }
+  #login h1 { margin: 0 0 4px; font-size: 22px; }
+  #login p { margin: 0 0 20px; color: #999; font-size: 13px; }
+  #login input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #10111a;
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  #login button {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: none;
+    background: #5865f2;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #login button:hover { background: #4752c4; }
+  #login .hint { margin-top: 12px; font-size: 11px; color: #666; }
+
+  #game { display: none; height: 100%; }
+  #hud {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(10,10,15,0.6);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  canvas { display: block; background: #1b1c24; margin: 0 auto; }
+
+  #chat {
+    position: fixed;
+    left: 10px;
+    bottom: 10px;
+    width: 340px;
+    max-width: 90vw;
+  }
+  #chatLog {
+    height: 130px;
+    overflow-y: auto;
+    background: rgba(10,10,15,0.55);
+    border-radius: 8px 8px 0 0;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  #chatLog div { margin: 2px 0; word-break: break-word; }
+  #chatLog b { color: #8ab4ff; }
+  #chatForm {
+    display: flex;
+  }
+  #chatInput {
+    flex: 1;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 0 0 0 8px;
+    background: rgba(10,10,15,0.8);
+    color: #fff;
+    font-size: 13px;
+  }
+  #chatForm button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 0 0 8px 0;
+    background: #5865f2;
+    color: #fff;
+    cursor: pointer;
+  }
+  #helpBox {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    background: rgba(10,10,15,0.6);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    max-width: 220px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="card">
+    <h1>Mini RPG</h1>
+    <p>簡易連線多人角色扮演原型</p>
+    <input id="serverUrl" placeholder="伺服器位址，例如 http://192.168.1.5:3000" />
+    <input id="playerName" placeholder="你的角色名稱" maxlength="16" />
+    <button id="joinBtn">進入遊戲</button>
+    <div class="hint">先在別的機器/主機上啟動 server，再把它的位址填進來</div>
+  </div>
+</div>
+
+<div id="game">
+  <div id="hud">
+    <div id="hpLine">HP: --/--</div>
+    <div id="playersLine">線上玩家: 0</div>
+  </div>
+  <canvas id="canvas"></canvas>
+  <div id="chat">
+    <div id="chatLog"></div>
+    <form id="chatForm">
+      <input id="chatInput" autocomplete="off" placeholder="按 Enter 發送訊息" maxlength="200" />
+      <button type="submit">送出</button>
+    </form>
+  </div>
+  <div id="helpBox">
+    WASD / 方向鍵：移動<br/>
+    滑鼠點擊靠近的怪物：攻擊<br/>
+    Enter：聚焦聊天欄
+  </div>
+</div>
+
+<script src="vendor/socket.io.min.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

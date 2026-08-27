@@ -1,0 +1,22 @@
+{
+  "name": "mini-rpg-client",
+  "version": "1.0.0",
+  "description": "Installable desktop client for the Mini RPG multiplayer prototype",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.example.minirpg",
+    "productName": "Mini RPG",
+    "files": ["main.js", "preload.js", "../client/**/*"],
+    "win": { "target": "nsis" },
+    "mac": { "target": "dmg" },
+    "linux": { "target": "AppImage" }
+  }
+}
