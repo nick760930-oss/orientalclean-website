@@ -1,0 +1,113 @@
+// Prisma schema for the massage shop booking system.
+//
+// Uses SQLite for zero-setup local dev. For production, swap the
+// datasource below for Postgres/MySQL (Vercel Postgres, Supabase, Neon, ...)
+// — the rest of the schema is portable as-is.
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Status/payment fields are plain strings (not Prisma enums) because the
+// SQLite connector doesn't support native enums. Valid values are defined
+// and validated in src/lib/constants.ts.
+
+model Service {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  durationMin  Int
+  priceTwd     Int
+  depositTwd   Int      @default(0)
+  active       Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  therapists   TherapistService[]
+  bookings     Booking[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Therapist {
+  id          String   @id @default(cuid())
+  name        String
+  bio         String?
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  services    TherapistService[]
+  weeklyHours WeeklyAvailability[]
+  timeOffs    TimeOff[]
+  bookings    Booking[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Which services each therapist (or bookable room) can perform.
+model TherapistService {
+  id          String    @id @default(cuid())
+  therapistId String
+  therapist   Therapist @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+  serviceId   String
+  service     Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([therapistId, serviceId])
+}
+
+// Recurring weekly working hours per therapist.
+model WeeklyAvailability {
+  id          String    @id @default(cuid())
+  therapistId String
+  therapist   Therapist @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int // 0 = Sunday ... 6 = Saturday
+  startMin    Int // minutes after midnight, e.g. 09:00 = 540
+  endMin      Int // e.g. 18:00 = 1080
+
+  @@index([therapistId, dayOfWeek])
+}
+
+// One-off blocks: leave, holidays, personal appointments.
+model TimeOff {
+  id          String    @id @default(cuid())
+  therapistId String
+  therapist   Therapist @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+  startAt     DateTime
+  endAt       DateTime
+  reason      String?
+
+  @@index([therapistId, startAt, endAt])
+}
+
+model Booking {
+  id              String    @id @default(cuid())
+  service         Service   @relation(fields: [serviceId], references: [id])
+  serviceId       String
+  therapist       Therapist @relation(fields: [therapistId], references: [id])
+  therapistId     String
+  startAt         DateTime
+  endAt           DateTime
+  customerName    String
+  customerPhone   String
+  customerEmail   String?
+  notes           String?
+  status          String    @default("PENDING") // PENDING | CONFIRMED | CANCELLED | COMPLETED | NO_SHOW
+  paymentStatus   String    @default("NONE") // NONE | AWAITING | PAID | REFUNDED
+  paymentMethod   String? // "store" | "stripe"
+  amountDueTwd    Int       @default(0)
+  stripeSessionId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([therapistId, startAt])
+  @@index([status])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+}
