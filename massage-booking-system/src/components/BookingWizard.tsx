@@ -34,6 +34,60 @@ function todayStr() {
 
 const STEP_LABELS = ["選擇服務", "選擇按摩師", "選擇時段", "填寫資料"];
 
+const inputClass =
+  "w-full rounded-md border border-brand-300 bg-white px-3 py-2.5 text-brand-900 placeholder:text-brand-400 focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600";
+
+const primaryButtonClass =
+  "rounded-md bg-brand-700 py-3 font-medium text-brand-50 transition hover:bg-brand-800 disabled:opacity-50";
+
+const secondaryButtonClass =
+  "rounded-md border border-brand-300 py-3 font-medium text-brand-700 transition hover:border-brand-500 hover:bg-brand-50";
+
+function RadioDot({ selected }: { selected: boolean }) {
+  return (
+    <span
+      className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition ${
+        selected ? "border-brand-700" : "border-brand-300"
+      }`}
+      aria-hidden="true"
+    >
+      {selected && <span className="h-2 w-2 rounded-full bg-brand-700" />}
+    </span>
+  );
+}
+
+function OptionCard({
+  selected,
+  onSelect,
+  name,
+  title,
+  subtitle,
+  trailing,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  name: string;
+  title: string;
+  subtitle?: string;
+  trailing?: React.ReactNode;
+}) {
+  return (
+    <label
+      className={`flex cursor-pointer items-start gap-3 rounded-md border p-4 transition ${
+        selected ? "border-brand-700 bg-brand-50" : "border-brand-200 bg-white hover:border-brand-400"
+      }`}
+    >
+      <input type="radio" name={name} className="sr-only" checked={selected} onChange={onSelect} />
+      <RadioDot selected={selected} />
+      <div className="flex-1">
+        <span className="font-medium text-brand-900">{title}</span>
+        {subtitle && <p className="mt-0.5 text-xs text-brand-400">{subtitle}</p>}
+      </div>
+      {trailing}
+    </label>
+  );
+}
+
 export default function BookingWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -163,50 +217,70 @@ export default function BookingWizard() {
     }
   }
 
-  const amountDue = selectedService ? (selectedService.depositTwd > 0 ? selectedService.depositTwd : selectedService.priceTwd) : 0;
+  const amountDue = selectedService
+    ? selectedService.depositTwd > 0
+      ? selectedService.depositTwd
+      : selectedService.priceTwd
+    : 0;
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-8">
-      <ol className="mb-6 flex justify-between text-xs text-brand-400">
-        {STEP_LABELS.map((label, i) => (
-          <li key={label} className={i + 1 === step ? "font-semibold text-brand-700" : ""}>
-            {i + 1}. {label}
-          </li>
-        ))}
+    <div className="mx-auto max-w-xl px-6 py-12">
+      <ol className="mb-10 flex items-center">
+        {STEP_LABELS.map((label, i) => {
+          const n = i + 1;
+          const active = n === step;
+          const done = n < step;
+          return (
+            <li key={label} className="flex flex-1 items-center last:flex-none">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] transition ${
+                    active
+                      ? "border-brand-700 bg-brand-700 text-brand-50"
+                      : done
+                        ? "border-brand-700 text-brand-700"
+                        : "border-brand-300 text-brand-400"
+                  }`}
+                >
+                  {n}
+                </span>
+                <span
+                  className={`hidden text-xs uppercase tracking-wide sm:inline ${
+                    active ? "font-medium text-brand-800" : "text-brand-400"
+                  }`}
+                >
+                  {label}
+                </span>
+              </div>
+              {n < STEP_LABELS.length && <span className="mx-3 h-px flex-1 bg-brand-200" />}
+            </li>
+          );
+        })}
       </ol>
 
       {error && (
-        <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">{error}</p>
+        <p className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+          {error}
+        </p>
       )}
 
       {step === 1 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-brand-800">選擇服務項目</h2>
-          {services.map((s) => (
-            <label
-              key={s.id}
-              className={`block cursor-pointer rounded-xl border p-4 transition ${
-                serviceId === s.id ? "border-brand-600 bg-brand-50" : "border-brand-200 bg-white"
-              }`}
-            >
-              <input
-                type="radio"
+          <h2 className="font-serif text-xl text-brand-900">選擇服務項目</h2>
+          <div className="space-y-2.5">
+            {services.map((s) => (
+              <OptionCard
+                key={s.id}
                 name="service"
-                className="sr-only"
-                checked={serviceId === s.id}
-                onChange={() => setServiceId(s.id)}
+                selected={serviceId === s.id}
+                onSelect={() => setServiceId(s.id)}
+                title={s.name}
+                subtitle={`${s.durationMin} 分鐘`}
+                trailing={<span className="shrink-0 text-sm text-brand-500">NT$ {s.priceTwd}</span>}
               />
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-brand-800">{s.name}</span>
-                <span className="text-sm text-brand-500">NT$ {s.priceTwd}</span>
-              </div>
-              <p className="text-xs text-brand-400">{s.durationMin} 分鐘</p>
-            </label>
-          ))}
-          <button
-            onClick={goToTherapistStep}
-            className="mt-4 w-full rounded-full bg-brand-600 py-3 font-medium text-white hover:bg-brand-700"
-          >
+            ))}
+          </div>
+          <button onClick={goToTherapistStep} className={`mt-4 w-full ${primaryButtonClass}`}>
             下一步
           </button>
         </section>
@@ -214,47 +288,30 @@ export default function BookingWizard() {
 
       {step === 2 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-brand-800">選擇按摩師 / 包廂</h2>
-          <label
-            className={`block cursor-pointer rounded-xl border p-4 ${
-              therapistId === "" ? "border-brand-600 bg-brand-50" : "border-brand-200 bg-white"
-            }`}
-          >
-            <input
-              type="radio"
+          <h2 className="font-serif text-xl text-brand-900">選擇按摩師 / 包廂</h2>
+          <div className="space-y-2.5">
+            <OptionCard
               name="therapist"
-              className="sr-only"
-              checked={therapistId === ""}
-              onChange={() => setTherapistId("")}
+              selected={therapistId === ""}
+              onSelect={() => setTherapistId("")}
+              title="不指定，都可以"
             />
-            <span className="font-medium text-brand-800">不指定，都可以</span>
-          </label>
-          {therapists.map((t) => (
-            <label
-              key={t.id}
-              className={`block cursor-pointer rounded-xl border p-4 ${
-                therapistId === t.id ? "border-brand-600 bg-brand-50" : "border-brand-200 bg-white"
-              }`}
-            >
-              <input
-                type="radio"
+            {therapists.map((t) => (
+              <OptionCard
+                key={t.id}
                 name="therapist"
-                className="sr-only"
-                checked={therapistId === t.id}
-                onChange={() => setTherapistId(t.id)}
+                selected={therapistId === t.id}
+                onSelect={() => setTherapistId(t.id)}
+                title={t.name}
+                subtitle={t.bio ?? undefined}
               />
-              <span className="font-medium text-brand-800">{t.name}</span>
-              {t.bio && <p className="text-xs text-brand-400">{t.bio}</p>}
-            </label>
-          ))}
+            ))}
+          </div>
           <div className="flex gap-3">
-            <button onClick={() => setStep(1)} className="flex-1 rounded-full border border-brand-300 py-3 text-brand-700">
+            <button onClick={() => setStep(1)} className={`flex-1 ${secondaryButtonClass}`}>
               上一步
             </button>
-            <button
-              onClick={goToTimeStep}
-              className="flex-1 rounded-full bg-brand-600 py-3 font-medium text-white hover:bg-brand-700"
-            >
+            <button onClick={goToTimeStep} className={`flex-1 ${primaryButtonClass}`}>
               下一步
             </button>
           </div>
@@ -263,7 +320,7 @@ export default function BookingWizard() {
 
       {step === 3 && (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-brand-800">選擇日期與時段</h2>
+          <h2 className="font-serif text-xl text-brand-900">選擇日期與時段</h2>
           <input
             type="date"
             value={date}
@@ -272,20 +329,20 @@ export default function BookingWizard() {
               setDate(e.target.value);
               setSelectedTime("");
             }}
-            className="w-full rounded-lg border border-brand-300 px-3 py-2"
+            className={inputClass}
           />
           {loadingSlots && <p className="text-sm text-brand-400">讀取可預約時段中…</p>}
           {!loadingSlots && slots.length === 0 && (
             <p className="text-sm text-brand-400">這天沒有可預約的時段了，請換一天試試。</p>
           )}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2.5">
             {slots.map((s) => (
               <button
                 key={s.time}
                 onClick={() => setSelectedTime(s.time)}
-                className={`rounded-lg border py-2 text-sm ${
+                className={`rounded-md border py-2.5 text-sm transition ${
                   selectedTime === s.time
-                    ? "border-brand-600 bg-brand-600 text-white"
+                    ? "border-brand-700 bg-brand-700 text-brand-50"
                     : "border-brand-200 bg-white text-brand-700 hover:border-brand-400"
                 }`}
               >
@@ -294,13 +351,10 @@ export default function BookingWizard() {
             ))}
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setStep(2)} className="flex-1 rounded-full border border-brand-300 py-3 text-brand-700">
+            <button onClick={() => setStep(2)} className={`flex-1 ${secondaryButtonClass}`}>
               上一步
             </button>
-            <button
-              onClick={goToContactStep}
-              className="flex-1 rounded-full bg-brand-600 py-3 font-medium text-white hover:bg-brand-700"
-            >
+            <button onClick={goToContactStep} className={`flex-1 ${primaryButtonClass}`}>
               下一步
             </button>
           </div>
@@ -308,13 +362,21 @@ export default function BookingWizard() {
       )}
 
       {step === 4 && selectedService && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-brand-800">填寫聯絡資料</h2>
-          <div className="rounded-xl bg-brand-50 p-4 text-sm text-brand-700">
-            <p>{selectedService.name}（{selectedService.durationMin} 分鐘）</p>
-            <p>{selectedTherapist ? selectedTherapist.name : "不指定按摩師"}</p>
-            <p>{formatTimeInShopZone(selectedTime)}｜{date}</p>
-            <p className="mt-1 font-medium">總金額 NT$ {selectedService.priceTwd}</p>
+        <section className="space-y-5">
+          <h2 className="font-serif text-xl text-brand-900">填寫聯絡資料</h2>
+          <div className="rounded-md border border-brand-200 bg-white p-5 text-sm text-brand-700">
+            <p className="font-serif text-base text-brand-900">
+              {selectedService.name}（{selectedService.durationMin} 分鐘）
+            </p>
+            <div className="mt-3 space-y-1 text-brand-500">
+              <p>按摩師／包廂　{selectedTherapist ? selectedTherapist.name : "不指定"}</p>
+              <p>
+                時間　{date}　{formatTimeInShopZone(selectedTime)}
+              </p>
+            </div>
+            <p className="mt-3 border-t border-brand-100 pt-3 font-serif text-lg text-brand-900">
+              NT$ {selectedService.priceTwd}
+            </p>
           </div>
 
           <div className="space-y-3">
@@ -322,31 +384,31 @@ export default function BookingWizard() {
               placeholder="姓名"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-brand-300 px-3 py-2"
+              className={inputClass}
             />
             <input
               placeholder="聯絡電話"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full rounded-lg border border-brand-300 px-3 py-2"
+              className={inputClass}
             />
             <input
               placeholder="Email（選填）"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-brand-300 px-3 py-2"
+              className={inputClass}
             />
             <textarea
               placeholder="備註（選填，例如：加強部位、身體狀況）"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full rounded-lg border border-brand-300 px-3 py-2"
+              className={inputClass}
               rows={3}
             />
           </div>
 
           {onlinePaymentEnabled && (selectedService.depositTwd > 0 || selectedService.priceTwd > 0) && (
-            <div className="space-y-2">
+            <div className="space-y-2 border-t border-brand-100 pt-4">
               <p className="text-sm font-medium text-brand-700">付款方式</p>
               <label className="flex items-center gap-2 text-sm text-brand-700">
                 <input
@@ -368,14 +430,10 @@ export default function BookingWizard() {
           )}
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(3)} className="flex-1 rounded-full border border-brand-300 py-3 text-brand-700">
+            <button onClick={() => setStep(3)} className={`flex-1 ${secondaryButtonClass}`}>
               上一步
             </button>
-            <button
-              onClick={submitBooking}
-              disabled={submitting}
-              className="flex-1 rounded-full bg-brand-600 py-3 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-            >
+            <button onClick={submitBooking} disabled={submitting} className={`flex-1 ${primaryButtonClass}`}>
               {submitting ? "送出中…" : "確認預約"}
             </button>
           </div>

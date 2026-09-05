@@ -28,6 +28,11 @@ export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
 export const PAYMENT_METHODS = ["store", "stripe"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  store: "到店付款",
+  stripe: "線上付款",
+};
+
 export const DAY_LABELS = ["日", "一", "二", "三", "四", "五", "六"];
 
 // Granularity (minutes) for generating candidate booking start times.

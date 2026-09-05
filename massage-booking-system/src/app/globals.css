@@ -7,5 +7,30 @@ html {
 }
 
 body {
-  @apply bg-brand-50 text-brand-950;
+  @apply bg-brand-50 font-sans text-brand-900;
+}
+
+/* A row of thin vertical lines, echoing the shop's wood-slat screen door.
+   Used as a quiet section divider — never as a loud decorative block. */
+.slat-divider {
+  height: 24px;
+  opacity: 0.6;
+  background-image: repeating-linear-gradient(
+    to right,
+    theme("colors.brand.300") 0,
+    theme("colors.brand.300") 2px,
+    transparent 2px,
+    transparent 16px
+  );
+}
+
+/* Same motif, faint, for laying over a dark hero background. */
+.hero-slats {
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(250, 246, 239, 0.06) 0,
+    rgba(250, 246, 239, 0.06) 1px,
+    transparent 1px,
+    transparent 20px
+  );
 }

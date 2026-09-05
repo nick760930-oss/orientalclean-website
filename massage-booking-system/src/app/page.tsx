@@ -10,48 +10,83 @@ export default async function HomePage() {
   });
 
   const shopName = process.env.NEXT_PUBLIC_SHOP_NAME || "按摩店";
+  const shopNameEn = process.env.NEXT_PUBLIC_SHOP_NAME_EN;
   const shopPhone = process.env.NEXT_PUBLIC_SHOP_PHONE;
+  const shopHours = process.env.NEXT_PUBLIC_SHOP_HOURS;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-brand-800">{shopName}</h1>
-        <p className="mt-2 text-brand-600">線上預約，選擇喜歡的服務、按摩師與時段</p>
-        {shopPhone && <p className="mt-1 text-sm text-brand-500">電話預約：{shopPhone}</p>}
-      </header>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        {services.map((s) => (
-          <div
-            key={s.id}
-            className="flex flex-col justify-between rounded-2xl border border-brand-200 bg-white p-5 shadow-sm"
-          >
-            <div>
-              <h2 className="text-lg font-semibold text-brand-800">{s.name}</h2>
-              <p className="mt-1 text-sm text-brand-600">
-                {s.durationMin} 分鐘 · NT$ {s.priceTwd}
-              </p>
-              {s.description && <p className="mt-2 text-sm text-brand-500">{s.description}</p>}
-              {s.depositTwd > 0 && (
-                <p className="mt-1 text-xs text-brand-400">需付訂金 NT$ {s.depositTwd}</p>
-              )}
-            </div>
-            <Link
-              href={`/booking?serviceId=${s.id}`}
-              className="mt-4 inline-block rounded-full bg-brand-600 px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-brand-700"
-            >
-              立即預約
-            </Link>
-          </div>
-        ))}
-        {services.length === 0 && (
-          <p className="col-span-full text-center text-brand-500">
-            目前尚無可預約的服務項目，請聯絡店家。
+    <main>
+      <section className="relative overflow-hidden bg-brand-950 px-6 py-24 text-center text-brand-50">
+        <div className="hero-slats pointer-events-none absolute inset-0" aria-hidden="true" />
+        <div className="relative mx-auto max-w-xl">
+          <p className="text-xs font-medium uppercase tracking-[0.3em] text-gold-400">
+            傳統泰式按摩
           </p>
-        )}
-      </div>
+          <h1 className="mt-5 font-serif text-5xl font-semibold tracking-wide">{shopName}</h1>
+          {shopNameEn && (
+            <p className="mt-3 text-sm uppercase tracking-[0.5em] text-slate-500">{shopNameEn}</p>
+          )}
+          <p className="mx-auto mt-8 max-w-xs text-sm leading-relaxed text-brand-200">
+            純粹的泰式手法，讓身體慢下來。線上預約，選好時段即可到店放鬆。
+          </p>
+          {(shopHours || shopPhone) && (
+            <p className="mt-6 text-xs tracking-wide text-brand-300">
+              {shopHours}
+              {shopHours && shopPhone && "　·　"}
+              {shopPhone}
+            </p>
+          )}
+        </div>
+      </section>
 
-      <footer className="mt-10 text-center">
+      <div className="slat-divider" aria-hidden="true" />
+
+      <section className="mx-auto max-w-xl px-6 py-16">
+        <p className="text-center text-xs font-medium uppercase tracking-[0.3em] text-brand-400">
+          Menu
+        </p>
+        <h2 className="mt-2 text-center font-serif text-2xl text-brand-900">服務項目</h2>
+
+        <div className="mt-10 divide-y divide-brand-200">
+          {services.map((s) => (
+            <Link
+              key={s.id}
+              href={`/booking?serviceId=${s.id}`}
+              className="group flex items-start justify-between gap-6 py-6 transition hover:bg-brand-100/40"
+            >
+              <div>
+                <h3 className="font-serif text-lg text-brand-900">{s.name}</h3>
+                {s.description && (
+                  <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-brand-500">
+                    {s.description}
+                  </p>
+                )}
+                {s.depositTwd > 0 && (
+                  <p className="mt-1.5 text-xs text-brand-400">需付訂金 NT$ {s.depositTwd}</p>
+                )}
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="text-xs uppercase tracking-wide text-brand-400">
+                  {s.durationMin} 分鐘
+                </p>
+                <p className="mt-1 font-serif text-xl text-brand-900">NT$ {s.priceTwd}</p>
+                <p className="mt-2 text-xs text-brand-500 transition group-hover:text-brand-700">
+                  預約 →
+                </p>
+              </div>
+            </Link>
+          ))}
+          {services.length === 0 && (
+            <p className="py-10 text-center text-brand-400">
+              目前尚無可預約的服務項目，請聯絡店家。
+            </p>
+          )}
+        </div>
+      </section>
+
+      <div className="slat-divider" aria-hidden="true" />
+
+      <footer className="px-6 py-8 text-center">
         <Link href="/admin" className="text-xs text-brand-300 hover:text-brand-500">
           商家後台
         </Link>
