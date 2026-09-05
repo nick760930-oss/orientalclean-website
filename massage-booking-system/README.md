@@ -77,6 +77,13 @@ git push <新 repo 的 git URL> massage-booking-standalone:main
 
 完成後刪掉本機的 `massage-booking-standalone` 分支即可（`git branch -D massage-booking-standalone`），新 repo 就會是這個系統獨立、乾淨的歷史。
 
+## 未來可加功能（先不做，記錄需求）
+
+- **簡訊通知**（尚未實作，需要 Twilio 或其他簡訊服務帳號）：
+  1. 顧客預約成功時，自動收到確認簡訊
+  2. 有新預約時，店長手機收到通知簡訊
+  3. 預約前一天自動提醒顧客（需要額外排程機制掃描隔天的預約並發送）
+
 ## 專案結構
 
 ```
