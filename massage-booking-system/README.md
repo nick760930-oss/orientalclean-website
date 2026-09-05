@@ -12,14 +12,16 @@
 
 ## 技術棧
 
-Next.js 14（App Router）+ TypeScript + Tailwind CSS + Prisma（預設 SQLite，方便本機開發，正式站可換 Postgres）+ NextAuth（帳號密碼登入後台）+ Stripe（選用的線上付款）。
+Next.js 14（App Router）+ TypeScript + Tailwind CSS + Prisma（Postgres）+ NextAuth（帳號密碼登入後台）+ Stripe（選用的線上付款）。
 
 ## 本機開發
 
+需要一組真實的 Postgres 連線字串（見下方「部署」——最簡單是直接沿用部署時 Vercel/Neon 建立的那組，本機跟正式站共用同一個資料庫沒問題）。
+
 ```bash
 npm install
-cp .env.example .env        # 依需求修改內容
-npm run db:push             # 依 schema 建立資料庫
+cp .env.example .env        # 把 DATABASE_URL 換成真的 Postgres 連線字串，其餘依需求修改
+npm run db:push             # 依 schema 建立資料表
 npm run db:seed             # 灌入範例服務、按摩師與後台帳號
 npm run dev
 ```
@@ -37,11 +39,12 @@ npm run dev
 
 | 變數 | 說明 |
 | --- | --- |
-| `DATABASE_URL` | 資料庫連線字串。本機預設 `file:./dev.db`（SQLite）。 |
+| `DATABASE_URL` | Postgres 連線字串。用 Vercel Postgres/Neon 的話，建立資料庫後平台會自動產生並注入。 |
 | `NEXTAUTH_SECRET` | 後台登入用的加密密鑰，用 `openssl rand -base64 32` 產生。 |
-| `NEXTAUTH_URL` | 網站網址（本機為 `http://localhost:3000`，正式站改成實際網域）。 |
-| `NEXT_PUBLIC_SHOP_NAME` / `NEXT_PUBLIC_SHOP_PHONE` | 顯示在預約頁的店名與電話。 |
+| `NEXTAUTH_URL` | 網站網址（本機為 `http://localhost:3000`，正式站改成 Vercel 給的網域）。 |
+| `NEXT_PUBLIC_SHOP_NAME` / `NEXT_PUBLIC_SHOP_NAME_EN` / `NEXT_PUBLIC_SHOP_PHONE` / `NEXT_PUBLIC_SHOP_HOURS` | 顯示在預約頁的店名、英文標、電話、營業時間。 |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | 選填。三個都設定才會開啟線上付款；留空則只提供「到店付款」。 |
+| `TZ` | 設定為 `Asia/Taipei`（正式站部署時在 Vercel 環境變數加這個）。系統用伺服器本地時間計算營業時段，必須跟店家時區一致。 |
 
 ## 關於線上付款
 
@@ -55,11 +58,18 @@ npm run dev
 
 ## 部署
 
-建議部署到 Vercel：
+用同一個既有的 Vercel 帳號（東方繩洗網站那個）把這個系統加成**第二個、獨立的專案**即可，不會影響原本的網站：
 
-1. 把 `prisma/schema.prisma` 的 `datasource` 換成 Postgres（例如 Vercel Postgres / Supabase / Neon），`DATABASE_URL` 改成該服務給的連線字串（SQLite 檔案不適合正式站的多執行個體環境）。
-2. 在 Vercel 專案設定裡加上所有環境變數，並設定 `TZ=Asia/Taipei`（系統用伺服器本地時間計算營業時段，需要與店家所在時區一致）。
-3. 部署後執行一次 `npx prisma db push` 及 `npm run db:seed`（或自行建立第一個後台帳號）建立資料表。
+1. 到 [vercel.com](https://vercel.com) 用同一個帳號登入 → **Add New → Project**。
+2. 選擇同一個 repo `nick760930-oss/orientalclean-website`（同一個 repo 可以匯入成多個獨立專案，只要 Root Directory 不同就不會互相影響）。
+3. 在「Configure Project」畫面，**Root Directory 一定要選 `massage-booking-system`**（不填的話會抓到 repo 根目錄的東方繩洗靜態網站，不是這個系統）。Framework Preset 應該會自動偵測成 Next.js。
+4. 建立資料庫：進到這個新專案的 **Storage** 分頁 → **Create Database** → 選 **Postgres**（Neon）→ 建立。建立後 Vercel 會自動把 `DATABASE_URL` 注入這個專案的環境變數，不用手動複製貼上。
+5. 到 **Settings → Environment Variables** 補上其餘變數：`NEXTAUTH_SECRET`（隨機字串，用 `openssl rand -base64 32` 產生）、`NEXT_PUBLIC_SHOP_NAME`=`樂美`、`NEXT_PUBLIC_SHOP_NAME_EN`=`LE MEI`、`NEXT_PUBLIC_SHOP_PHONE`、`NEXT_PUBLIC_SHOP_HOURS`、`TZ`=`Asia/Taipei`。`NEXTAUTH_URL` 跟 Stripe 三個先留空，等下一步。
+6. 按 **Deploy**。完成後 Vercel 會給一個 `https://xxx.vercel.app` 網址。
+7. 回到 Environment Variables，把 `NEXTAUTH_URL` 設成剛剛拿到的網址，然後到 **Deployments** 頁面對最新一次部署按 **Redeploy**（讓後台登入的網址設定生效）。
+8. 建立資料表 + 灌測試資料：這步驟需要對著 Postgres 資料庫執行 `npx prisma db push` 跟 `npm run db:seed`。從 Storage 分頁複製 `DATABASE_URL`（這只是資料庫連線字串，不是 Vercel 帳號密碼），貼給我就能請我直接幫你跑這一步；或是你自己貼進本機 `.env` 後執行同樣兩個指令。
+
+線上付款（Stripe）是選用功能，設定方式見下一節，之後隨時可以再回來補。
 
 ## 之後搬到獨立的 GitHub repo
 

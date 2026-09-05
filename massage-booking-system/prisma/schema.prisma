@@ -1,10 +1,11 @@
 // Prisma schema for the massage shop booking system.
 //
-// Uses SQLite for zero-setup local dev. For production, swap the
-// datasource below for Postgres/MySQL (Vercel Postgres, Supabase, Neon, ...)
-// — the rest of the schema is portable as-is.
+// Postgres-backed (Vercel Postgres / Neon / Supabase all work — just a
+// connection string). SQLite was fine for early local scaffolding but
+// doesn't survive Vercel's serverless filesystem across requests, so
+// production and local dev now share one real Postgres instance.
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
