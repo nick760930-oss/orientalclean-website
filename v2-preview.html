@@ -18,27 +18,44 @@
 .final{min-height:80svh;display:grid;place-items:center;text-align:center;padding:10vh 6vw}.final h2{font-size:clamp(48px,9vw,120px);line-height:.92;letter-spacing:-.06em;margin:0}.final a{display:inline-block;margin-top:38px;color:#071012;background:var(--cyan);padding:17px 26px;border-radius:999px;text-decoration:none;font-weight:700}
 @media(max-width:720px){.nav .links{display:none}.grid{grid-template-columns:1fr}.card{min-height:310px}.card h3{margin-top:80px}.rope{left:88%}.case{background-attachment:scroll}.sectionHead{display:block}.hero{padding-bottom:12vh}.hero h1{font-size:17vw}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important}.hero:before{transform:none}.rope{display:none}}
+
+/* V2.1 interaction layer */
+.progress{position:fixed;z-index:40;left:0;top:0;height:2px;width:100%;transform:scaleX(0);transform-origin:left;background:var(--cyan)}
+.cursor{position:fixed;z-index:50;width:46px;height:46px;border:1px solid #8ff9ef88;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);mix-blend-mode:difference;display:none}
+.reveal{opacity:0;transform:translateY(46px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}.reveal.on{opacity:1;transform:none}
+.marquee{overflow:hidden;border-top:1px solid #ffffff20;border-bottom:1px solid #ffffff20;padding:17px 0;white-space:nowrap}.marquee div{display:inline-block;font-size:clamp(26px,4vw,58px);font-weight:700;letter-spacing:-.03em;animation:marquee 22s linear infinite}.marquee span{color:var(--cyan);margin:0 24px}@keyframes marquee{to{transform:translateX(-50%)}}
+.beforeafter{padding:13vh 6vw;background:#e7ece9;color:#071012}.beforeafter .sectionHead p{color:#435250}.compare{position:relative;max-width:1200px;height:min(72vw,720px);margin:auto;overflow:hidden;border-radius:3px;background:url('/images/case-3.jpg') center/cover}.compare .after{position:absolute;inset:0;width:50%;overflow:hidden;border-right:1px solid #fff}.compare .after:before{content:"";position:absolute;inset:0;width:min(1200px,88vw);background:url('/images/case-4.jpg') center/cover}.handle{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#fff;transform:translateX(-1px);pointer-events:none}.handle:after{content:"↔";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:54px;height:54px;border-radius:50%;background:var(--cyan);color:#071012;font-weight:800}.compare input{position:absolute;z-index:4;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #ffffff22;border-bottom:1px solid #ffffff22}.stat{padding:7vh 5vw;border-right:1px solid #ffffff22}.stat:last-child{border:0}.stat b{display:block;font-size:clamp(42px,7vw,88px);letter-spacing:-.06em;color:var(--cyan)}.stat span{color:var(--muted);font-size:13px;letter-spacing:.08em}
+@media(pointer:fine){.cursor{display:block}}@media(max-width:720px){.stats{grid-template-columns:1fr}.stat{border-right:0;border-bottom:1px solid #ffffff22}.compare{height:110vw}.compare .after:before{width:88vw}.marquee div{animation-duration:14s}}
 </style>
 </head>
-<body>
+<body><div class="progress" id="progress"></div><div class="cursor" id="cursor"></div>
 <div class="rope" id="rope"></div>
 <nav class="nav"><img src="/images/logo-horizontal-dark.png" alt="東方繩洗"><div class="links"><a href="#services">工程服務　</a><a href="#case">實績案例　</a><a class="cta" href="#contact">工程諮詢</a></div></nav>
 <section class="hero">
  <div class="heroContent"><div class="eyebrow">Rope Access × Facade Engineering</div><h1>城市的高度，<span>交給我們。</span></h1><p>高空外牆清潔、檢測、修繕與防水。把難以抵達的地方，變成我們每天工作的現場。</p></div><div class="scroll">SCROLL TO DESCEND</div>
 </section>
 <section class="manifesto"><div class="big"><small>ORIENTAL CLEAN / 東方繩洗</small>我們不是把人送上高處。<br>我們把<em>工程能力</em>帶到<br>建築最難抵達的位置。</div></section>
-<section class="services" id="services"><div class="sectionHead"><h2>Facade<br>Services.</h2><p>以繩索與高空作業技術為核心，從清潔、檢測到修繕與防水，讓單一團隊完成外牆問題的判斷與執行。</p></div>
+<div class="marquee"><div>外牆清洗 <span>×</span> 高空修繕 <span>×</span> 防水工程 <span>×</span> 外牆檢測 <span>×</span> ROPE ACCESS <span>×</span> 外牆清洗 <span>×</span> 高空修繕 <span>×</span> 防水工程 <span>×</span> 外牆檢測 <span>×</span> ROPE ACCESS <span>×</span></div></div><section class="services reveal" id="services"><div class="sectionHead"><h2>Facade<br>Services.</h2><p>以繩索與高空作業技術為核心，從清潔、檢測到修繕與防水，讓單一團隊完成外牆問題的判斷與執行。</p></div>
 <div class="grid">
  <article class="card"><span class="num">01 / CLEANING</span><span class="arrow">↗</span><h3>外牆清洗</h3><p>玻璃、帷幕牆、磁磚與特殊立面清潔。依污染程度與材質選擇工法。</p></article>
  <article class="card"><span class="num">02 / REPAIR</span><span class="arrow">↗</span><h3>外牆修繕</h3><p>磁磚空鼓、剝落、裂縫與外牆劣化處理，從檢測到修復建立完整施工紀錄。</p></article>
  <article class="card"><span class="num">03 / WATERPROOF</span><span class="arrow">↗</span><h3>防水工程</h3><p>針對外牆滲漏路徑、接縫與基面狀態制定防水修復方案。</p></article>
  <article class="card"><span class="num">04 / INSPECTION</span><span class="arrow">↗</span><h3>高空檢測</h3><p>繩索接近難以抵達的位置，將外牆缺失轉化為可判讀、可追蹤的工程資訊。</p></article>
 </div></section>
-<section class="case" id="case"><div class="caseInfo"><div class="eyebrow">SELECTED PROJECT / CASE STUDY</div><h2>工程不是照片。<br>是證據。</h2><p>V2 案例將從單純照片牆升級成 Case Study：現場問題、判斷、工法、施工過程與完工成果都能被客戶與搜尋引擎理解。</p><div><span class="tag">外牆清潔</span><span class="tag">高空作業</span><span class="tag">施工紀錄</span></div></div></section>
-<section class="final" id="contact"><div><div class="eyebrow">BUILDING ENVELOPE / ROPE ACCESS</div><h2>下一棟建築，<br>我們上去。</h2><a href="#">開始工程諮詢　↗</a></div></section>
+<section class="beforeafter reveal"><div class="sectionHead"><h2>Before.<br>After.</h2><p>不是用文字說乾淨多少。讓客戶直接拖曳比較工程前後。正式版會改用同一視角、同一建物的真實前後照片。</p></div><div class="compare" id="compare"><div class="after" id="after"></div><div class="handle" id="handle"></div><input id="slider" aria-label="拖曳比較施工前後" type="range" min="0" max="100" value="50"></div></section><section class="stats reveal"><div class="stat"><b>01</b><span>勘查與風險判讀</span></div><div class="stat"><b>02</b><span>工法與施工計畫</span></div><div class="stat"><b>03</b><span>施工紀錄與驗收</span></div></section><section class="case reveal" id="case"><div class="caseInfo"><div class="eyebrow">SELECTED PROJECT / CASE STUDY</div><h2>工程不是照片。<br>是證據。</h2><p>V2 案例將從單純照片牆升級成 Case Study：現場問題、判斷、工法、施工過程與完工成果都能被客戶與搜尋引擎理解。</p><div><span class="tag">外牆清潔</span><span class="tag">高空作業</span><span class="tag">施工紀錄</span></div></div></section>
+<section class="final reveal" id="contact"><div><div class="eyebrow">BUILDING ENVELOPE / ROPE ACCESS</div><h2>下一棟建築，<br>我們上去。</h2><a href="#">開始工程諮詢　↗</a></div></section>
 <script>
 const rope=document.getElementById('rope');let ticking=false;
 addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(()=>{const p=scrollY/(document.documentElement.scrollHeight-innerHeight);rope.style.transform='scaleY('+(0.28+p*.72)+')';rope.style.opacity=.28+p*.55;ticking=false});ticking=true}});
 document.querySelectorAll('.card').forEach(c=>c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect();c.style.setProperty('--x',((e.clientX-r.left)/r.width*100)+'%');c.style.setProperty('--y',((e.clientY-r.top)/r.height*100)+'%')}))
+
+const progress=document.getElementById('progress'),cursor=document.getElementById('cursor');
+addEventListener('scroll',()=>{const p=scrollY/(document.documentElement.scrollHeight-innerHeight);progress.style.transform='scaleX('+p+')'});
+addEventListener('pointermove',e=>{cursor.style.left=e.clientX+'px';cursor.style.top=e.clientY+'px'});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('on')}),{threshold:.13});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const slider=document.getElementById('slider'),after=document.getElementById('after'),handle=document.getElementById('handle');
+slider.addEventListener('input',()=>{after.style.width=slider.value+'%';handle.style.left=slider.value+'%'});
 </script>
 </body></html>
