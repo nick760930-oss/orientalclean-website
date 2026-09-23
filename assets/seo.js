@@ -1,1 +1,13 @@
 (()=>{const pages={"/": ["東方繩洗｜外牆清洗、修繕、安檢與防水工程", "東方繩洗提供外牆清洗、外牆修繕、安全檢測、防水與高空作業服務。查看施工案例、工程服務與聯絡方式，洽詢案場需求。"], "/about": ["關於東方繩洗｜外牆與高空工程團隊", "認識東方繩洗有限公司，了解外牆清潔、檢測、修繕與高空工程服務，以及團隊的施工與服務理念。"], "/services": ["工程服務｜外牆清洗、修繕、安檢、防水｜東方繩洗", "了解東方繩洗的外牆清潔、磁磚與裂縫修繕、外牆檢測、防水工程及特殊高空作業，依案場現況洽詢合適的施作方式。"], "/portfolio": ["施工案例｜外牆清洗與高空工程實績｜東方繩洗", "查看東方繩洗施工案例，包含林口森聯摩天41、台北統領百貨、大江購物中心與高雄流行音樂中心的案場照片及施作項目。"], "/testimonials": ["客戶回饋｜外牆工程服務評價｜東方繩洗", "閱讀東方繩洗客戶對外牆清潔、施工品質與服務溝通的回饋，搭配實際施工案例了解團隊。"], "/contact": ["聯絡東方繩洗｜工程諮詢與場勘洽詢", "外牆清洗、修繕、安檢或防水工程需求，歡迎聯絡東方繩洗。提供案場地址、現況照片與需求，方便業務協助安排評估。"]},base="https://www.orientalclean.com.tw";function update(){const path=location.pathname.replace(/\/$/,'')||'/';const data=pages[path];if(!data)return;document.title=data[0];for(const [selector,value] of [['meta[name="description"]',data[1]],['meta[property="og:title"]',data[0]],['meta[property="og:description"]',data[1]],['meta[property="og:url"]',base+path]]){const el=document.querySelector(selector);if(el)el.content=value;}const canonical=document.querySelector('link[rel="canonical"]');if(canonical)canonical.href=base+path;}for(const name of ['pushState','replaceState']){const original=history[name];history[name]=function(...args){const result=original.apply(this,args);update();return result;};}addEventListener('popstate',update);update();})();
+// Static editorial pages use full navigation so the legacy SPA cannot replace them.
+document.addEventListener('click',function(event){
+ if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+ const a=event.target.closest&&event.target.closest('a[href]');
+ if(!a||a.target==='_blank'||a.hasAttribute('download'))return;
+ const url=new URL(a.href,location.href);
+ if(url.origin!==location.origin)return;
+ if(['/services','/portfolio','/journal'].some(p=>url.pathname===p||url.pathname.startsWith(p+'/'))||url.pathname.startsWith('/cases/')){
+   event.preventDefault();event.stopImmediatePropagation();location.assign(url.href);
+ }
+},true);
+
