@@ -6,6 +6,7 @@ document.addEventListener('click',function(event){
  if(!a||a.target==='_blank'||a.hasAttribute('download'))return;
  const url=new URL(a.href,location.href);
  if(url.origin!==location.origin)return;
+ if(url.pathname==='/services'&&['wall-cleaning','wall-repair','wall-inspection','waterproof','high-altitude','special'].includes(url.hash.slice(1))){url.pathname+='/'+url.hash.slice(1);url.hash='';}
  if(['/services','/portfolio','/journal'].some(p=>url.pathname===p||url.pathname.startsWith(p+'/'))||url.pathname.startsWith('/cases/')){
    event.preventDefault();event.stopImmediatePropagation();location.assign(url.href);
  }
