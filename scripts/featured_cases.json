@@ -1,0 +1,90 @@
+[
+  {
+    "slug": "fubon-xihua",
+    "name": "西華富邦",
+    "location": "台北市大直",
+    "service": "外牆清洗",
+    "category": "外牆清潔",
+    "route": "wall-cleaning",
+    "date": "2026/08/17",
+    "photos": [
+      [
+        "fubon-xihua-1.jpg",
+        "西華富邦玻璃帷幕繩索清洗"
+      ],
+      [
+        "fubon-xihua-2.jpg",
+        "西華富邦玻璃立面清洗作業"
+      ],
+      [
+        "fubon-xihua-3.jpg",
+        "西華富邦建築立面繩索作業"
+      ]
+    ],
+    "desc": "玻璃帷幕與建築立面的繩索清洗。現場照片記錄多位作業人員在不同位置進行清潔。"
+  },
+  {
+    "slug": "lien-jade-oriental",
+    "name": "聯聚東方",
+    "location": "台中市",
+    "service": "外牆清洗",
+    "category": "外牆清潔",
+    "route": "wall-cleaning",
+    "date": "2026/05/08",
+    "photos": [
+      [
+        "lien-jade-oriental-1.jpg",
+        "聯聚東方高處立面沖洗作業"
+      ],
+      [
+        "lien-jade-oriental-2.jpg",
+        "聯聚東方欄杆外側繩索清洗"
+      ]
+    ],
+    "desc": "高處立面與欄杆外側的清洗紀錄，呈現繩索接近施工位置及沖洗作業。"
+  },
+  {
+    "slug": "metrowalk-sealant",
+    "name": "大江購物中心",
+    "location": "桃園市",
+    "service": "矽利康更新",
+    "category": "防水工程",
+    "route": "waterproof",
+    "date": "2026/05/30",
+    "photos": [
+      [
+        "metrowalk-sealant-1.jpg",
+        "大江購物中心弧形玻璃立面接縫更新"
+      ],
+      [
+        "metrowalk-sealant-2.jpg",
+        "大江購物中心窗框接縫處理"
+      ],
+      [
+        "metrowalk-sealant-3.jpg",
+        "大江購物中心玻璃接縫繩索施作"
+      ]
+    ],
+    "desc": "玻璃立面與窗框接縫的矽利康更新紀錄。包含弧形立面與高處接縫位置的現場施作照片。"
+  },
+  {
+    "slug": "guomei-star",
+    "name": "國美之星",
+    "location": "住宅社區",
+    "service": "屋頂接縫防水",
+    "category": "防水工程",
+    "route": "waterproof",
+    "date": null,
+    "photos": [
+      [
+        "guomei-star-1.jpg",
+        "國美之星屋頂造型構件繩索作業"
+      ],
+      [
+        "guomei-star-2.jpg",
+        "國美之星屋頂金屬構件接縫處理"
+      ]
+    ],
+    "desc": "屋頂造型構件的繩索防水作業，記錄金屬構件接縫與高處施作位置。"
+  }
+]
