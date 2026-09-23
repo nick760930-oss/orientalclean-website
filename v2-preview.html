@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>東方繩洗 V2 — Cinematic Concept</title>
+<title>東方繩洗 V3｜高空外牆清洗・修繕・防水・檢測</title>
 <meta name="description" content="東方繩洗有限公司｜高空外牆清潔、修繕、防水與檢測。V2 cinematic concept preview.">
 <style>
 *{box-sizing:border-box}html{background:#050507;color:#f4f7f5;font-family:"Noto Sans TC",system-ui,sans-serif;scroll-behavior:smooth}body{margin:0;overflow-x:hidden}
@@ -38,6 +38,11 @@ body:before{content:"";position:fixed;z-index:-1;inset:0;background:radial-gradi
 .sectionHead h2,.caseInfo h2,.final h2{background:linear-gradient(100deg,#fff 35%,#9da0aa 58%,#fff 78%);background-size:180%;-webkit-background-clip:text;background-clip:text;color:transparent}
 .prism{height:45vh;position:relative;overflow:hidden;display:grid;place-items:center;border-block:1px solid #ffffff18}.prism:before{content:"";position:absolute;width:70vw;height:18vw;background:linear-gradient(90deg,var(--violet),var(--electric),var(--cyan));filter:blur(70px);opacity:.28;transform:rotate(-8deg)}.prism strong{position:relative;font-size:clamp(38px,8vw,120px);letter-spacing:-.06em;text-transform:uppercase;mix-blend-mode:difference}
 @media(max-width:720px){.hero .orb{right:-12vw;top:19vh;width:38vw;opacity:.8}.aurora{width:100vw;height:100vw;right:-60vw}.prism{height:34vh}}
+
+/* V3: concise authority + knowledge engine */
+.authority{padding:14vh 6vw;display:grid;grid-template-columns:.8fr 1.2fr;gap:8vw;border-top:1px solid #ffffff18}.authority .kicker{color:var(--cyan);font:12px monospace;letter-spacing:.18em}.authority h2{font-size:clamp(44px,7vw,96px);line-height:.95;letter-spacing:-.055em;margin:20px 0}.authority p{font-size:clamp(18px,2vw,25px);line-height:1.75;color:#c7c9cf;max-width:760px}.proof{display:grid;gap:1px;background:#ffffff1c}.proof div{background:#0b0b10;padding:30px}.proof b{display:block;color:var(--cyan);font-size:12px;letter-spacing:.15em;margin-bottom:12px}.proof span{font-size:18px;line-height:1.55}
+.insights{padding:14vh 6vw;background:#f1f1ed;color:#08080b}.insightsTop{display:flex;justify-content:space-between;gap:5vw;align-items:end;margin-bottom:6vh}.insights h2{font-size:clamp(48px,8vw,108px);line-height:.86;letter-spacing:-.065em;margin:0}.insightsTop p{max-width:500px;line-height:1.75;color:#45454c}.articles{border-top:1px solid #111}.article{display:grid;grid-template-columns:110px 1fr auto;gap:25px;align-items:center;padding:30px 0;border-bottom:1px solid #111;text-decoration:none;color:inherit;transition:.3s}.article:hover{padding-left:14px}.article small{font:11px monospace;color:#666}.article h3{font-size:clamp(22px,3vw,38px);letter-spacing:-.035em;margin:0}.article i{font-style:normal;font-size:28px}.engine{margin-top:6vh;padding:28px;border:1px solid #111;display:flex;justify-content:space-between;gap:30px;align-items:center}.engine b{font-size:14px}.engine span{font-size:13px;color:#555}.pulse{width:9px;height:9px;border-radius:50%;background:#4ea900;box-shadow:0 0 0 7px #4ea90018;display:inline-block;margin-right:10px}
+@media(max-width:720px){.authority{grid-template-columns:1fr}.insightsTop{display:block}.insightsTop p{margin-top:28px}.article{grid-template-columns:60px 1fr}.article i{display:none}.engine{display:block}.engine span{display:block;margin-top:10px}}
 </style>
 </head>
 <body><div class="noise"></div><div class="progress" id="progress"></div><div class="cursor" id="cursor"></div>
@@ -55,7 +60,12 @@ body:before{content:"";position:fixed;z-index:-1;inset:0;background:radial-gradi
  <article class="card"><span class="num">04 / INSPECTION</span><span class="arrow">↗</span><h3>高空檢測</h3><p>繩索接近難以抵達的位置，將外牆缺失轉化為可判讀、可追蹤的工程資訊。</p></article>
 </div></section>
 <section class="prism"><strong>ACCESS THE IMPOSSIBLE</strong></section><section class="beforeafter reveal"><div class="sectionHead"><h2>Before.<br>After.</h2><p>不是用文字說乾淨多少。讓客戶直接拖曳比較工程前後。正式版會改用同一視角、同一建物的真實前後照片。</p></div><div class="compare" id="compare"><div class="after" id="after"></div><div class="handle" id="handle"></div><input id="slider" aria-label="拖曳比較施工前後" type="range" min="0" max="100" value="50"></div></section><section class="stats reveal"><div class="stat"><b>01</b><span>勘查與風險判讀</span></div><div class="stat"><b>02</b><span>工法與施工計畫</span></div><div class="stat"><b>03</b><span>施工紀錄與驗收</span></div></section><section class="case reveal" id="case"><div class="caseInfo"><div class="eyebrow">SELECTED PROJECT / CASE STUDY</div><h2>工程不是照片。<br>是證據。</h2><p>V2 案例將從單純照片牆升級成 Case Study：現場問題、判斷、工法、施工過程與完工成果都能被客戶與搜尋引擎理解。</p><div><span class="tag">外牆清潔</span><span class="tag">高空作業</span><span class="tag">施工紀錄</span></div></div></section>
-<section class="final reveal" id="contact"><div><div class="eyebrow">BUILDING ENVELOPE / ROPE ACCESS</div><h2>下一棟建築，<br>我們上去。</h2><a href="#">開始工程諮詢　↗</a></div></section>
+<section class="authority reveal"><div><div class="kicker">FIELD KNOWLEDGE / NOT MARKETING COPY</div><h2>真正的專業，<br>來自現場。</h2></div><div><p>我們把每一次外牆問題的判斷、工法選擇與施工結果，整理成下一次能被驗證、被搜尋、也能幫助客戶做決策的工程知識。</p><div class="proof"><div><b>01 / DIAGNOSE</b><span>先理解問題，不用單一工法套所有建築。</span></div><div><b>02 / EXECUTE</b><span>高空接近只是手段，真正交付的是工程結果。</span></div><div><b>03 / DOCUMENT</b><span>案例、照片與施工紀錄，成為可追溯的工程證據。</span></div></div></div></section>
+<section class="insights reveal" id="insights"><div class="insightsTop"><h2>工程<br>知識庫.</h2><p>不追求大量文章。只寫值得被搜尋、值得被引用、也真正能解決外牆問題的內容。文章將由 SEO / AI Search 引擎找出需求，再由工程經驗補上網路上沒有的第一手資訊。</p></div><div class="articles">
+<a class="article" href="#"><small>WATERPROOF</small><h3>外牆防水重做後，為什麼牆角仍然滲水？</h3><i>↗</i></a>
+<a class="article" href="#"><small>TILE</small><h3>外牆磁磚空鼓：低壓灌注、局部修補與打除重做怎麼選？</h3><i>↗</i></a>
+<a class="article" href="#"><small>ROPE ACCESS</small><h3>繩索作業與吊籠施工的差異，不只在價格。</h3><i>↗</i></a>
+</div><div class="engine"><b><span class="pulse"></span>CONTENT INTELLIGENCE ENGINE</b><span>搜尋需求 → 主題缺口 → 工程經驗 → SEO/AEO → 發布 → 收錄與曝光追蹤</span></div></section><section class="final reveal" id="contact"><div><div class="eyebrow">BUILDING ENVELOPE / ROPE ACCESS</div><h2>下一棟建築，<br>我們上去。</h2><a href="#">開始工程諮詢　↗</a></div></section>
 <script>
 const rope=document.getElementById('rope');let ticking=false;
 addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(()=>{const p=scrollY/(document.documentElement.scrollHeight-innerHeight);rope.style.transform='scaleY('+(0.28+p*.72)+')';rope.style.opacity=.28+p*.55;ticking=false});ticking=true}});
