@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#eee5d1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="一筆生萬物">
 <title>一筆生萬物</title>
 <meta name="description" content="一池會呼吸的水墨：隨手畫，墨在水中散開；輕點，錦鯉游來覓食；畫一個圈，它就活成一尾魚。">
@@ -25,9 +26,11 @@
     --cinnabar-deep: #8f2414;
     --brush: "LXGW WenKai TC", "Kaiti TC", "BiauKai", "DFKai-SB", "STKaiti", "Noto Serif TC", serif;
     --gutter: max(16px, env(safe-area-inset-left, 0px));
+    --dock-h: 112px;
   }
   html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: var(--paper); color: var(--ink); }
   html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body { position: fixed; inset: 0; width: 100%; }
   body { font-family: var(--brush); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 
   #stage { position: fixed; inset: 0; touch-action: none; cursor: crosshair; }
@@ -88,12 +91,12 @@
 
   .about {
     position: fixed; z-index: 5; left: var(--gutter); right: var(--gutter);
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 112px);
+    bottom: calc(var(--dock-h) + 10px);
     margin-inline: auto; max-width: 520px; box-sizing: border-box;
     background: var(--paper-veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     border: 1px solid var(--ink-faint); border-radius: 6px; padding: 18px 20px 16px;
     font-size: 15px; line-height: 1.7; color: var(--ink);
-    max-height: calc(100% - 140px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); overflow-y: auto; overscroll-behavior: contain;
+    max-height: calc(100% - var(--dock-h) - 26px - env(safe-area-inset-top, 0px)); overflow-y: auto; overscroll-behavior: contain;
     -webkit-user-select: text; user-select: text;
   }
   .about h2 { margin: 0 0 8px; font-size: 19px; letter-spacing: 0.08em; }
@@ -101,6 +104,23 @@
   .about dt { font-weight: 700; color: var(--cinnabar-deep); }
   .about dd { margin: 0; color: var(--ink-soft); }
   .about .foot { margin: 12px 0 0; padding-top: 10px; border-top: 1px dashed var(--ink-faint); color: var(--ink); }
+
+  .start {
+    position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; cursor: pointer; touch-action: none;
+    background: radial-gradient(ellipse at center, rgba(238,229,209,0.55), rgba(238,229,209,0.9));
+    transition: opacity .7s ease;
+  }
+  .start.gone { opacity: 0; pointer-events: none; }
+  .start:focus-visible { outline: none; }
+  .start-card { display: grid; justify-items: center; gap: 14px; padding-inline: 24px; text-align: center; }
+  .start-title { margin: 0; font-size: clamp(40px, 11vmin, 76px); font-weight: 700; letter-spacing: 0.16em; color: var(--ink); }
+  .start-go {
+    margin: 0; font-size: 18px; letter-spacing: 0.4em; color: var(--cinnabar);
+    padding: 8px 20px 8px 28px; border: 1px solid var(--cinnabar); border-radius: 999px; animation: breathe 2.4s ease-in-out infinite;
+  }
+  .start-tip { margin: 6px 0 0; max-width: 22em; font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
+  @keyframes breathe { 50% { opacity: .45; } }
+  @media (prefers-reduced-motion: reduce) { .start-go { animation: none; } }
 
   #labels { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
   .fishname {
@@ -120,11 +140,10 @@
     .dock { bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); gap: 6px; }
     .hint { display: none; }
     .tools button { min-height: 34px; padding: 4px 12px; font-size: 14px; }
-    .about { bottom: calc(env(safe-area-inset-bottom, 0px) + 56px); max-height: calc(100% - 76px); }
   }
   @media (max-width: 520px) {
     .tools button { font-size: 14px; padding: 6px 12px; }
-    .about { bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); font-size: 14px; }
+    .about { font-size: 14px; }
     .about dl { grid-template-columns: 1fr; gap: 0 0; }
     .about dd { margin-bottom: 6px; }
   }
@@ -143,7 +162,15 @@
   <div class="seal" aria-hidden="true"><span>墨</span><span>戲</span><span>遊</span><span>魚</span></div>
 </header>
 
-<div class="dock">
+<div class="start" id="start" role="button" tabindex="0" aria-label="輕觸開始">
+  <div class="start-card">
+    <p class="start-title">一筆生萬物</p>
+    <p class="start-go">輕觸開始</p>
+    <p class="start-tip" id="fsTip" hidden>iPhone 想要全螢幕：點 Safari 的分享鍵，選「加入主畫面」，再從主畫面打開。</p>
+  </div>
+</div>
+
+<div class="dock" id="dock">
   <ul class="hint" id="hint">
     <li><b>隨手畫</b>墨在水裡散開</li>
     <li><b>點一下</b>魚會游來吃</li>
@@ -153,6 +180,7 @@
     <button id="btnInk" type="button" aria-pressed="false"><span class="swatch" id="swatch"></span><span id="inkLabel">墨色</span></button>
     <button id="btnSound" type="button" aria-pressed="true">聲音　開</button>
     <button id="btnClear" type="button">換一池清水</button>
+    <button id="btnFS" type="button" hidden>全螢幕</button>
     <button id="btnAbout" type="button" aria-expanded="false" aria-controls="about">這是怎麼做的</button>
   </nav>
 </div>
@@ -920,6 +948,11 @@ stage.addEventListener('lostpointercapture', e => strokeEnd(e.pointerId, true));
 stage.addEventListener('contextmenu', e => e.preventDefault());
 // iOS: stop pinch and double-tap from zooming the page instead of painting
 ['gesturestart', 'gesturechange'].forEach(t => document.addEventListener(t, e => e.preventDefault()));
+// iOS ignores touch-action inside some frames and scrolls the whole window along with the finger:
+// cancel the native scroll on every touch that is not inside the scrollable info panel
+const blockScroll = e => { if (e.target.closest && e.target.closest('.about')) return; if (e.cancelable) e.preventDefault(); };
+document.addEventListener('touchmove', blockScroll, { passive: false });
+stage.addEventListener('touchstart', blockScroll, { passive: false });
 document.addEventListener('touchend', () => audio.init(), { passive: true });
 document.addEventListener('visibilitychange', () => {
   if (!audio.ctx) return;
@@ -999,7 +1032,39 @@ function ghostEnso() {
   }
   requestAnimationFrame(go);
 }
-setTimeout(ghostEnso, reduced ? 200 : 700);
+/* start screen: the first touch is what browsers require before sound and full screen */
+const rootEl = document.documentElement;
+const fsReq = rootEl.requestFullscreen || rootEl.webkitRequestFullscreen;
+const canFS = !!fsReq && !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+const isFS = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+function enterFS() { if (!canFS || isFS()) return; try { const r = fsReq.call(rootEl, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); } catch (_) {} }
+function exitFS() { const f = document.exitFullscreen || document.webkitExitFullscreen; try { const r = f && f.call(document); if (r && r.catch) r.catch(() => {}); } catch (_) {} }
+const btnFS = document.getElementById('btnFS');
+btnFS.hidden = !canFS;
+const syncFS = () => { btnFS.textContent = isFS() ? '離開全螢幕' : '全螢幕'; };
+['fullscreenchange', 'webkitfullscreenchange'].forEach(t => document.addEventListener(t, () => { syncFS(); onResize(); }));
+btnFS.addEventListener('click', () => { audio.init(); isFS() ? exitFS() : enterFS(); });
+const startEl = document.getElementById('start');
+const isIPhone = /iPhone|iPod/.test(navigator.userAgent);
+const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+let framed = true; try { framed = window.top !== window.self; } catch (_) {}
+// iPhone Safari has no full-screen API for pages; "Add to Home Screen" is the only way there
+if (!canFS && isIPhone && !standalone && !framed) document.getElementById('fsTip').hidden = false;
+let started = false;
+function begin() {
+  if (started) return; started = true;
+  audio.init(); enterFS();
+  startEl.classList.add('gone'); setTimeout(() => { startEl.hidden = true; }, 700);
+  setTimeout(ghostEnso, reduced ? 100 : 450);
+}
+startEl.addEventListener('click', begin);
+startEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); begin(); } });
+startEl.focus({ preventScroll: true });
+const dock = document.getElementById('dock');
+const setDockH = () => document.documentElement.style.setProperty('--dock-h', Math.ceil(window.innerHeight - dock.getBoundingClientRect().top) + 'px');
+if (window.ResizeObserver) new ResizeObserver(setDockH).observe(dock);
+window.addEventListener('resize', setDockH);
+setDockH();
 
 let last = performance.now(), frameNo = 0, avgMs = 16.7, slowFor = 0;
 const startedAt = performance.now();
