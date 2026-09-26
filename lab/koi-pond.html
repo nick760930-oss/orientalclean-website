@@ -176,7 +176,7 @@
     <dt>光</dt><dd>池底晃動的光紋（焦散）、樹葉篩下的光影、魚和荷葉投在池底的影子，都是每一格畫面當下算的；水越深，紅光被吸收得越多，顏色就越青綠。</dd>
     <dt>墨</dt><dd>顯示卡每秒解 60 次流體力學方程（Navier–Stokes），墨會被手指和魚尾推著打旋。</dd>
     <dt>魚</dt><dd>每尾魚是一條 14 節的脊椎，身體由頭往尾擺動，會覓食、會閃躲，會被水流帶著走。圈畫得越大，魚就越大。</dd>
-    <dt>聲音</dt><dd>流水、水滴、鳥鳴和風鈴，都是當場用聲波合成的。</dd>
+    <dt>琴</dt><dd>撥弦聲用 Karplus–Strong 演算法當場合成，音高照五聲音階（宮商角徵羽），下筆越高，音越高。</dd>
   </dl>
   <p class="foot">這一頁沒有任何圖片、音檔或程式套件。池底每一顆石頭、每一片鱗，都是此刻才畫出來的。</p>
 </section>
@@ -554,100 +554,76 @@ function makeWater(canvas) {
    SOUND — water, birds and a wind chime, all synthesised
    ========================================================= */
 const audio = {
-  ctx: null, on: true, master: null, send: null, noise: null, swishGain: null, birdTimer: 0,
+  ctx: null, on: true, bufs: [], master: null, send: null, lastNote: 0,
   init() {
     if (this.ctx) { if (this.ctx.state !== 'running' && !document.hidden) this.ctx.resume().catch(() => {}); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     const c = this.ctx = new AC();
-    try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (_) {}
+    // iOS only unlocks audio once something actually plays inside the gesture
+    try { const b = c.createBuffer(1, 1, 22050), src = c.createBufferSource(); src.buffer = b; src.connect(c.destination); src.start(0); } catch (_) {}
     if (c.state !== 'running') c.resume().catch(() => {});
-    const comp = c.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 4;
-    this.master = c.createGain(); this.master.gain.value = this.on ? 0.9 : 0; this.master.connect(comp); comp.connect(c.destination);
-    const len = Math.round(c.sampleRate * 1.6), ir = c.createBuffer(2, len, c.sampleRate);
-    for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4); }
-    const verb = c.createConvolver(); verb.buffer = ir;
-    this.send = c.createGain(); this.send.gain.value = 0.3; this.send.connect(verb); verb.connect(this.master);
+    const comp = c.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4;
+    this.master = c.createGain(); this.master.gain.value = 0.8; this.master.connect(comp); comp.connect(c.destination);
+    const verb = c.createConvolver(); const len = Math.round(c.sampleRate * 3.2);
+    const ir = c.createBuffer(2, len, c.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.4); }
+    verb.buffer = ir; this.send = c.createGain(); this.send.gain.value = 0.42; this.send.connect(verb); verb.connect(this.master);
+    // D major pentatonic: 宮 商 角 徵 羽 — D E F# A B, across three octaves
+    const offs = [0, 2, 4, 7, 9];
+    for (let i = 0; i < 14; i++) {
+      const midi = 50 + 12 * Math.floor(i / 5) + offs[i % 5];
+      this.bufs.push(this.string(440 * Math.pow(2, (midi - 69) / 12), 1 - i / 14));
+    }
+    // a faint stream past the edge of the pond, under the strings
     const nb = c.createBuffer(1, c.sampleRate * 3, c.sampleRate), nd = nb.getChannelData(0);
-    let last = 0; for (let i = 0; i < nd.length; i++) { const w = Math.random() * 2 - 1; last = (last + 0.035 * w) / 1.035; nd[i] = w * 0.55 + last * 3.2; }
-    this.noise = nb;
-    // a stream somewhere past the edge of the pond
-    const amb = this.loop(), bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 620; bp.Q.value = 0.6;
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2200;
-    const ag = c.createGain(); ag.gain.value = 0.05;
-    const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = 0.11; lg.gain.value = 0.02; lfo.connect(lg); lg.connect(ag.gain); lfo.start();
-    amb.connect(bp); bp.connect(lp); lp.connect(ag); ag.connect(this.master);
-    // the swish of a finger through water, driven by stroke speed
-    const sw = this.loop(), sbp = c.createBiquadFilter(); sbp.type = 'bandpass'; sbp.frequency.value = 900; sbp.Q.value = 1.1;
-    this.swishGain = c.createGain(); this.swishGain.gain.value = 0; sw.connect(sbp); sbp.connect(this.swishGain); this.swishGain.connect(this.master);
-    this.scheduleBird();
+    let lastN = 0; for (let i = 0; i < nd.length; i++) { const w = Math.random() * 2 - 1; lastN = (lastN + 0.035 * w) / 1.035; nd[i] = w * 0.5 + lastN * 3; }
+    const amb = c.createBufferSource(); amb.buffer = nb; amb.loop = true;
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 620; bp.Q.value = 0.6;
+    this.amb = c.createGain(); this.amb.gain.value = this.on ? 0.03 : 0;
+    amb.connect(bp); bp.connect(this.amb); this.amb.connect(this.master); amb.start();
   },
-  loop() { const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.loop = true; s.loopStart = rand(0, 1); s.start(0, rand(0, 2)); return s; },
-  out(node, pan, wet = true) {
-    const c = this.ctx; let n = node;
-    if (c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); node.connect(p); n = p; }
-    n.connect(this.master); if (wet) n.connect(this.send);
-  },
-  setOn(v) { this.on = v; if (this.master) this.master.gain.setTargetAtTime(v ? 0.9 : 0, this.ctx.currentTime, 0.05); },
-  stroke(speed) {
-    if (!this.swishGain) return;
-    this.swishGain.gain.setTargetAtTime(clamp(speed / 2600, 0, 1) * 0.32, this.ctx.currentTime, 0.05);
-  },
-  /* a water drop: a bubble ringing upward in pitch, plus the slap of the impact */
-  plop(size = 0.5, pan = 0, when = 0) {
-    if (!this.ctx) return;
-    const c = this.ctx, t = c.currentTime + when, f0 = lerp(900, 360, size) * rand(0.9, 1.12);
-    const o = c.createOscillator(); o.type = 'sine';
-    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 2.3, t + 0.07);
-    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.32 * (0.5 + size), t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
-    o.connect(g); this.out(g, pan); o.start(t); o.stop(t + 0.16);
-    const n = this.ctx.createBufferSource(); n.buffer = this.noise;
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900 + 1200 * size;
-    const ng = c.createGain(); ng.gain.setValueAtTime(0.25 * size, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.06 + 0.1 * size);
-    n.connect(lp); lp.connect(ng); this.out(ng, pan); n.start(t, rand(0, 2)); n.stop(t + 0.2);
-  },
-  gulp(pan = 0) {
-    if (!this.ctx) return;
-    const c = this.ctx, t = c.currentTime;
-    const o = c.createOscillator(); o.frequency.setValueAtTime(230, t); o.frequency.exponentialRampToValueAtTime(95, t + 0.09);
-    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.28, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
-    o.connect(g); this.out(g, pan, false); o.start(t); o.stop(t + 0.16);
-    this.plop(0.2, pan, 0.03);
-  },
-  splash(pan = 0) {
-    if (!this.ctx) return;
-    const c = this.ctx, t = c.currentTime;
-    const n = c.createBufferSource(); n.buffer = this.noise;
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(3200, t); lp.frequency.exponentialRampToValueAtTime(500, t + 0.6);
-    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.5, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
-    n.connect(lp); lp.connect(g); this.out(g, pan); n.start(t, rand(0, 2)); n.stop(t + 0.8);
-    for (let i = 0; i < 4; i++) this.plop(rand(0.1, 0.5), pan + rand(-0.2, 0.2), rand(0.05, 0.4));
-  },
-  /* a bronze wind chime under the eaves: inharmonic partials, long ring */
-  chime(when = 0) {
-    if (!this.ctx) return;
-    const c = this.ctx, notes = [1174.66, 1318.51, 1479.98, 1760, 1975.53, 2349.32];
-    for (let k = 0; k < 4; k++) {
-      const t = c.currentTime + when + k * rand(0.09, 0.2), f = pick(notes), pan = rand(-0.5, 0.5);
-      [[1, 0.12, 2.6], [2.76, 0.05, 1.3], [5.4, 0.025, 0.6]].forEach(([m, a, d]) => {
-        const o = c.createOscillator(); o.frequency.value = f * m;
-        const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(a, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-        o.connect(g); this.out(g, pan); o.start(t); o.stop(t + d + 0.05);
-      });
-    }
-  },
-  /* a small songbird: a few rising, then falling whistles */
-  chirp() {
-    if (!this.ctx || !this.on || document.hidden) return;
-    const c = this.ctx, pan = rand(-0.9, 0.9), base = rand(2600, 3600), n = (rand(2, 5)) | 0;
+  setOn(v) { this.on = v; if (this.amb) this.amb.gain.setTargetAtTime(v ? 0.03 : 0, this.ctx.currentTime, 0.1); },
+  string(freq, lowness) {
+    const sr = this.ctx.sampleRate, n = Math.round(sr * 3), N = Math.max(2, Math.round(sr / freq));
+    const buf = this.ctx.createBuffer(1, n, sr), out = buf.getChannelData(0);
+    const ring = new Float32Array(N);
+    for (let i = 0; i < N; i++) ring[i] = Math.random() * 2 - 1;
+    for (let pass = 0; pass < 3; pass++) for (let i = 1; i < N; i++) ring[i] = (ring[i] + ring[i - 1]) * 0.5;
+    const pos = Math.round(N * 0.18); const exc = ring.slice();           // pluck position comb gives the string its colour
+    for (let i = 0; i < N; i++) ring[i] = exc[i] - 0.6 * exc[(i + pos) % N];
+    const rho = 0.9965 + 0.0028 * lowness;
+    let idx = 0;
     for (let i = 0; i < n; i++) {
-      const t = c.currentTime + i * rand(0.11, 0.17);
-      const o = c.createOscillator(); o.type = 'sine';
-      o.frequency.setValueAtTime(base, t); o.frequency.exponentialRampToValueAtTime(base * 1.45, t + 0.045); o.frequency.exponentialRampToValueAtTime(base * 0.9, t + 0.09);
-      const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.045, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
-      o.connect(g); this.out(g, pan); o.start(t); o.stop(t + 0.12);
+      const a = ring[idx], b = ring[(idx + 1) % N];
+      out[i] = a; ring[idx] = rho * 0.5 * (a + b); idx = (idx + 1) % N;
     }
+    let peak = 0; for (let i = 0; i < 4000 && i < n; i++) peak = Math.max(peak, Math.abs(out[i]));
+    const k = 0.6 / (peak || 1); for (let i = 0; i < n; i++) out[i] *= k;
+    return buf;
   },
-  scheduleBird() { clearTimeout(this.birdTimer); this.birdTimer = setTimeout(() => { this.chirp(); this.scheduleBird(); }, rand(6000, 15000)); }
+  pluck(i, vel = 0.6, pan = 0, when = 0) {
+    if (!this.on || !this.ctx || !this.bufs.length) return;
+    const c = this.ctx, t = c.currentTime + when;
+    const src = c.createBufferSource(); src.buffer = this.bufs[clamp(i | 0, 0, this.bufs.length - 1)];
+    src.detune.value = rand(-6, 6);
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800 + vel * 4200;
+    const g = c.createGain(); g.gain.setValueAtTime(vel * 0.55, t); g.gain.setTargetAtTime(0, t + 2.2, 0.35);
+    const p = c.createStereoPanner ? c.createStereoPanner() : null;
+    src.connect(lp); lp.connect(g);
+    if (p) { p.pan.value = clamp(pan, -1, 1); g.connect(p); p.connect(this.master); p.connect(this.send); }
+    else { g.connect(this.master); g.connect(this.send); }
+    src.start(t); src.stop(t + 3);
+  },
+  noteForY(y) { return clamp(Math.floor((1 - y / H) * 12) + 1, 0, 13); },
+  bell(when = 0) {
+    if (!this.on || !this.ctx) return;
+    const c = this.ctx, t = c.currentTime + when, f0 = 587.33;
+    [[1, 0.22, 3.2], [2.76, 0.09, 1.6], [5.4, 0.05, 0.8], [0.5, 0.08, 2.4]].forEach(([m, a, d]) => {
+      const o = c.createOscillator(); o.type = 'sine'; o.frequency.value = f0 * m;
+      const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(this.master); g.connect(this.send); o.start(t); o.stop(t + d + 0.05);
+    });
+  }
 };
 
 /* =========================================================
@@ -716,38 +692,111 @@ function makeBottom() {
 /* =========================================================
    KOI — the living part
    ========================================================= */
-const scaleTile = (() => {
-  const c = document.createElement('canvas'); c.width = 24; c.height = 20; const g = c.getContext('2d');
-  const arc = (x, y) => {
-    g.strokeStyle = 'rgba(0,0,0,0.55)'; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, 7, Math.PI * 0.15, Math.PI * 0.85); g.stroke();
-    g.strokeStyle = 'rgba(255,255,255,0.5)'; g.lineWidth = 0.8; g.beginPath(); g.arc(x, y - 1.2, 7, Math.PI * 0.2, Math.PI * 0.8); g.stroke();
-  };
-  for (const [x, y] of [[0, 0], [12, 0], [24, 0], [6, 10], [18, 10], [0, 20], [12, 20], [24, 20]]) arc(x, y);
-  return c;
-})();
+/* each koi gets its own skin: pattern, scales, gill covers and the rounded light of its back,
+   painted once in body coordinates (u: nose→tail, s: left flank→right flank) and later wrapped
+   onto the bending body triangle by triangle */
+const RED = [212, 58, 28], SUMI = [18, 19, 22], WHITE = [244, 240, 231];
+function hash2(x, y, seed) { const h = Math.sin(x * 127.1 + y * 311.7 + seed * 74.7) * 43758.5453; return h - Math.floor(h); }
+function vnoise(x, y, seed) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  return lerp(lerp(hash2(xi, yi, seed), hash2(xi + 1, yi, seed), u), lerp(hash2(xi, yi + 1, seed), hash2(xi + 1, yi + 1, seed), u), v);
+}
+function fbm2(x, y, seed) { return 0.55 * vnoise(x, y, seed) + 0.3 * vnoise(x * 2.1, y * 2.1, seed + 3) + 0.15 * vnoise(x * 4.3, y * 4.3, seed + 7); }
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
-function blobs(n, c, t0, t1, r0, r1, offMax = 0.75) {
-  const out = [];
-  for (let i = 0; i < n; i++) {
-    const t = rand(t0, t1), off = rand(-offMax, offMax), r = rand(r0, r1);
-    out.push({ t, off, r, c });
-    out.push({ t: t + rand(-0.05, 0.05), off: off + rand(-0.35, 0.35), r: r * rand(0.55, 0.85), c });
-  }
+/* organic patches: overlapping ellipses whose edges are frayed by noise, like real koi markings */
+function patchField(blobs, seed, rough) {
+  return (u, s) => {
+    let f = -1;
+    for (const b of blobs) { const du = (u - b.u) / b.du, ds = (s - b.s) / b.ds; f = Math.max(f, 1 - du * du - ds * ds); }
+    return f + (fbm2(u * 14, s * 3.5, seed) - 0.5) * rough;
+  };
+}
+function stepBlobs(n, u0, u1, du0, du1, ds0, ds1, sSpread) {
+  const out = [], span = (u1 - u0) / n;
+  for (let i = 0; i < n; i++) out.push({ u: u0 + span * (i + rand(0.2, 0.8)), s: rand(-sSpread, sSpread), du: rand(du0, du1), ds: rand(ds0, ds1) });
   return out;
 }
+
 const KOI = {
-  kohaku: { body: [246, 242, 234], fin: 'rgba(250,248,244,0.55)', ray: 'rgba(150,140,130,0.35)', patches: () => blobs(rand(3, 5) | 0, [214, 62, 30], 0.04, 0.78, 0.05, 0.09) },
-  tancho: { body: [247, 244, 237], fin: 'rgba(250,248,244,0.55)', ray: 'rgba(150,140,130,0.35)', patches: () => [{ t: 0.075, off: 0, r: 0.068, c: [212, 46, 30] }] },
-  ogon:   { body: [232, 172, 70], fin: 'rgba(240,196,110,0.5)', ray: 'rgba(170,110,30,0.4)', metal: 1, patches: () => [] },
-  platinum: { body: [236, 234, 226], fin: 'rgba(244,244,238,0.5)', ray: 'rgba(160,160,150,0.35)', metal: 1, patches: () => [] },
-  karasu: { body: [34, 36, 41], fin: 'rgba(30,32,38,0.55)', ray: 'rgba(0,0,0,0.5)', patches: () => [] },
-  showa:  { body: [30, 31, 35], fin: 'rgba(36,36,40,0.5)', ray: 'rgba(0,0,0,0.5)', patches: () => blobs(3, [210, 64, 34], 0.04, 0.75, 0.05, 0.085).concat(blobs(2, [242, 238, 228], 0.15, 0.8, 0.04, 0.07)) },
-  bekko:  { body: [244, 240, 231], fin: 'rgba(248,246,240,0.55)', ray: 'rgba(110,110,110,0.35)', patches: () => blobs(5, [30, 31, 35], 0.2, 0.75, 0.022, 0.042) },
-  asagi:  { body: [112, 136, 150], fin: 'rgba(230,120,70,0.5)', ray: 'rgba(140,60,30,0.45)', patches: () => blobs(4, [222, 108, 58], 0.1, 0.8, 0.05, 0.07, 1.05) },
-  chagoi: { body: [142, 106, 66], fin: 'rgba(150,112,70,0.5)', ray: 'rgba(80,50,20,0.45)', patches: () => [] },
-  hi:     { body: [228, 100, 46], fin: 'rgba(236,130,80,0.5)', ray: 'rgba(150,50,20,0.45)', patches: () => [] }
+  kohaku:   { base: WHITE, fin: [248, 246, 240], ray: [150, 140, 130], layers: () => [[RED, stepBlobs(rand(2, 4) | 0, 0.02, 0.82, 0.07, 0.15, 0.7, 1.15, 0.25)]] },
+  tancho:   { base: WHITE, fin: [248, 246, 240], ray: [150, 140, 130], layers: () => [[RED, [{ u: 0.085, s: 0, du: 0.055, ds: 0.52 }], 0.12]] },
+  ogon:     { base: [224, 166, 62], fin: [234, 184, 96], ray: [160, 100, 30], metal: 1, layers: () => [] },
+  platinum: { base: [232, 231, 224], fin: [240, 240, 234], ray: [150, 150, 140], metal: 1, layers: () => [] },
+  karasu:   { base: [28, 29, 33], fin: [34, 35, 40], ray: [8, 8, 10], layers: () => [] },
+  showa:    { base: SUMI, fin: [40, 40, 44], ray: [8, 8, 10], motoguro: 1, layers: () => [[WHITE, stepBlobs(2, 0.2, 0.85, 0.06, 0.12, 0.5, 0.9, 0.4)], [RED, stepBlobs(3, 0.0, 0.8, 0.07, 0.13, 0.6, 1.1, 0.3)]] },
+  bekko:    { base: WHITE, fin: [248, 246, 240], ray: [120, 120, 120], layers: () => [[SUMI, stepBlobs(5, 0.22, 0.8, 0.02, 0.035, 0.14, 0.26, 0.45), 0.25]] },
+  asagi:    { base: [104, 126, 142], fin: [226, 116, 64], ray: [140, 60, 30], net: 1, flanks: [218, 96, 48], layers: () => [] },
+  chagoi:   { base: [138, 102, 62], fin: [148, 110, 68], ray: [80, 50, 20], net: 1, layers: () => [] },
+  hi:       { base: [222, 92, 40], fin: [232, 124, 74], ray: [150, 50, 20], layers: () => [] }
 };
 const rgb = (c, k = 1, a = 1) => `rgba(${clamp(c[0] * k, 0, 255) | 0},${clamp(c[1] * k, 0, 255) | 0},${clamp(c[2] * k, 0, 255) | 0},${a})`;
+const SKW = 256, SKH = 64;
+
+function makeSkin(k) {
+  const c = document.createElement('canvas'); c.width = SKW; c.height = SKH;
+  const g = c.getContext('2d'), img = g.createImageData(SKW, SKH), d = img.data, seed = rand(0, 1000);
+  const layers = k.layers().map(([col, blobs, rough]) => [col, patchField(blobs, seed + col[0], rough == null ? 0.55 : rough)]);
+  for (let y = 0; y < SKH; y++) for (let x = 0; x < SKW; x++) {
+    const u = (x + 0.5) / SKW, s = ((y + 0.5) / SKH) * 2 - 1;
+    let r = k.base[0], gg = k.base[1], b = k.base[2];
+    if (k.flanks) {                                   // asagi: red cheeks and flanks under a blue back
+      const a = smooth(0.5, 0.72, Math.abs(s) + (fbm2(u * 9, s * 2, seed) - 0.5) * 0.35) + (u < 0.2 ? smooth(0.2, 0.45, Math.abs(s)) : 0);
+      const t = clamp(a, 0, 1); r = lerp(r, k.flanks[0], t); gg = lerp(gg, k.flanks[1], t); b = lerp(b, k.flanks[2], t);
+    }
+    for (const [col, field] of layers) {
+      const t = smooth(0.0, 0.09, field(u, s));
+      r = lerp(r, col[0], t); gg = lerp(gg, col[1], t); b = lerp(b, col[2], t);
+    }
+    const n = 0.94 + 0.12 * fbm2(u * 30, s * 8, seed + 11);   // living skin is never flat
+    const i = (y * SKW + x) * 4; d[i] = r * n; d[i + 1] = gg * n; d[i + 2] = b * n; d[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+
+  // scales: overlapping rows from behind the gill cover to the tail, free edge facing the tail
+  const cols = 34, rows = 10, sx = SKW * 0.8 / cols, sy = SKH / rows, dark = k.net ? 0.42 : 0.2, light = k.net ? 0.34 : 0.15;
+  for (let ci = 0; ci <= cols; ci++) for (let ri = -1; ri <= rows; ri++) {
+    const x = SKW * 0.2 + ci * sx, y = ri * sy + (ci % 2 ? sy / 2 : 0), rr = sy * 0.78;
+    g.strokeStyle = `rgba(0,0,0,${dark})`; g.lineWidth = 0.9;
+    g.beginPath(); g.arc(x, y, rr, -1.05, 1.05); g.stroke();
+    g.strokeStyle = `rgba(255,255,255,${light})`; g.lineWidth = 0.7;
+    g.beginPath(); g.arc(x - 1, y, rr, -0.9, 0.9); g.stroke();
+    if (k.metal && Math.random() < 0.5) { g.fillStyle = `rgba(255,250,225,${rand(0.15, 0.4).toFixed(2)})`; g.fillRect(x - rr * 0.4, y - 0.6, 1.4, 1.2); }
+  }
+  // gill covers
+  for (const side of [-1, 1]) {
+    const y0 = side < 0 ? 0 : SKH, y1 = SKH / 2 + side * SKH * 0.16;
+    g.strokeStyle = 'rgba(0,0,0,0.28)'; g.lineWidth = 1.4;
+    g.beginPath(); g.moveTo(SKW * 0.17, y0); g.quadraticCurveTo(SKW * 0.215, (y0 + y1) / 2, SKW * 0.19, y1); g.stroke();
+    g.strokeStyle = 'rgba(255,255,255,0.18)'; g.lineWidth = 0.8;
+    g.beginPath(); g.moveTo(SKW * 0.165, y0); g.quadraticCurveTo(SKW * 0.208, (y0 + y1) / 2, SKW * 0.184, y1); g.stroke();
+  }
+  // the back is a rounded ridge: bright along the spine, falling away to darker flanks
+  const im2 = g.getImageData(0, 0, SKW, SKH), e = im2.data, spec = k.metal ? 70 : 34;
+  for (let y = 0; y < SKH; y++) {
+    const s = ((y + 0.5) / SKH) * 2 - 1, shade = 0.48 + 0.6 * Math.pow(Math.cos(s * Math.PI / 2), 0.75), hi = spec * Math.exp(-(s / 0.2) * (s / 0.2));
+    for (let x = 0; x < SKW; x++) {
+      const u = x / SKW, tail = 1 - 0.18 * smooth(0.75, 1, u), head = u < 0.08 ? 0.9 + 1.25 * u : 1;
+      const i = (y * SKW + x) * 4, m = shade * tail * head;
+      e[i] = clamp(e[i] * m + hi, 0, 255); e[i + 1] = clamp(e[i + 1] * m + hi, 0, 255); e[i + 2] = clamp(e[i + 2] * m + hi * 0.9, 0, 255);
+    }
+  }
+  g.putImageData(im2, 0, 0);
+  const hi0 = (SKH / 2 * SKW + 3) * 4; c.head = [e[hi0], e[hi0 + 1], e[hi0 + 2]];   // the snout continues the colour of the head
+  return c;
+}
+
+/* map one triangle of the skin onto one triangle of the body */
+function skinTri(c, img, x0, y0, x1, y1, x2, y2, u0, v0, u1, v1, u2, v2) {
+  const cx = (x0 + x1 + x2) / 3, cy = (y0 + y1 + y2) / 3, grow = (x, y) => { const dx = x - cx, dy = y - cy, l = Math.hypot(dx, dy) || 1; return [x + dx / l * 0.7, y + dy / l * 0.7]; };
+  const [a0, b0] = grow(x0, y0), [a1, b1] = grow(x1, y1), [a2, b2] = grow(x2, y2);
+  const det = (u1 - u0) * (v2 - v0) - (u2 - u0) * (v1 - v0); if (!det) return;
+  const a = ((x1 - x0) * (v2 - v0) - (x2 - x0) * (v1 - v0)) / det, b = ((y1 - y0) * (v2 - v0) - (y2 - y0) * (v1 - v0)) / det;
+  const cc = ((x2 - x0) * (u1 - u0) - (x1 - x0) * (u2 - u0)) / det, dd = ((y2 - y0) * (u1 - u0) - (y1 - y0) * (u2 - u0)) / det;
+  c.save(); c.beginPath(); c.moveTo(a0, b0); c.lineTo(a1, b1); c.lineTo(a2, b2); c.closePath(); c.clip();
+  c.transform(a, b, cc, dd, x0 - a * u0 - cc * v0, y0 - b * u0 - dd * v0); c.drawImage(img, 0, 0); c.restore();
+}
+
 const NAMES = ['年年', '小墨', '圓圓', '朱朱', '金元寶', '豆花', '湯圓', '小滿', '如意', '吉祥', '米糕', '芝麻', '麻糬', '大寶', '阿福', '小雪', '水餃', '柚子', '歲歲', '滿滿', '小蓮', '波波', '胖丁', '福氣'];
 const SEG = 14;
 const S = { fish: [], food: [], ripples: [], pads: [], petals: [], bubbles: [], ink: 0, t: 0, born: 0, names: NAMES.slice(), userLoops: 0 };
@@ -755,14 +804,15 @@ const S = { fish: [], food: [], ripples: [], pads: [], petals: [], bubbles: [], 
 function makeFish(x, y, L, kind, angle, isNew) {
   const k = KOI[kind];
   const f = { x, y, L, kind, k, angle, speed: L * 0.4, cruise: L * rand(0.36, 0.52), wander: 0, phase: rand(0, 6.28),
-    age: isNew ? 0 : 5, dying: 0, patches: k.patches(), sp: [], label: null, labelLife: 0, rippleT: 0 };
+    age: isNew ? 0 : 5, dying: 0, skin: makeSkin(k), sp: [], label: null, labelLife: 0, rippleT: 0 };
   const seg = L / (SEG - 1);
   for (let i = 0; i < SEG; i++) f.sp.push({ x: x - Math.cos(angle) * seg * i, y: y - Math.sin(angle) * seg * i });
   return f;
 }
 function widthAt(t) {
-  if (t < 0.24) return 0.112 + 0.036 * Math.sin(t / 0.24 * Math.PI / 2);
-  const u = (t - 0.24) / 0.76; return 0.148 * Math.pow(1 - u, 1.35) * 0.93 + 0.011;
+  // a koi seen from above: blunt head, widest just behind the gills, long taper to a slim tail stem
+  if (t < 0.3) return 0.07 + 0.068 * Math.sin(t / 0.3 * Math.PI / 2);
+  const u = (t - 0.3) / 0.7; return 0.138 * Math.pow(1 - u, 1.15) * 0.9 + 0.016;
 }
 function nearestFood(f) {
   let best = null, bd = Math.min(W, H) * 0.7;
@@ -834,7 +884,7 @@ function bodyPath(g) {
   const hx = P[0].x - P[1].x, hy = P[0].y - P[1].y, hl = Math.hypot(hx, hy) || 1, fx = hx / hl, fy = hy / hl;
   const Lp = P.map((p, i) => ({ x: p.x + N[i].x * Wd[i], y: p.y + N[i].y * Wd[i] }));
   const Rp = P.map((p, i) => ({ x: p.x - N[i].x * Wd[i], y: p.y - N[i].y * Wd[i] }));
-  const w0 = Wd[0], tip = { x: P[0].x + fx * w0 * 1.05, y: P[0].y + fy * w0 * 1.05 };
+  const w0 = Wd[0], tip = { x: P[0].x + fx * w0 * 0.85, y: P[0].y + fy * w0 * 0.85 };
   path.moveTo(tip.x, tip.y);
   path.quadraticCurveTo(Lp[0].x + fx * w0 * 0.95, Lp[0].y + fy * w0 * 0.95, Lp[0].x, Lp[0].y);
   for (let i = 1; i < SEG - 1; i++) path.quadraticCurveTo(Lp[i].x, Lp[i].y, (Lp[i].x + Lp[i + 1].x) / 2, (Lp[i].y + Lp[i + 1].y) / 2);
@@ -861,18 +911,25 @@ function tailPath(f, g) {
   const rays = []; for (let k = -4; k <= 4; k++) rays.push(at(k * 0.14, Lt * (0.62 + 0.36 * Math.abs(k) / 4)));
   return { path, T, rays };
 }
-function fin(g, x, y, ang, len, wid, fill, ray, edge) {
+/* translucent fan fins with bony rays, denser at the root */
+function fin(g, x, y, ang, len, k, alpha, dark) {
   g.save(); g.translate(x, y); g.rotate(ang);
   const p = new Path2D();
-  p.moveTo(0, -wid * 0.25);
-  p.bezierCurveTo(len * 0.3, -wid * 1.05, len * 0.95, -wid * 0.95, len, 0);
-  p.bezierCurveTo(len * 0.9, wid * 0.8, len * 0.3, wid * 0.7, 0, wid * 0.25);
+  p.moveTo(0, -len * 0.14);
+  p.quadraticCurveTo(len * 0.45, -len * 0.62, len * 0.96, -len * 0.3);
+  p.quadraticCurveTo(len * 1.12, len * 0.04, len * 0.88, len * 0.36);
+  p.quadraticCurveTo(len * 0.42, len * 0.5, 0, len * 0.14);
   p.closePath();
-  g.fillStyle = fill; g.fill(p);
-  g.save(); g.clip(p); g.strokeStyle = ray; g.lineWidth = 0.7;
-  for (let k = -3; k <= 3; k++) { g.beginPath(); g.moveTo(0, 0); g.lineTo(len * 1.05, k * wid * 0.3); g.stroke(); }
-  if (edge) { g.strokeStyle = edge; g.lineWidth = len * 0.14; g.stroke(p); }
-  g.restore(); g.restore();
+  const gr = g.createRadialGradient(0, 0, 0, 0, 0, len * 1.05);
+  if (dark) { gr.addColorStop(0, rgb(SUMI, 1, alpha * 1.3)); gr.addColorStop(0.45, rgb(SUMI, 1, alpha)); gr.addColorStop(1, rgb(k.fin, 1, alpha * 0.4)); }
+  else { gr.addColorStop(0, rgb(k.fin, 1, alpha * 1.25)); gr.addColorStop(1, rgb(k.fin, 1, alpha * 0.35)); }
+  g.fillStyle = gr; g.fill(p);
+  g.save(); g.clip(p);
+  g.strokeStyle = rgb(k.ray, 1, 0.32); g.lineWidth = 0.6;
+  for (let i = 0; i <= 9; i++) { const a = -0.62 + i * 0.13; g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(Math.cos(a) * len * 0.5, Math.sin(a) * len * 0.5 - len * 0.02, Math.cos(a) * len * 1.1, Math.sin(a) * len * 1.1); g.stroke(); }
+  g.restore();
+  g.strokeStyle = 'rgba(255,255,255,0.16)'; g.lineWidth = 0.8; g.stroke(p);
+  g.restore();
 }
 
 /* koi paint into their own layer; the water shader then refracts and tints them */
@@ -882,68 +939,73 @@ function drawFish(f) {
   const alpha = (f.dying ? Math.max(0, 1 - f.dying / 1.5) : 1) * Math.min(1, g.grow * 1.4);
   if (alpha <= 0) return g;
   c.globalAlpha = alpha;
-  const { P, N, Wd } = g, flap = Math.sin(f.phase * 0.5) * 0.3;
-  const white = k.body[0] > 200 && k.body[2] > 200;
+  const { P, N, Wd } = g, flap = Math.sin(f.phase * 0.5) * 0.28;
+
+  // fins sit under the body
   for (const side of [1, -1]) {
     const i = 3, fw = { x: P[i - 1].x - P[i + 1].x, y: P[i - 1].y - P[i + 1].y }, fl = Math.hypot(fw.x, fw.y) || 1;
-    const bx = P[i].x + N[i].x * Wd[i] * side * 0.8, by = P[i].y + N[i].y * Wd[i] * side * 0.8;
-    const ang = Math.atan2(-fw.y / fl * 0.65 + N[i].y * side * 0.78, -fw.x / fl * 0.65 + N[i].x * side * 0.78) + flap * side;
-    fin(c, bx, by, ang, f.L * 0.2 * g.grow, f.L * 0.085, k.fin, k.ray, white ? 'rgba(255,255,255,0.35)' : k.kind === 'showa' ? 'rgba(20,20,24,0.4)' : null);
-    const j = 8, bx2 = P[j].x + N[j].x * Wd[j] * side * 0.7, by2 = P[j].y + N[j].y * Wd[j] * side * 0.7;
+    const bx = P[i].x + N[i].x * Wd[i] * side * 0.72, by = P[i].y + N[i].y * Wd[i] * side * 0.72;
+    const ang = Math.atan2(-fw.y / fl * 0.7 + N[i].y * side * 0.72, -fw.x / fl * 0.7 + N[i].x * side * 0.72) + flap * side;
+    fin(c, bx, by, ang, f.L * 0.21 * g.grow, k, 0.55, k.motoguro);
+    const j = 8, bx2 = P[j].x + N[j].x * Wd[j] * side * 0.6, by2 = P[j].y + N[j].y * Wd[j] * side * 0.6;
     const fw2 = { x: P[j - 1].x - P[j + 1].x, y: P[j - 1].y - P[j + 1].y }, fl2 = Math.hypot(fw2.x, fw2.y) || 1;
-    fin(c, bx2, by2, Math.atan2(-fw2.y / fl2 * 0.8 + N[j].y * side * 0.6, -fw2.x / fl2 * 0.8 + N[j].x * side * 0.6) - flap * side * 0.5, f.L * 0.1 * g.grow, f.L * 0.04, k.fin, k.ray);
+    fin(c, bx2, by2, Math.atan2(-fw2.y / fl2 * 0.85 + N[j].y * side * 0.55, -fw2.x / fl2 * 0.85 + N[j].x * side * 0.55) - flap * side * 0.5, f.L * 0.11 * g.grow, k, 0.5, false);
   }
-  c.fillStyle = k.fin; c.fill(tail.path);
-  c.save(); c.clip(tail.path); c.strokeStyle = k.ray; c.lineWidth = 0.8;
+  // tail: opaque at the root, fading to a thin veil at the edge
+  const tg = c.createLinearGradient(tail.T.x, tail.T.y, tail.rays[4].x, tail.rays[4].y);
+  tg.addColorStop(0, rgb(k.fin, 1, 0.85)); tg.addColorStop(1, rgb(k.fin, 1, 0.3));
+  c.fillStyle = tg; c.fill(tail.path);
+  c.save(); c.clip(tail.path); c.strokeStyle = rgb(k.ray, 1, 0.3); c.lineWidth = 0.6;
   for (const r of tail.rays) { c.beginPath(); c.moveTo(tail.T.x, tail.T.y); c.lineTo(r.x, r.y); c.stroke(); }
   c.restore();
 
-  // body: base colour, patches with soft edges, scales, rounded shading, a wet sheen along the back
-  c.fillStyle = rgb(k.body); c.fill(body);
+  // body: the skin wrapped onto the bending spine
+  const Lp = P.map((p, i) => ({ x: p.x + N[i].x * Wd[i], y: p.y + N[i].y * Wd[i] }));
+  const Rp = P.map((p, i) => ({ x: p.x - N[i].x * Wd[i], y: p.y - N[i].y * Wd[i] }));
   c.save(); c.clip(body);
-  for (const p of f.patches) {
-    const idx = clamp(Math.round(p.t * (SEG - 1)), 0, SEG - 1);
-    const px = P[idx].x + N[idx].x * Wd[idx] * p.off, py = P[idx].y + N[idx].y * Wd[idx] * p.off, pr = p.r * f.L * g.grow;
-    const gr = c.createRadialGradient(px, py, pr * 0.72, px, py, pr);
-    gr.addColorStop(0, rgb(p.c)); gr.addColorStop(1, rgb(p.c, 1, 0));
-    c.fillStyle = gr; c.beginPath(); c.arc(px, py, pr, 0, Math.PI * 2); c.fill();
+  c.fillStyle = rgb(k.base, 0.6); c.fill(body);                        // the snout beyond the first ring, and any seam, reads as shadow
+  const du = SKW / (SEG - 1);
+  for (let i = 0; i < SEG - 1; i++) {
+    const u0 = i * du, u1 = (i + 1) * du;
+    skinTri(c, f.skin, Lp[i].x, Lp[i].y, Lp[i + 1].x, Lp[i + 1].y, Rp[i].x, Rp[i].y, u0, 0, u1, 0, u0, SKH);
+    skinTri(c, f.skin, Lp[i + 1].x, Lp[i + 1].y, Rp[i + 1].x, Rp[i + 1].y, Rp[i].x, Rp[i].y, u1, 0, u1, SKH, u0, SKH);
   }
-  const pat = c.createPattern(scaleTile, 'repeat');
-  if (pat && pat.setTransform) {
-    const ang = Math.atan2(P[4].y - P[8].y, P[4].x - P[8].x);
-    pat.setTransform(new DOMMatrix().translateSelf(P[6].x, P[6].y).rotateSelf(ang * 180 / Math.PI + 90).scaleSelf(f.L / 210));
-    c.globalAlpha = alpha * (k.metal ? 0.22 : 0.3); c.fillStyle = pat;
-    c.beginPath(); for (let i = 3; i < SEG; i++) c.arc(P[i].x, P[i].y, Wd[i] * 1.2, 0, Math.PI * 2); c.fill();
-    c.globalAlpha = alpha;
-  }
-  c.strokeStyle = 'rgba(0,0,0,0.26)'; c.lineWidth = f.L * 0.1; c.stroke(body);
-  c.strokeStyle = 'rgba(0,0,0,0.16)'; c.lineWidth = f.L * 0.04; c.stroke(body);
+  // rounded snout
+  const hg = c.createRadialGradient(P[0].x, P[0].y, 0, P[0].x, P[0].y, Wd[0] * 1.15);
+  hg.addColorStop(0, rgb(f.skin.head, 1)); hg.addColorStop(0.7, rgb(f.skin.head, 0.9)); hg.addColorStop(1, rgb(f.skin.head, 0.6));
+  const front = new Path2D(), R2 = Wd[0] * 2.5;
+  front.moveTo(P[0].x + N[0].x * R2, P[0].y + N[0].y * R2); front.lineTo(P[0].x - N[0].x * R2, P[0].y - N[0].y * R2);
+  front.lineTo(P[0].x - N[0].x * R2 + bp.fx * R2, P[0].y - N[0].y * R2 + bp.fy * R2); front.lineTo(P[0].x + N[0].x * R2 + bp.fx * R2, P[0].y + N[0].y * R2 + bp.fy * R2); front.closePath();
+  c.save(); c.clip(front); c.fillStyle = hg; c.beginPath(); c.arc(P[0].x, P[0].y, Wd[0] * 1.15, 0, Math.PI * 2); c.fill(); c.restore();
+  // a wet highlight that slides along the back as the body flexes
   c.lineCap = 'round'; c.lineJoin = 'round';
-  const sheen = k.metal ? [0.34, 0.5] : [0.14, 0.24];
-  c.strokeStyle = `rgba(255,255,255,${sheen[0]})`; c.lineWidth = f.L * 0.075;
-  c.beginPath(); c.moveTo(P[1].x, P[1].y); for (let i = 2; i < 11; i++) c.lineTo(P[i].x, P[i].y); c.stroke();
-  c.strokeStyle = `rgba(255,255,255,${sheen[1]})`; c.lineWidth = f.L * 0.022;
-  c.beginPath(); c.moveTo(P[1].x, P[1].y); for (let i = 2; i < 9; i++) c.lineTo(P[i].x, P[i].y); c.stroke();
+  c.strokeStyle = `rgba(255,255,255,${k.metal ? 0.2 : 0.09})`; c.lineWidth = f.L * 0.035;
+  c.beginPath(); c.moveTo(P[1].x, P[1].y); for (let i = 2; i < 10; i++) c.lineTo(P[i].x, P[i].y); c.stroke();
   if (f.age < 1.4) { c.fillStyle = `rgba(8,26,24,${(1 - g.grow) * 0.85})`; c.fill(body); }   // still rising from the deep
   c.restore();
 
-  // dorsal fin seen edge-on, rippling
-  c.strokeStyle = rgb(k.body, 0.55, 0.55); c.lineWidth = Math.max(1, f.L * 0.018);
-  c.beginPath(); for (let i = 3; i < 10; i++) { const s = Math.sin(f.phase * 1.3 - i) * f.L * 0.006; const x = P[i].x + N[i].x * s, y = P[i].y + N[i].y * s; i === 3 ? c.moveTo(x, y) : c.lineTo(x, y); } c.stroke();
-  // barbels
-  c.strokeStyle = rgb(k.body, 0.8, 0.8); c.lineWidth = Math.max(0.7, f.L * 0.007);
-  for (const s of [1, -1]) {
-    const bx = bp.tip.x - bp.fx * f.L * 0.02 + N[0].x * Wd[0] * 0.35 * s, by = bp.tip.y - bp.fy * f.L * 0.02 + N[0].y * Wd[0] * 0.35 * s;
-    c.beginPath(); c.moveTo(bx, by); c.quadraticCurveTo(bx + N[0].x * s * f.L * 0.03 + bp.fx * f.L * 0.01, by + N[0].y * s * f.L * 0.03 + bp.fy * f.L * 0.01, bx + N[0].x * s * f.L * 0.045 - bp.fx * f.L * 0.015, by + N[0].y * s * f.L * 0.045 - bp.fy * f.L * 0.015); c.stroke();
+  // dorsal fin, folded along the back and swaying a little
+  c.strokeStyle = rgb(k.fin, 0.7, 0.45); c.lineWidth = Math.max(1, f.L * 0.022);
+  c.beginPath(); for (let i = 3; i < 10; i++) { const s = Math.sin(f.phase * 1.3 - i) * f.L * 0.008; const x = P[i].x + N[i].x * s, y = P[i].y + N[i].y * s; i === 3 ? c.moveTo(x, y) : c.lineTo(x, y); } c.stroke();
+  // nostrils, two pairs of barbels, eyes with a gold iris set into the sides of the head
+  const fx = bp.fx, fy = bp.fy, tip = bp.tip;
+  c.fillStyle = 'rgba(0,0,0,0.45)';
+  for (const s of [1, -1]) { c.beginPath(); c.arc(tip.x - fx * f.L * 0.035 + N[0].x * Wd[0] * 0.38 * s, tip.y - fy * f.L * 0.035 + N[0].y * Wd[0] * 0.38 * s, Math.max(0.6, f.L * 0.0055), 0, Math.PI * 2); c.fill(); }
+  c.strokeStyle = rgb(k.base, 0.75, 0.7); c.lineWidth = Math.max(0.6, f.L * 0.0065);
+  for (const s of [1, -1]) for (const [back, len] of [[0.012, 0.03], [0.03, 0.045]]) {
+    const bx = tip.x - fx * f.L * back + N[0].x * Wd[0] * 0.3 * s, by = tip.y - fy * f.L * back + N[0].y * Wd[0] * 0.3 * s;
+    c.beginPath(); c.moveTo(bx, by);
+    c.quadraticCurveTo(bx + N[0].x * s * f.L * len * 0.8, by + N[0].y * s * f.L * len * 0.8, bx + N[0].x * s * f.L * len - fx * f.L * len * 0.5, by + N[0].y * s * f.L * len - fy * f.L * len * 0.5);
+    c.stroke();
   }
-  // eyes, set on the sides of the head with a wet highlight
   for (const s of [1, -1]) {
-    const ex = P[1].x + N[1].x * Wd[1] * 0.7 * s, ey = P[1].y + N[1].y * Wd[1] * 0.7 * s, er = Math.max(1.3, f.L * 0.017);
-    c.fillStyle = '#121314'; c.beginPath(); c.arc(ex, ey, er, 0, Math.PI * 2); c.fill();
-    c.fillStyle = 'rgba(255,255,255,0.8)'; c.beginPath(); c.arc(ex - er * 0.3, ey - er * 0.35, er * 0.35, 0, Math.PI * 2); c.fill();
+    const ex = P[1].x + N[1].x * Wd[1] * 0.86 * s, ey = P[1].y + N[1].y * Wd[1] * 0.86 * s, er = Math.max(1.2, f.L * 0.019);
+    const eg = c.createRadialGradient(ex, ey, 0, ex, ey, er);
+    eg.addColorStop(0, '#050505'); eg.addColorStop(0.5, '#0b0a08'); eg.addColorStop(0.72, 'rgb(150,112,48)'); eg.addColorStop(1, 'rgba(70,52,24,0.9)');
+    c.fillStyle = eg; c.beginPath(); c.arc(ex, ey, er, 0, Math.PI * 2); c.fill();
+    c.fillStyle = 'rgba(255,255,255,0.45)'; c.beginPath(); c.arc(ex - er * 0.25, ey - er * 0.3, er * 0.18, 0, Math.PI * 2); c.fill();
   }
   c.globalAlpha = 1;
-  // the silhouette again, for the shadow on the stones below
   shctx.globalAlpha = alpha * 0.8; shctx.fillStyle = '#000'; shctx.fill(body); shctx.fill(tail.path); shctx.globalAlpha = 1;
   return g;
 }
@@ -956,7 +1018,7 @@ function eat(f, p) {
   const i = S.food.indexOf(p); if (i < 0) return; S.food.splice(i, 1);
   water.drop(p.x, p.y, f.L * 0.18, -0.05);          // the mouth breaks the surface
   S.bubbles.push({ x: p.x, y: p.y, r: 2.2, life: 1.1 }, { x: p.x + rand(-5, 5), y: p.y + rand(-5, 5), r: 1.5, life: 0.9 });
-  audio.gulp(p.x / W * 2 - 1);
+  audio.pluck(audio.noteForY(p.y) + 2, 0.18, p.x / W * 2 - 1);
 }
 
 /* lily pads, petals and food float on top; they cast shadows too */
@@ -1029,7 +1091,7 @@ function drift(o, dt, drag) {
 const INKS = [{ label: '墨汁', cls: '', k: 1, r: 0 }, { label: '朱砂', cls: 'red', k: 0, r: 1 }, { label: '只攪水', cls: 'water', k: 0, r: 0 }];
 function strokeStart(id, x, y, ghost, touch) {
   const now = performance.now(), ink = ghost ? INKS[1] : INKS[S.ink];
-  pointers.set(id, { x, y, lx: x, ly: y, t: now, lt: now, start: now, speed: 0, len: 0, pts: [[x, y]], ghost, ink, touch, dropAcc: 0 });
+  pointers.set(id, { x, y, lx: x, ly: y, t: now, lt: now, start: now, speed: 0, len: 0, pts: [[x, y]], ghost, ink, touch, dropAcc: 0, noteAcc: 0 });
   water.dye(x, y, 7, ink.k * 0.5, ink.r * 0.5);
   water.drop(x, y, 12, -0.03);
 }
@@ -1049,12 +1111,15 @@ function strokeMove(id, x, y, stamp) {
   s.dropAcc += d;
   while (s.dropAcc > 9) { s.dropAcc -= 9; const u = 1 - s.dropAcc / Math.max(d, 1); water.drop(s.lx + dx * u, s.ly + dy * u, 10 * scaleK, -0.006 - Math.min(0.012, s.speed / 200000)); }
   s.pts.push([x, y]); s.len += d;
-  if (!s.ghost) audio.stroke(s.speed);
+  s.noteAcc += d;
+  if (s.noteAcc > 34 && now - audio.lastNote > 80) {
+    s.noteAcc = 0; audio.lastNote = now;
+    audio.pluck(audio.noteForY(y), clamp(0.25 + s.speed / 3000, 0.25, 0.75), x / W * 2 - 1);
+  }
   s.lx = x; s.ly = y; s.lt = now; s.x = x; s.y = y; s.t = now;
 }
 function strokeEnd(id, cancelled) {
   const s = pointers.get(id); if (!s) return; pointers.delete(id);
-  if (!s.ghost && ![...pointers.values()].some(p => !p.ghost)) audio.stroke(0);
   if (cancelled) return;
   const dur = performance.now() - s.start, slop = s.touch ? 22 : 14;
   if (s.len < slop && dur < 550) { tap(s.lx, s.ly, s.ink); return; }
@@ -1070,7 +1135,7 @@ function tap(x, y, ink) {
     S.food.push({ x: px, y: py, vx: 0, vy: 0, life: 16, s: rand(2.4, 3.4), rot: rand(0, 6.28) });
     setTimeout(() => water.drop(px, py, 6, -0.03), i * 40 + 30);
   }
-  const pan = x / W * 2 - 1; audio.plop(0.7, pan); for (let i = 0; i < 3; i++) audio.plop(rand(0.05, 0.25), pan, 0.04 + i * 0.05);
+  const n = audio.noteForY(y), pan = x / W * 2 - 1; audio.pluck(n, 0.62, pan); audio.pluck(Math.max(0, n - 5), 0.3, pan, 0.02);
 }
 function detectLoop(pts) {
   const n = pts.length; if (n < 12) return null;
@@ -1116,7 +1181,9 @@ function spawnFromLoop(loop, s) {
   water.drop(loop.cx, loop.cy, L * 0.5, 0.06);
   for (let i = 0; i < 9; i++) S.bubbles.push({ x: loop.cx + rand(-L * 0.3, L * 0.3), y: loop.cy + rand(-L * 0.3, L * 0.3), r: rand(1.2, 3.4), life: rand(0.8, 2) });
   const pan = loop.cx / W * 2 - 1;
-  audio.splash(pan); audio.chime(0.25);
+  const base = audio.noteForY(loop.cy);
+  [0, 2, 4, 7].forEach((st, i) => audio.pluck(clamp(base - 3 + st, 0, 13), 0.5, pan, i * 0.09));
+  audio.bell(0.36);
   if (!s.ghost) { try { navigator.vibrate && navigator.vibrate([18, 60, 28]); } catch (_) {} }
   const el = document.createElement('div'); el.className = 'fishname';
   el.innerHTML = `${name}${s.ghost ? '<small>年年有餘</small>' : ''}`;
@@ -1173,22 +1240,23 @@ document.addEventListener('visibilitychange', () => {
   if (!audio.ctx) return;
   if (document.hidden) audio.ctx.suspend().catch(() => {}); else audio.ctx.resume().catch(() => {});
   for (const id of [...pointers.keys()]) if (id !== 'ghost') pointers.delete(id);
-  audio.stroke(0);
 });
 
 const btnInk = document.getElementById('btnInk'), swatch = document.getElementById('swatch'), inkLabel = document.getElementById('inkLabel');
 btnInk.addEventListener('click', () => {
   audio.init(); S.ink = (S.ink + 1) % INKS.length; const ink = INKS[S.ink];
-  swatch.className = 'swatch ' + ink.cls; inkLabel.textContent = ink.label; audio.plop(0.3);
+  swatch.className = 'swatch ' + ink.cls; inkLabel.textContent = ink.label;
 });
 const btnSound = document.getElementById('btnSound');
 btnSound.addEventListener('click', () => {
   audio.init(); audio.setOn(!audio.on);
+  if (audio.on) audio.pluck(7, 0.5);
   btnSound.textContent = audio.on ? '聲音　開' : '聲音　關'; btnSound.setAttribute('aria-pressed', String(audio.on));
 });
 document.getElementById('btnClear').addEventListener('click', () => {
   audio.init(); water.clear(); S.food.length = 0;
-  water.drop(W / 2, H / 2, Math.min(W, H) * 0.2, -0.08); audio.splash(0);
+  water.drop(W / 2, H / 2, Math.min(W, H) * 0.2, -0.08);
+  [9, 7, 4, 2, 0].forEach((n, i) => audio.pluck(n, 0.4, 0, i * 0.11));
 });
 btnAbout.addEventListener('click', () => { about.hidden = !about.hidden; btnAbout.setAttribute('aria-expanded', String(!about.hidden)); });
 // keep the info panel above the controls however many rows they wrap into
@@ -1312,7 +1380,7 @@ function frame(now) {
   for (const b of S.bubbles) { b.life -= dt; b.y -= 4 * dt; }
   S.bubbles = S.bubbles.filter(b => b.life > 0);
   // an occasional drop from the leaves overhead
-  if (Math.random() < dt * 0.12) { const x = rand(0, W), y = rand(0, H); water.drop(x, y, 7, -0.05); audio.plop(rand(0.1, 0.35), x / W * 2 - 1); }
+  if (Math.random() < dt * 0.12) { const x = rand(0, W), y = rand(0, H); water.drop(x, y, 7, -0.05); }
 
   // koi layer and shadow layer
   const fsc = fishScale();
