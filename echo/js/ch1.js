@@ -284,7 +284,7 @@ G.defScene('lim_rift',{
     W.forest(B,0,0,1800,900,70,(x,y,r)=>y>210-r&&y<690+r,20,44);
     [520,900,1280].forEach((wx,k)=>{for(let i=0;i<5;i++)growTree(B,'g'+k+i,wx,322+i*64,(i*0.17+k*0.37)%1);});
     for(let i=0;i<60;i++){const x=320+B.r()*1160,y=310+B.r()*280;B.seg(x,y,x+(B.r()-0.5)*14,y+(B.r()-0.5)*14,{col:'warm',a:0.35});}
-    W.rift(B,'rift',1090,450,'裂隙（以後）',async()=>{await G.riftTo('lim_future',600,760);},{update(dt,e){if(!F('lim.futureSeen')&&G.script===0&&hyp(G.player.x-e.x,G.player.y-e.y)<80){set('lim.futureSeen');G.run(async()=>{G.player.vx=G.player.vy=0;await think('這裡的聲音是反過來的。');await think('不是從過去傳來——是從前面，從以後。');await G.riftTo('lim_future',600,760);});}}});
+    W.rift(B,'rift',1090,450,'裂隙（以後）',async()=>{await G.riftTo('lim_future',600,760);},{update(dt,e){if(!F('lim.futureSeen')&&G.script===0&&Math.abs(G.player.x-e.x)<60){set('lim.futureSeen');G.run(async()=>{G.player.vx=G.player.vy=0;await think('這裡的聲音是反過來的。');await think('不是從過去傳來——是從前面，從以後。');await G.riftTo('lim_future',600,760);});}}});
     W.selfThreads(B);
     B.thread({a:'g11',b:'rift',label:'生長 ← 以後',tag:'以後',desc:'這些樹把好幾年的生長，擠進幾秒鐘裡。那些年，是從以後拿來的。'});
     B.exit(0,380,40,140,'lim_edge',1740,520);
