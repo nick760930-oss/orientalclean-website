@@ -1,0 +1,79 @@
+/* 東方繩洗 概念原型｜共用元件（顏色由各版本的變數決定） */
+:root {
+  --oc-cyan: #74C7D6;        /* Logo 實際青藍 */
+  --oc-cyan-deep: #00B5D2;   /* Logo 青色底版 */
+  --oc-ink: #0E3A43;         /* 深海青 */
+  --oc-black: #0B1417;       /* 霧黑 */
+  --oc-ice: #EAF6F8;
+  --oc-mist: #F3F7F8;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { margin: 0; }
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--oc-focus, var(--oc-cyan-deep)); outline-offset: 3px; }
+[hidden] { display: none !important; }
+
+.oc-skip { position: absolute; left: -9999px; top: 0; z-index: 1000; padding: 10px 14px; background: #fff; color: #000; }
+.oc-skip:focus { left: 12px; top: 12px; }
+.oc-vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- 待補資料／圖片失敗 ---------- */
+.oc-missing {
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px;
+  width: 100%; height: 100%; min-height: 120px; padding: 16px; text-align: center;
+  color: var(--oc-missing-fg, #4f6a70);
+  background:
+    repeating-linear-gradient(135deg, transparent 0 11px, var(--oc-missing-hatch, rgba(14,58,67,.07)) 11px 12px),
+    var(--oc-missing-bg, #eef4f5);
+  border: 1px dashed var(--oc-missing-line, rgba(14,58,67,.28));
+  font-size: 14px; line-height: 1.5;
+}
+.oc-missing small { font-size: 12px; letter-spacing: .08em; opacity: .85; }
+.oc-missing--failed { color: #8a3b2a; border-color: rgba(138,59,42,.4); }
+
+/* ---------- Before / After ---------- */
+.oc-ba { margin: 0; --ba: 50%; }
+.oc-ba__stage { position: relative; overflow: hidden; touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none; background: var(--oc-mist); }
+.oc-ba__layer { position: absolute; inset: 0; }
+.oc-ba__layer img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; -webkit-user-drag: none; user-select: none; }
+.oc-ba__before { clip-path: inset(0 calc(100% - var(--ba)) 0 0); }
+.oc-ba__before .oc-missing { border: 0; }
+.oc-ba__handle { position: absolute; top: 0; bottom: 0; left: var(--ba); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.18); pointer-events: none; }
+.oc-ba__handle span { position: absolute; top: 50%; left: 50%; width: 38px; height: 38px; margin: -19px 0 0 -19px; border-radius: 50%; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+.oc-ba__handle span::before, .oc-ba__handle span::after { content: ""; position: absolute; top: 50%; width: 0; height: 0; margin-top: -5px; border: 5px solid transparent; }
+.oc-ba__handle span::before { left: 7px; border-right-color: var(--oc-ink); }
+.oc-ba__handle span::after { right: 7px; border-left-color: var(--oc-ink); }
+.oc-ba__tag { position: absolute; left: 10px; top: 10px; padding: 3px 8px; font-size: 12px; background: rgba(255,255,255,.92); color: var(--oc-ink); }
+.oc-ba__tag--r { left: auto; right: 10px; }
+.oc-ba__control { display: block; margin-top: 10px; }
+.oc-ba__control input { width: 100%; accent-color: var(--oc-cyan-deep); }
+.oc-ba figcaption { margin-top: 8px; font-size: 13px; line-height: 1.7; opacity: .8; }
+
+/* ---------- 詢價 ---------- */
+.oc-inquiry fieldset { border: 0; padding: 0; margin: 0 0 18px; }
+.oc-inquiry legend { font-size: 14px; margin-bottom: 10px; padding: 0; }
+.oc-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.oc-chip { position: relative; }
+.oc-chip input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.oc-chip span { display: inline-block; padding: 8px 14px; font-size: 14px; line-height: 1.3; border: 1px solid var(--oc-chip-line, rgba(14,58,67,.3)); border-radius: 2px; transition: background .15s, color .15s, border-color .15s; }
+.oc-chip input:checked + span { background: var(--oc-chip-on-bg, var(--oc-ink)); color: var(--oc-chip-on-fg, #fff); border-color: transparent; }
+.oc-chip input:focus-visible + span { outline: 2px solid var(--oc-cyan-deep); outline-offset: 2px; }
+.oc-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; margin-bottom: 16px; }
+.oc-fields label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.oc-fields__wide { grid-column: 1 / -1; }
+.oc-fields input, .oc-fields textarea { font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid var(--oc-field-line, rgba(14,58,67,.3)); border-radius: 2px; background: var(--oc-field-bg, #fff); color: inherit; width: 100%; }
+.oc-inquiry__preview { display: block; white-space: pre-line; font-size: 13px; line-height: 1.7; padding: 12px 14px; margin-bottom: 16px; background: var(--oc-preview-bg, rgba(14,58,67,.05)); min-height: 3em; }
+.oc-inquiry__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.oc-inquiry__note { font-size: 12px; line-height: 1.7; opacity: .75; margin-top: 12px; }
+.oc-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 20px; font-size: 15px; text-decoration: none; border: 1px solid currentColor; background: transparent; cursor: pointer; border-radius: 2px; }
+.oc-btn--primary { background: var(--oc-btn-bg, var(--oc-ink)); color: var(--oc-btn-fg, #fff); border-color: transparent; }
+@media (max-width: 640px) {
+  .oc-fields { grid-template-columns: 1fr; }
+  .oc-inquiry__actions .oc-btn { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}
