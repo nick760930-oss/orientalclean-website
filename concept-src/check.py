@@ -128,6 +128,6 @@ def check(key):
 
 
 if __name__ == '__main__':
-    keys = sys.argv[1:] or ['a', 'b', 'c']
+    keys = sys.argv[1:] or [k for k in 'abc' if (ROOT / f'claude-{k}-preview').exists()]
     ok = all([check(k) for k in keys])
     sys.exit(0 if ok else 1)

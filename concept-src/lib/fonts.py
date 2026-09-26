@@ -77,8 +77,9 @@ def build(site, spec):
     css, preload = [], []
     try:
         for source, family, weight in spec['faces']:
-            font = instancer.instantiateVariableFont(TTFont(_source(source)), {'wght': weight})
+            font = instancer.instantiateVariableFont(TTFont(_source(source), recalcTimestamp=False), {'wght': weight})
             opts = subset.Options()
+            opts.recalc_timestamp = False  # 重建時輸出一致，避免無意義的差異
             opts.flavor = 'woff2'
             opts.layout_features = ['kern', 'palt', 'halt', 'liga', 'locl']
             sub = subset.Subsetter(opts)
