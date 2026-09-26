@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 上線用 sitemap：網址為正式站路徑。工程筆記需 status: published 才會列入。預覽期間不提交。 -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://www.orientalclean.com.tw/</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/services/</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/services/wall-cleaning</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/services/wall-repair</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/services/waterproof</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/services/facade-inspection</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/services/rope-access</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/services/special</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/projects/</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/projects/fubon-xihua</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/projects/metrowalk-sealant</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/projects/lien-jade-oriental</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/projects/morten41</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/projects/tonlin-taipei</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/projects/guomei-star</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/projects/metrowalk-lightbox</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/projects/kaohsiung-music-center</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/insights/</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/about</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://www.orientalclean.com.tw/contact</loc><lastmod>2026-09-26</lastmod></url>
+<!-- 草稿未列入：https://www.orientalclean.com.tw/insights/community-repair-tender -->
+<!-- 草稿未列入：https://www.orientalclean.com.tw/insights/facade-cleaning-cost -->
+<!-- 草稿未列入：https://www.orientalclean.com.tw/insights/glass-water-stain -->
+<!-- 草稿未列入：https://www.orientalclean.com.tw/insights/hollow-tile-diagnosis -->
+<!-- 草稿未列入：https://www.orientalclean.com.tw/insights/injection-vs-patch-vs-retile -->
+<!-- 草稿未列入：https://www.orientalclean.com.tw/insights/leak-water-path -->
+<!-- 草稿未列入：https://www.orientalclean.com.tw/insights/rope-access-vs-gondola -->
+<!-- 草稿未列入：https://www.orientalclean.com.tw/insights/sealant-aging -->
+<!-- 草稿未列入：https://www.orientalclean.com.tw/insights/tile-fall-first-steps -->
+<!-- 草稿未列入：https://www.orientalclean.com.tw/insights/waterproofing-corner-leak -->
+</urlset>

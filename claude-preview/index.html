@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>三版概念總覽｜東方繩洗</title>
+<link rel="icon" type="image/png" href="/images/logo-cyan-bg.png">
+<style>
+:root{--cyan:#74C7D6;--ink:#0E3A43;--line:#D5E6EA;--mist:#5C767C}
+*{box-sizing:border-box}body{margin:0;font:16px/1.8 "PingFang TC","Microsoft JhengHei","Noto Sans CJK TC",system-ui,sans-serif;color:var(--ink);background:#fff}
+header{background:var(--cyan);padding:28px clamp(16px,4vw,56px)}header img{width:170px;height:auto;display:block;margin-bottom:18px}
+h1{font-size:clamp(26px,3vw,40px);margin:0 0 8px}header p{margin:0;max-width:52em}
+main{padding:0 clamp(16px,4vw,56px) 64px;max-width:1500px;margin:0 auto}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px;margin-top:40px}
+.col{border-top:3px solid var(--ink);padding-top:16px}.kind{font-size:13px;color:var(--mist);margin:0}
+h2{font-size:26px;margin:4px 0 14px}h2 small{display:block;font-size:12px;letter-spacing:.2em;color:var(--mist)}
+.shots{position:relative;margin-bottom:16px}.shots img{display:block;border:1px solid var(--line)}.shots .desktop{width:100%}
+.shots .mobile{position:absolute;right:8px;bottom:-12px;width:26%;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+ul{padding-left:1.2em;margin:10px 0 16px}.go{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-block;background:var(--ink);color:#fff;text-decoration:none;padding:10px 18px}
+.small{font-size:13px;color:var(--mist)}code{font-size:13px}
+table{width:100%;border-collapse:collapse;margin-top:16px;font-size:15px}th,td{text-align:left;padding:10px 12px 10px 0;border-top:1px solid var(--line);vertical-align:top}
+thead th{border-top:0;border-bottom:2px solid var(--ink);font-size:13px}h3{font-size:22px;margin:64px 0 4px}
+.note{background:#EAF6F8;padding:16px 20px;margin-top:40px;font-size:15px}
+@media(max-width:1000px){.cols{grid-template-columns:1fr}.shots .mobile{width:22%}table{font-size:14px}}
+</style></head><body>
+<header><img src="/claude-a-preview/brand/logo-white.webp" alt="東方繩洗 ORIENTAL CLEAN">
+<h1>三版官網概念總覽</h1><p>三個方向的資訊架構、首頁、導覽、互動、攝影、字體、動態與案例瀏覽方式都不同；內容、案例資料與 SEO 架構共用。這一頁只做比較，不替任何一版評分。</p></header>
+<main>
+<div class="cols"><article class="col">
+<p class="kind">品牌系統型</p><h2>A｜立面索引<small>FACADE INDEX</small></h2>
+<div class="shots"><img src="shots/a-desktop.webp" alt="立面索引桌機首頁截圖" loading="lazy" class="desktop"><img src="shots/a-mobile.webp" alt="立面索引手機首頁截圖" loading="lazy" class="mobile"></div>
+<p>首頁沒有照片：Logo 青藍色面與一張可操作的示意立面。把雙繩拖到不同材質上，判讀卡說明常見問題、判斷方式與工法。案例是可篩選的索引表，照片只在案例頁出現。</p><ul><li>拖曳雙繩判讀立面材質</li><li>現場問題索引</li><li>案例索引表篩選</li><li>案例頁色面收起帶出照片</li></ul>
+<p class="go"><a class="btn" href="/claude-a-preview/">開啟 A</a></p>
+<p class="small">分支：<code>claude/concept-a</code></p>
+</article><article class="col">
+<p class="kind">攝影編輯型</p><h2>B｜現場紀錄<small>FIELD RECORD</small></h2>
+<div class="shots"><img src="shots/b-desktop.webp" alt="現場紀錄桌機首頁截圖" loading="lazy" class="desktop"><img src="shots/b-mobile.webp" alt="現場紀錄手機首頁截圖" loading="lazy" class="mobile"></div>
+<p>像一本建築出版物：封面照片從一條縫隙展開，接著是目錄、案例特寫、工法圖版與工程筆記，最後是版權頁。案例以印樣瀏覽，放大鏡可連續翻看所有案場照片。</p><ul><li>封面縫隙展開與捲動裁切</li><li>目錄對話框</li><li>印樣放大鏡（左右翻看）</li><li>縮圖 Match Cut 到案例封面</li></ul>
+<p class="go"><a class="btn" href="/claude-b-preview/">開啟 B</a></p>
+<p class="small">分支：<code>claude/concept-b</code></p>
+</article><article class="col">
+<p class="kind">空間／電影型</p><h2>C｜垂降<small>DESCENT</small></h2>
+<div class="shots"><img src="shots/c-desktop.webp" alt="垂降桌機首頁截圖" loading="lazy" class="desktop"><img src="shots/c-mobile.webp" alt="垂降手機首頁截圖" loading="lazy" class="mobile"></div>
+<p>以一次作業的時間為結構：從玻璃外側、屋頂、立面到地面。桌機上捲動控制時間，場景橫向前進；手機改為原生滑動。開場可在現場照片上刮除 WebGL 水膜。</p><ul><li>捲動控制橫向場景與高度計</li><li>WebGL 水膜刮除</li><li>案例膠卷拖曳</li><li>接近方式示意圖分頁</li></ul>
+<p class="go"><a class="btn" href="/claude-c-preview/">開啟 C</a></p>
+<p class="small">分支：<code>claude/concept-c</code></p>
+</article></div>
+<h3>三版差異</h3>
+<table><thead><tr><th scope="col"></th><th scope="col">A 立面索引</th><th scope="col">B 現場紀錄</th><th scope="col">C 垂降</th></tr></thead><tbody><tr><th scope="row">資訊架構起點</th><td>現場問題 → 材質 → 工法</td><td>案例 → 工法 → 筆記</td><td>作業順序與接近方式</td></tr><tr><th scope="row">首頁表現</th><td>無照片，可操作的立面</td><td>刊物封面、目錄、圖版</td><td>水膜開場與橫向場景</td></tr><tr><th scope="row">導覽</th><td>固定選單與索引</td><td>目錄對話框</td><td>高度計與場景按鈕</td></tr><tr><th scope="row">攝影</th><td>只在案例頁出現</td><td>全站主角</td><td>場景與全幅標題照片</td></tr><tr><th scope="row">Typography</th><td>粗黑體與等寬編碼</td><td>明體標題與黑體圖說</td><td>黑體與窄體數字</td></tr><tr><th scope="row">動態</th><td>繩索物理</td><td>裁切、遮罩與 Match Cut</td><td>捲動控制時間、WebGL</td></tr><tr><th scope="row">案例瀏覽</th><td>可篩選索引表</td><td>印樣與放大鏡</td><td>橫向膠卷與清單</td></tr><tr><th scope="row">背景</th><td>白與青藍色面</td><td>紙白</td><td>深海青</td></tr></tbody></table>
+<div class="note">三版都未使用貨車照片或 AI 生成照片；沒有資料的欄位標示「待補資料」，證照與紀錄類說法標示「待公司確認」。
+完整交付說明、待補素材清單與 SEO 架構見 repository 的 <code>concept-src/docs/</code>。所有預覽路徑都帶有 noindex 標頭，正式站未修改。</div>
+</main></body></html>

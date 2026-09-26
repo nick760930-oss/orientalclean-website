@@ -1,0 +1,24 @@
+# 上線用 robots.txt 提案（預覽期間不生效；正式站根目錄 robots.txt 未修改）
+# 爬蟲只遵守最符合自己的一組規則，所以每一組都重複列出 Disallow。
+# 是否允許模型訓練爬蟲（GPTBot、Google-Extended）待公司決定；目前由 * 規則處理。
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /survey
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin/
+Disallow: /survey
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin/
+Disallow: /survey
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /survey
+
+Sitemap: https://www.orientalclean.com.tw/sitemap.xml

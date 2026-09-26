@@ -1,0 +1,37 @@
+{
+  "_source": "main 分支正式站（assets/index-BcuK7-8T.js、scripts/build_content.py、index.html JSON-LD），2026-09-26 讀取。聯絡資料不得自行修改。",
+  "name": "東方繩洗有限公司",
+  "short": "東方繩洗",
+  "name_en": "ORIENTAL CLEAN",
+  "tax_id": "83365645",
+  "founded": "民國109年12月",
+  "founded_iso": "2020-12",
+  "capital": "新台幣500萬元",
+  "representative": "遲望年",
+  "address": "臺北市中正區忠孝西路1段72號2樓之5",
+  "address_parts": {"region": "臺北市", "locality": "中正區", "street": "忠孝西路1段72號2樓之5", "country": "TW"},
+  "phone": "0972-171-246",
+  "phone_e164": "+886972171246",
+  "phone_contact": "辛俞緻 Viki（業務經理）",
+  "email": "orientalclean@gmail.com",
+  "line_id": "@oriental_clean",
+  "line_url": "https://line.me/R/ti/p/@oriental_clean",
+  "facebook": "https://www.facebook.com/OrientaClean/",
+  "site": "https://www.orientalclean.com.tw",
+  "hours": [
+    {"days": "週一至週五", "time": "08:00–18:00", "schema": "Mo-Fr 08:00-18:00"},
+    {"days": "週六", "time": "09:00–17:00", "schema": "Sa 09:00-17:00"},
+    {"days": "週日", "time": "預約制", "schema": null}
+  ],
+  "areas": ["台北", "新北", "桃園", "新竹", "苗栗", "台中", "彰化", "嘉義", "台南", "高雄", "宜蘭", "基隆"],
+  "areas_note": "服務地區依正式站列出的 12 個縣市；實際可承接範圍依案場條件確認。",
+  "claims_pending": [
+    {"item": "台灣雙繩技術認證", "status": "正式站列出，證書文件待公司確認"},
+    {"item": "中華民國繩索技術協會 Level 1 認證", "status": "正式站列出，持證人員與證書文件待公司確認"},
+    {"item": "建築物外牆檢查專業人員認證", "status": "正式站列出，持證人員與證書文件待公司確認"},
+    {"item": "雙繩作業參考 IRATA 規範", "status": "公司資料提及參考規範；不代表公司或人員持有 IRATA 認證，細節待公司確認"},
+    {"item": "工安紀錄", "status": "正式站寫有零工安紀錄，統計期間與依據待公司確認"},
+    {"item": "客戶評價數量", "status": "正式站寫有 PRO360 百則以上評價，數量與連結待公司確認"},
+    {"item": "參考價格", "status": "正式站列有清洗與出工參考價，是否公開待公司確認"}
+  ]
+}

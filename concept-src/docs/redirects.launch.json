@@ -1,0 +1,13 @@
+{
+  "_note": "上線採用新網址結構時，併入 vercel.json 的 redirects。預覽期間不使用。/testimonials 是否保留待公司決定。",
+  "redirects": [
+    { "source": "/portfolio", "destination": "/projects/", "permanent": true },
+    { "source": "/cases/:slug", "destination": "/projects/:slug", "permanent": true },
+    { "source": "/journal", "destination": "/insights/", "permanent": true },
+    { "source": "/journal/facade-cleaning-quote", "destination": "/insights/facade-cleaning-cost", "permanent": true },
+    { "source": "/journal/facade-repair-scope", "destination": "/insights/community-repair-tender", "permanent": true },
+    { "source": "/journal/leak-inspection-preparation", "destination": "/insights/leak-water-path", "permanent": true },
+    { "source": "/services/wall-inspection", "destination": "/services/facade-inspection", "permanent": true },
+    { "source": "/services/high-altitude", "destination": "/services/rope-access", "permanent": true }
+  ]
+}
