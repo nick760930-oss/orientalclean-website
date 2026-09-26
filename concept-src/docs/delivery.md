@@ -4,12 +4,22 @@
 
 ## 驗收網址
 
-| 版本 | GitHub 分支 | Vercel 預覽 |
+| 版本 | GitHub 分支 | Vercel 預覽（分支網址，永遠指向最新部署） |
 |---|---|---|
-| A 立面索引 | `claude/concept-a` | 見下方「部署結果」 |
-| B 現場紀錄 | `claude/concept-b` | 見下方「部署結果」 |
-| C 垂降 | `claude/concept-c` | 見下方「部署結果」 |
-| 三版總覽 | `claude/dreamy-mccarthy-4hb3le` | `/claude-preview/` |
+| A 立面索引 | `claude/concept-a` | https://oriental-clean-website-git-claude-concept-a-orientalclean.vercel.app/claude-a-preview/ |
+| B 現場紀錄 | `claude/concept-b` | https://oriental-clean-website-git-claude-concept-b-orientalclean.vercel.app/claude-b-preview/ |
+| C 垂降 | `claude/concept-c` | https://oriental-clean-website-git-claude-concept-c-orientalclean.vercel.app/claude-c-preview/ |
+| 三版總覽 | `claude/dreamy-mccarthy-4hb3le` | 整合分支部署的 `/claude-preview/`（同一個部署也包含三版） |
+
+第一次部署（2026-09-26，Vercel 狀態皆為 success）的固定網址：
+
+- A：https://oriental-clean-website-h8wst68zr-orientalclean.vercel.app/claude-a-preview/
+- B：https://oriental-clean-website-d2v6v9ayy-orientalclean.vercel.app/claude-b-preview/
+- C：https://oriental-clean-website-5gnbniryt-orientalclean.vercel.app/claude-c-preview/
+- 總覽：https://oriental-clean-website-s1opymkj4-orientalclean.vercel.app/claude-preview/
+
+之後每次推送都會產生新的固定網址，可在 GitHub commit 的 Vercel 狀態中查到。
+預覽若要求登入，代表 Vercel 專案開啟了 Deployment Protection，以團隊帳號登入即可檢視。
 
 每個分支都以 `main` 為基礎，只新增該版本的預覽資料夾、建置原始碼、`vercel.json` 的 noindex 標頭與
 `.vercelignore`。正式站的頁面、圖片、`robots.txt`、`sitemap.xml` 與 SEO 修正都沒有被修改。
