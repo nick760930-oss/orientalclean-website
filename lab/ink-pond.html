@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#eee5d1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="一筆生萬物">
 <title>一筆生萬物</title>
 <meta name="description" content="一池會呼吸的水墨：隨手畫，墨在水中散開；輕點，錦鯉游來覓食；畫一個圈，它就活成一尾魚。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,8 +26,9 @@
     --brush: "LXGW WenKai TC", "Kaiti TC", "BiauKai", "DFKai-SB", "STKaiti", "Noto Serif TC", serif;
     --gutter: max(16px, env(safe-area-inset-left, 0px));
   }
-  html, body { height: 100%; margin: 0; overflow: hidden; background: var(--paper); color: var(--ink); }
-  body { font-family: var(--brush); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: var(--paper); color: var(--ink); }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body { font-family: var(--brush); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 
   #stage { position: fixed; inset: 0; touch-action: none; cursor: crosshair; }
   #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -33,9 +38,9 @@
   .inscription {
     position: fixed; z-index: 3; pointer-events: none;
     top: calc(env(safe-area-inset-top, 0px) + 20px); right: calc(var(--gutter) + 4px);
-    display: flex; flex-direction: row-reverse; align-items: flex-start; gap: 10px;
-    writing-mode: vertical-rl;
+    display: flex; flex-direction: row-reverse; align-items: flex-start; gap: 8px;
   }
+  .inscription h1, .inscription p { writing-mode: vertical-rl; white-space: nowrap; }
   .inscription h1 {
     margin: 0; font-weight: 700; font-size: clamp(30px, 5.2vmin, 50px); letter-spacing: 0.18em; line-height: 1;
     color: var(--ink);
@@ -43,7 +48,7 @@
   .inscription .sub { margin: 0; font-size: clamp(14px, 2.1vmin, 18px); letter-spacing: 0.3em; color: var(--ink-soft); padding-top: 0.6em; }
   .inscription .count { margin: 0; font-size: clamp(13px, 1.9vmin, 16px); letter-spacing: 0.25em; color: var(--ink-soft); padding-top: 1.2em; font-variant-numeric: tabular-nums; }
   .seal {
-    writing-mode: horizontal-tb; margin-top: 0.8em;
+    align-self: flex-end;
     display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; width: 38px; height: 38px; padding: 3px; box-sizing: border-box;
     background: var(--cinnabar); color: #f6ecdf; border-radius: 3px;
     font-size: 14px; line-height: 16px; text-align: center; font-weight: 700;
@@ -70,7 +75,7 @@
   .hint.faded { opacity: 0; }
   .tools { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; pointer-events: auto; }
   .tools button {
-    font: inherit; font-size: 15px; color: var(--ink); cursor: pointer;
+    font: inherit; font-size: 15px; color: var(--ink); cursor: pointer; touch-action: manipulation; min-height: 40px;
     background: var(--paper-veil); border: 1px solid var(--ink-faint); border-radius: 999px;
     padding: 7px 15px; display: inline-flex; align-items: center; gap: 7px;
     -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
@@ -88,6 +93,8 @@
     background: var(--paper-veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     border: 1px solid var(--ink-faint); border-radius: 6px; padding: 18px 20px 16px;
     font-size: 15px; line-height: 1.7; color: var(--ink);
+    max-height: calc(100% - 140px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); overflow-y: auto; overscroll-behavior: contain;
+    -webkit-user-select: text; user-select: text;
   }
   .about h2 { margin: 0 0 8px; font-size: 19px; letter-spacing: 0.08em; }
   .about dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; }
@@ -105,6 +112,16 @@
   }
   .fishname small { font-weight: 400; color: var(--cinnabar-deep); margin-left: 6px; font-size: 13px; }
 
+  /* phones held sideways: keep the pond clear */
+  @media (max-height: 480px) {
+    .inscription { top: calc(env(safe-area-inset-top, 0px) + 10px); right: max(16px, env(safe-area-inset-right, 0px)); }
+    .inscription h1 { font-size: 26px; }
+    .inscription .sub { display: none; }
+    .dock { bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); gap: 6px; }
+    .hint { display: none; }
+    .tools button { min-height: 34px; padding: 4px 12px; font-size: 14px; }
+    .about { bottom: calc(env(safe-area-inset-bottom, 0px) + 56px); max-height: calc(100% - 76px); }
+  }
   @media (max-width: 520px) {
     .tools button { font-size: 14px; padding: 6px 12px; }
     .about { bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); font-size: 14px; }
@@ -286,19 +303,30 @@ function makeFluid(canvas) {
   let vel, dye, div, curlT, pres, probeT, simW, simH, pw, ph, probeBuf, vx, vy, cw = 1, ch = 1;
   const RANGE = 140;
   const cfg = { velDiss: 0.9, dyeDiss: 0.1, curl: 24, iters: 20 };
-  let dyeBoost = 0;
+  let dyeBoost = 0, builtW = 0, builtH = 0, builtScale = 0;
 
-  function resize(cssW, cssH, dpr) {
+  function resize(cssW, cssH, r, dyeMax) {
+    const sameGrid = vel && cssW === builtW && r === builtScale && Math.abs(cssH - builtH) / builtH < 0.25;
     cw = cssW; ch = cssH;
-    const r = Math.min(dpr, 2);
     canvas.width = Math.round(cssW * r); canvas.height = Math.round(cssH * r);
+    // a phone's address bar or keyboard only nudges the height: keep the ink that is already in the water
+    if (sameGrid) return;
+    builtW = cssW; builtH = cssH; builtScale = r;
     const aspect = cssW / cssH;
-    const simShort = 128, dyeShort = clamp(Math.round(Math.min(cssW, cssH) * r * 0.8), 384, 800);
+    const simShort = 128, dyeShort = clamp(Math.round(Math.min(cssW, cssH) * r * 0.8), 320, dyeMax);
     [simW, simH] = aspect >= 1 ? [Math.round(simShort * aspect), simShort] : [simShort, Math.round(simShort / aspect)];
     const [dW, dH] = aspect >= 1 ? [Math.round(dyeShort * aspect), dyeShort] : [dyeShort, Math.round(dyeShort / aspect)];
-    [vel, dye, div, curlT, pres, probeT].forEach(t => t && t.free());
+    const oldVel = vel, oldDye = dye;
+    [div, curlT, pres, probeT].forEach(t => t && t.free());
     vel = pair(simW, simH, gl.LINEAR);
     dye = pair(dW, dH, gl.LINEAR);
+    // turning the phone rebuilds the grids: carry the ink and currents across instead of wiping the pond
+    if (oldDye) {
+      const u = use('scale'); gl.uniform1f(u.value, 1);
+      gl.uniform1i(u.uTexture, oldDye.read.attach(0)); blit(dye.write); dye.swap();
+      gl.uniform1i(u.uTexture, oldVel.read.attach(0)); blit(vel.write); vel.swap();
+      oldDye.free(); oldVel.free();
+    }
     div = target(simW, simH, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
     curlT = target(simW, simH, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
     pres = pair(simW, simH, gl.NEAREST);
@@ -357,7 +385,7 @@ function makeFluid(canvas) {
   }
 
   return {
-    resize, step, render, probe,
+    resize, step, render, probe, cfg, gl,
     /* screen px, px/s */
     dye(x, y, r, k, red) { splatRaw(dye, x, y, r, [k, red, 0, 0]); },
     push(x, y, r, pvx, pvy, mixAmt) { const [sx, sy] = pxToTex(); splatRaw(vel, x, y, r, [pvx * sx, pvy * sy, 0, 0], mixAmt); },
@@ -387,12 +415,31 @@ function makeFallbackInk(canvas) {
   };
 }
 
-let fluid = null;
-try { fluid = makeFluid(inkCv); } catch (err) { console.warn('fluid unavailable', err); fluid = null; }
+/* quality ladder: phones that cannot hold ~40 fps step down once or twice */
+const QUALITY = [
+  { scale: 1, iters: 10, probeEvery: 4, dyeMax: 480 },
+  { scale: 1.5, iters: 14, probeEvery: 3, dyeMax: 640 },
+  { scale: 2, iters: 20, probeEvery: 2, dyeMax: 800 }
+];
+let qLevel = 2;
+const Q = () => QUALITY[qLevel];
+const renderScale = () => Math.min(DPR, Q().scale);
+
+let fluid = null, fluidIsGL = false, fluidLost = false;
+try { fluid = makeFluid(inkCv); fluidIsGL = !!fluid; } catch (err) { console.warn('fluid unavailable', err); fluid = null; }
 if (!fluid) {
   const fresh = inkCv.cloneNode(); inkCv.replaceWith(fresh);
   fluid = makeFallbackInk(fresh);
 }
+/* phones drop the GPU context when the app is backgrounded or memory is tight; rebuild it */
+if (fluidIsGL) {
+  inkCv.addEventListener('webglcontextlost', e => { e.preventDefault(); fluidLost = true; });
+  inkCv.addEventListener('webglcontextrestored', () => {
+    try { const f = makeFluid(inkCv); if (f) { fluid = f; fluid.cfg.iters = Q().iters; fluid.resize(W, H, renderScale(), Q().dyeMax); } } catch (err) { console.warn(err); }
+    fluidLost = false;
+  });
+}
+
 
 /* =========================================================
    SOUND — Karplus–Strong plucked strings, pentatonic
@@ -400,9 +447,12 @@ if (!fluid) {
 const audio = {
   ctx: null, on: true, bufs: [], master: null, send: null, lastNote: 0,
   init() {
-    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    if (this.ctx) { if (this.ctx.state !== 'running' && !document.hidden) this.ctx.resume().catch(() => {}); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     const c = this.ctx = new AC();
+    // iOS only unlocks audio once something actually plays inside the gesture
+    try { const b = c.createBuffer(1, 1, 22050), src = c.createBufferSource(); src.buffer = b; src.connect(c.destination); src.start(0); } catch (_) {}
+    if (c.state !== 'running') c.resume().catch(() => {});
     const comp = c.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4;
     this.master = c.createGain(); this.master.gain.value = 0.8; this.master.connect(comp); comp.connect(c.destination);
     const verb = c.createConvolver(); const len = Math.round(c.sampleRate * 3.2);
@@ -464,7 +514,7 @@ const audio = {
    ========================================================= */
 let paper = null;
 function makePaper() {
-  const c = document.createElement('canvas'); const r = Math.min(DPR, 2);
+  const c = document.createElement('canvas'); const r = renderScale();
   c.width = Math.round(W * r); c.height = Math.round(H * r);
   const g = c.getContext('2d'); g.scale(r, r);
   g.fillStyle = '#eee5d1'; g.fillRect(0, 0, W, H);
@@ -765,10 +815,13 @@ function strokeMove(id, x, y, stamp) {
   }
   s.lx = x; s.ly = y; s.lt = now; s.x = x; s.y = y; s.t = now;
 }
-function strokeEnd(id) {
+function strokeEnd(id, cancelled) {
   const s = pointers.get(id); if (!s) return; pointers.delete(id);
+  if (cancelled) return;
   const dur = performance.now() - s.start;
-  if (s.len < 14 && dur < 450) { tap(s.lx, s.ly, s.red); return; }
+  // fingertips wobble more than a mouse, so a touch tap tolerates more drift
+  const slop = s.touch ? 22 : 14;
+  if (s.len < slop && dur < 550) { tap(s.lx, s.ly, s.red); return; }
   const loop = detectLoop(s.pts);
   if (loop) spawnFromLoop(loop, s);
 }
@@ -836,6 +889,7 @@ function spawnFromLoop(loop, s) {
   const base = audio.noteForY(loop.cy), pan = loop.cx / W * 2 - 1;
   [0, 2, 4, 7].forEach((st, i) => audio.pluck(clamp(base - 3 + st, 0, 13), 0.5, pan, i * 0.09));
   audio.bell(0.36);
+  if (!s.ghost) { try { navigator.vibrate && navigator.vibrate([18, 60, 28]); } catch (_) {} }
   const el = document.createElement('div'); el.className = 'fishname';
   el.innerHTML = `${name}${s.ghost ? '<small>年年有餘</small>' : ''}`;
   labelsEl.appendChild(el); f.label = el; f.labelLife = s.ghost ? 5 : 3.6;
@@ -845,11 +899,14 @@ function spawnFromLoop(loop, s) {
 /* =========================================================
    INPUT
    ========================================================= */
+const btnAbout = document.getElementById('btnAbout'), about = document.getElementById('about');
 function local(e) { return [e.clientX, e.clientY]; }
 stage.addEventListener('pointerdown', e => {
   audio.init();
+  if (!about.hidden) closeAbout();
   try { stage.setPointerCapture(e.pointerId); } catch (_) {}
   const [x, y] = local(e); strokeStart(e.pointerId, x, y, false);
+  const st = pointers.get(e.pointerId); if (st) st.touch = e.pointerType !== 'mouse';
   e.preventDefault();
 });
 stage.addEventListener('pointermove', e => {
@@ -857,7 +914,18 @@ stage.addEventListener('pointermove', e => {
   const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
   for (const ev of (evs.length ? evs : [e])) { const [x, y] = local(ev); strokeMove(e.pointerId, x, y, ev.timeStamp); }
 });
-['pointerup', 'pointercancel'].forEach(t => stage.addEventListener(t, e => strokeEnd(e.pointerId)));
+stage.addEventListener('pointerup', e => { audio.init(); strokeEnd(e.pointerId, false); });
+stage.addEventListener('pointercancel', e => strokeEnd(e.pointerId, true));
+stage.addEventListener('lostpointercapture', e => strokeEnd(e.pointerId, true));
+stage.addEventListener('contextmenu', e => e.preventDefault());
+// iOS: stop pinch and double-tap from zooming the page instead of painting
+['gesturestart', 'gesturechange'].forEach(t => document.addEventListener(t, e => e.preventDefault()));
+document.addEventListener('touchend', () => audio.init(), { passive: true });
+document.addEventListener('visibilitychange', () => {
+  if (!audio.ctx) return;
+  if (document.hidden) audio.ctx.suspend().catch(() => {}); else audio.ctx.resume().catch(() => {});
+  for (const id of [...pointers.keys()]) if (id !== 'ghost') pointers.delete(id);
+});
 
 const btnInk = document.getElementById('btnInk'), swatch = document.getElementById('swatch'), inkLabel = document.getElementById('inkLabel');
 function setInk(red) {
@@ -876,25 +944,29 @@ document.getElementById('btnClear').addEventListener('click', () => {
   S.ripples.push({ x: W / 2, y: H / 2, t: 0, max: Math.max(W, H) * 0.5, w: 1.2 });
   [9, 7, 4, 2, 0].forEach((n, i) => audio.pluck(n, 0.4, 0, i * 0.11));
 });
-const btnAbout = document.getElementById('btnAbout'), about = document.getElementById('about');
+function closeAbout() { about.hidden = true; btnAbout.setAttribute('aria-expanded', 'false'); }
 btnAbout.addEventListener('click', () => { about.hidden = !about.hidden; btnAbout.setAttribute('aria-expanded', String(!about.hidden)); });
 
 /* =========================================================
    LIFECYCLE
    ========================================================= */
-function resize() {
+function resize(force) {
   const nw = window.innerWidth, nh = window.innerHeight;
-  if (nw === W && nh === H) return;
+  if (!force && nw === W && nh === H) return;
+  if (!nw || !nh) return;
   const sx = W ? nw / W : 1, sy = H ? nh / H : 1;
   W = nw; H = nh; DPR = window.devicePixelRatio || 1;
-  const r = Math.min(DPR, 2);
+  const r = renderScale();
   pond.width = Math.round(W * r); pond.height = Math.round(H * r); ctx.setTransform(r, 0, 0, r, 0, 0);
-  fluid.resize(W, H, DPR);
+  fluid.resize(W, H, r, Q().dyeMax);
+  if (fluid.cfg) fluid.cfg.iters = Q().iters;
   paper = makePaper();
   for (const f of S.fish) { f.x *= sx; f.y *= sy; for (const p of f.sp) { p.x *= sx; p.y *= sy; } }
   if (!S.pads.length) makePads(); else { for (const p of S.pads) { p.x *= sx; p.y *= sy; } }
 }
-let rT = 0; window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(resize, 150); });
+let rT = 0; const onResize = () => { clearTimeout(rT); rT = setTimeout(() => resize(false), 150); };
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', onResize);
 resize();
 
 (function seed() {
@@ -929,9 +1001,21 @@ function ghostEnso() {
 }
 setTimeout(ghostEnso, reduced ? 200 : 700);
 
-let last = performance.now(), frameNo = 0;
+let last = performance.now(), frameNo = 0, avgMs = 16.7, slowFor = 0;
+const startedAt = performance.now();
+function adapt(rawMs) {
+  if (rawMs > 120) return;                                   // a hiccup or a return from the background, not a slow phone
+  avgMs = avgMs * 0.95 + rawMs * 0.05;
+  slowFor = avgMs > 25 ? slowFor + rawMs : 0;
+  if (slowFor < 1500 || qLevel === 0) return;
+  slowFor = 0; avgMs = 16.7; qLevel--;
+  // cheaper solver settings apply at once; a lower canvas resolution only in the first seconds, before much is painted
+  if (performance.now() - startedAt < 12000) resize(true); else if (fluid.cfg) fluid.cfg.iters = Q().iters;
+}
 function frame(now) {
-  const dt = Math.min(0.033, (now - last) / 1000); last = now; S.t += dt; frameNo++;
+  const raw = now - last;
+  const dt = Math.min(0.033, raw / 1000); last = now; S.t += dt; frameNo++;
+  adapt(raw);
 
   for (let i = 0; i < S.fish.length; i++) updateFish(S.fish[i], dt, i);
   S.fish = S.fish.filter(f => { if (f.dying > 1.5) { f.label && f.label.remove(); return false; } return true; });
@@ -972,9 +1056,8 @@ function frame(now) {
     if (f.labelLife < 0) { f.label.remove(); f.label = null; }
   }
 
-  fluid.step(dt);
-  fluid.render();
-  if (frameNo % 2 === 0) fluid.probe();
+  if (!fluidLost) { fluid.step(dt); fluid.render(); }
+  if (!fluidLost && frameNo % Q().probeEvery === 0) fluid.probe();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
