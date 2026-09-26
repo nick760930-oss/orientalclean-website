@@ -1,0 +1,21 @@
+{
+  "a": {
+    "branch": "claude/concept-a",
+    "url": "https://oriental-clean-website-git-claude-concept-a-orientalclean.vercel.app/",
+    "commit_url": "https://oriental-clean-website-h8wst68zr-orientalclean.vercel.app/"
+  },
+  "b": {
+    "branch": "claude/concept-b",
+    "url": "https://oriental-clean-website-git-claude-concept-b-orientalclean.vercel.app/",
+    "commit_url": "https://oriental-clean-website-d2v6v9ayy-orientalclean.vercel.app/"
+  },
+  "c": {
+    "branch": "claude/concept-c",
+    "url": "https://oriental-clean-website-git-claude-concept-c-orientalclean.vercel.app/",
+    "commit_url": "https://oriental-clean-website-5gnbniryt-orientalclean.vercel.app/"
+  },
+  "hub": {
+    "branch": "claude/dreamy-mccarthy-4hb3le",
+    "commit_url": "https://oriental-clean-website-s1opymkj4-orientalclean.vercel.app/"
+  }
+}
