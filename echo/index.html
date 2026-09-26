@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a0a0c">
+<title>迴響維度：因果織圖</title>
+<meta name="description" content="一名蒙眼的修復者，以聲音與因果絲線走過一個向未來借取能量的世界。敘事導向的探索遊戲。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#e9e5da; --ink-dim:rgba(233,229,218,.62); --panel:rgba(7,7,9,.84); --edge:rgba(255,255,255,.16);
+  --voice:#cfe3f0; --voice-bg:rgba(4,12,20,.72); --voice-edge:rgba(190,225,255,.28);
+  --gold:#e6c47e; --safe-b:env(safe-area-inset-bottom,0px);
+}
+body.light{
+  --ink:#1f1f24; --ink-dim:rgba(31,31,36,.62); --panel:rgba(246,244,238,.9); --edge:rgba(0,0,0,.16);
+  --voice:#23384a; --voice-bg:rgba(255,255,255,.8); --voice-edge:rgba(20,50,80,.25); --gold:#9a6a14;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#050506;overflow:hidden}
+body{font-family:'Noto Serif TC','Songti TC','PMingLiU',serif;color:var(--ink);-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+body.light{background:#f0eee7}
+canvas{position:fixed;inset:0;display:block}
+body.closed canvas{cursor:none}
+#loc{position:fixed;z-index:5;left:18px;top:14px;font-size:12px;letter-spacing:.32em;color:var(--ink-dim);opacity:0;transition:opacity 1.2s;pointer-events:none}
+#loc.show{opacity:1}
+#voice{position:fixed;z-index:5;left:50%;top:22px;transform:translate(-50%,-8px);max-width:min(640px,calc(100% - 32px));padding:10px 18px;
+  font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,'Noto Sans Mono CJK TC',monospace;font-size:14px;letter-spacing:.14em;line-height:1.7;
+  color:var(--voice);background:var(--voice-bg);border:1px solid var(--voice-edge);opacity:0;transition:opacity .35s,transform .35s;pointer-events:none;white-space:pre-wrap}
+#voice.show{opacity:1;transform:translate(-50%,0)}
+#voice .glyph{display:inline-block;margin-right:.6em;opacity:.8}
+#dlg{position:fixed;z-index:5;left:50%;bottom:calc(22px + var(--safe-b));transform:translate(-50%,10px);width:min(780px,calc(100% - 32px));
+  padding:16px 24px 18px;background:linear-gradient(180deg,rgba(0,0,0,0),var(--panel) 18%);border-bottom:1px solid var(--edge);
+  opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
+#dlg.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#dlg-name{font-size:12px;letter-spacing:.42em;color:var(--ink-dim);min-height:1em;margin-bottom:6px}
+#dlg-text{font-size:18px;line-height:1.9;letter-spacing:.04em;min-height:1.9em}
+#dlg.think #dlg-text{color:var(--ink-dim);padding-left:14px;border-left:1px solid var(--edge)}
+#dlg.narr{background:none;border:none;text-align:center}
+#dlg.narr #dlg-text{font-size:17px;color:var(--ink-dim);letter-spacing:.12em}
+#dlg.kaila #dlg-name{color:var(--ink)}
+#dlg-next{position:absolute;right:18px;bottom:8px;font-size:11px;opacity:0;color:var(--ink-dim);animation:blink 1.4s infinite}
+#dlg.done #dlg-next{opacity:.7}
+@keyframes blink{50%{opacity:.15}}
+#prompt{position:fixed;z-index:5;left:50%;bottom:calc(30px + var(--safe-b));transform:translateX(-50%);font-size:14px;letter-spacing:.2em;color:var(--ink);opacity:0;transition:opacity .25s;pointer-events:none;text-shadow:0 0 12px rgba(0,0,0,.8)}
+body.light #prompt{text-shadow:0 0 10px #fff}
+#prompt.show{opacity:.9}
+#prompt kbd{font-family:inherit;font-size:11px;border:1px solid var(--edge);padding:1px 6px;margin-right:8px;opacity:.8}
+#tinfo{position:fixed;z-index:5;left:50%;top:18px;transform:translateX(-50%);width:min(620px,calc(100% - 32px));padding:12px 18px;background:var(--panel);border:1px solid var(--edge);opacity:0;transition:opacity .25s;pointer-events:none}
+#tinfo.show{opacity:1}
+#tinfo.bottom{top:auto;bottom:calc(28px + var(--safe-b))}
+#tinfo h4{margin:0 0 4px;font-weight:600;font-size:15px;letter-spacing:.14em;color:var(--gold)}
+#tinfo p{margin:0;font-size:14px;line-height:1.8;color:var(--ink)}
+#tinfo .k{margin-top:6px;font-size:12px;color:var(--ink-dim);letter-spacing:.1em}
+#hint{position:fixed;z-index:5;right:18px;top:14px;max-width:min(340px,60vw);text-align:right;font-size:12px;line-height:1.9;letter-spacing:.12em;color:var(--ink-dim);opacity:0;transition:opacity .6s;pointer-events:none}
+#hint.show{opacity:1}
+#card{position:fixed;z-index:5;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 1.4s}
+#card.show{opacity:1}
+#card .t{font-size:clamp(26px,5vw,44px);letter-spacing:.5em;font-weight:300;padding-left:.5em}
+#card .s{margin-top:18px;font-size:13px;letter-spacing:.6em;color:var(--ink-dim);padding-left:.6em}
+#btns{position:fixed;z-index:5;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(96px + var(--safe-b));display:flex;flex-direction:column;gap:10px;opacity:0;transition:opacity .4s;pointer-events:none}
+#btns.show{opacity:1;pointer-events:auto}
+#btns.show.busy{opacity:.35}
+#btns button{width:58px;height:58px;border-radius:50%;border:1px solid var(--edge);background:var(--panel);color:var(--ink);font-family:inherit;font-size:13px;letter-spacing:.1em;cursor:pointer;position:relative}
+#btns button small{position:absolute;bottom:-15px;left:0;right:0;font-size:9px;letter-spacing:.05em;color:var(--ink-dim)}
+#btns button.hot{border-color:var(--gold);color:var(--gold)}
+#btns button:disabled{opacity:.3}
+@media (hover:none){#btns button small{display:none}}
+@media (max-width:600px){#voice{top:48px}#tinfo{top:48px}#hint{top:40px;font-size:11px;max-width:70vw}#dlg-text{font-size:16px}#dlg{padding:12px 16px 14px}#btns{bottom:calc(150px + var(--safe-b))}#btns button{width:52px;height:52px}}
+#fade{position:fixed;inset:0;background:#000;opacity:1;pointer-events:none;z-index:3}
+.overlay{position:fixed;inset:0;z-index:8;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(3,3,5,.55)}
+.overlay.show{display:flex}
+body.light .overlay{background:rgba(240,238,231,.6)}
+.menu{display:flex;flex-direction:column;gap:12px;align-items:center;min-width:240px}
+.menu h1{font-weight:300;font-size:clamp(34px,7vw,64px);letter-spacing:.42em;margin:0;padding-left:.42em}
+.menu h2{font-weight:300;font-size:14px;letter-spacing:.9em;margin:10px 0 36px;color:var(--ink-dim);padding-left:.9em}
+.menu button{font-family:inherit;background:none;border:none;border-bottom:1px solid transparent;color:var(--ink);font-size:16px;letter-spacing:.4em;padding:8px 4px 8px calc(4px + .4em);cursor:pointer}
+.menu button:hover,.menu button:focus-visible{border-bottom-color:var(--gold);outline:none;color:var(--gold)}
+.menu button:disabled{opacity:.3;cursor:default;border-color:transparent;color:var(--ink)}
+.menu .foot{margin-top:34px;font-size:12px;letter-spacing:.2em;color:var(--ink-dim);text-align:center;line-height:2}
+.panel{max-width:min(620px,calc(100% - 32px));max-height:80vh;overflow:auto;padding:26px 30px;background:var(--panel);border:1px solid var(--edge);font-size:14px;line-height:2;letter-spacing:.06em}
+.panel h3{margin:0 0 12px;font-weight:400;letter-spacing:.3em;color:var(--gold)}
+.panel table{border-collapse:collapse;width:100%}
+.panel td{padding:3px 8px;vertical-align:top}
+.panel td:first-child{white-space:nowrap;color:var(--ink-dim)}
+.panel .row{display:flex;gap:18px;justify-content:center;margin-top:18px}
+.panel button{font-family:inherit;background:none;border:1px solid var(--edge);color:var(--ink);padding:6px 18px;letter-spacing:.3em;cursor:pointer}
+.panel button:hover{border-color:var(--gold);color:var(--gold)}
+#confirm .panel{text-align:center}
+#log{position:fixed;z-index:4;inset:0;display:none;pointer-events:none;align-items:flex-start;justify-content:center;padding:6vh 16px 22vh}
+#log.show{display:flex;background:radial-gradient(ellipse at 50% 40%,rgba(0,0,0,.62),rgba(0,0,0,.3) 60%,rgba(0,0,0,0) 85%)}
+#log .sheet{width:min(720px,100%);max-height:100%;overflow:hidden;font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:13px;line-height:1.85;letter-spacing:.05em;color:#d9e6ee;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 12%,#000 100%);mask-image:linear-gradient(180deg,transparent 0,#000 12%,#000 100%);display:flex;flex-direction:column;justify-content:flex-end}
+#log .e{opacity:0;transition:opacity .8s;margin:2px 0;white-space:pre-wrap}
+#log .e.v{opacity:1}
+#log .e.h{color:#e6c47e}
+#log .e.m{color:rgba(217,230,238,.5)}
+#log .e.x{color:#f0f0f0;letter-spacing:.14em}
+#rej{position:fixed;z-index:6;left:18px;bottom:calc(18px + var(--safe-b));font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.1em;color:rgba(200,220,235,.55);pointer-events:none;line-height:1.7}
+#rej div{transition:opacity 2.4s}
+#end{position:fixed;inset:0;z-index:7;display:none;align-items:center;justify-content:center;flex-direction:column;padding:24px;text-align:center;pointer-events:none}
+#end.show{display:flex}
+#end .q{max-width:min(760px,100%);font-size:clamp(18px,2.6vw,24px);line-height:2.1;letter-spacing:.14em;opacity:0;transition:opacity 3s}
+#end .q.v{opacity:1}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label="遊戲畫面"></canvas>
+<div id="loc"></div>
+<div id="voice"></div>
+<div id="tinfo"><h4></h4><p></p><div class="k"></div></div>
+<div id="hint"></div>
+<div id="card"><div class="t"></div><div class="s"></div></div>
+<div id="dlg"><div id="dlg-name"></div><div id="dlg-text"></div><div id="dlg-next">▼</div></div>
+<div id="prompt"></div>
+<div id="btns">
+  <button id="b-act" type="button" aria-label="互動">靠近<small>Enter</small></button>
+  <button id="b-listen" type="button" aria-label="聆聽">聆聽<small>空白鍵</small></button>
+  <button id="b-thread" type="button" aria-label="因果絲線">絲線<small>E</small></button>
+</div>
+<div id="log"><div class="sheet"></div></div>
+<div id="end"><div class="q"></div></div>
+<div id="rej"></div>
+<div id="fade"></div>
+<div id="menu" class="overlay"></div>
+<div id="confirm" class="overlay"></div>
+<noscript><p style="color:#ccc;text-align:center;margin-top:40vh">這個遊戲需要啟用 JavaScript。</p></noscript>
+<script>
+// Resolve script paths relative to this page whether it is served as /echo, /echo/ or opened from disk.
+(function(){
+  var p=location.pathname, base='';
+  if(location.protocol!=='file:' && !/\/$/.test(p) && !/\.html?$/.test(p)) base=p.split('/').pop()+'/';
+  ['core.js','world.js','ch0.js','ch1.js','ch2.js','ch3.js','ch4.js','ch5.js','ch6.js','main.js'].forEach(function(f){
+    var s=document.createElement('script'); s.src=base+'js/'+f; s.async=false; document.body.appendChild(s);
+  });
+})();
+</script>
+</body>
+</html>
