@@ -1,0 +1,119 @@
+/*
+ * polish.css — 互動與動態細節修正（依 apple-design 原則審核）
+ * 只覆寫 React 頁面（首頁／關於／聯絡／評價）既有的 Tailwind 樣式，不改版面。
+ * 移除這個檔案與 polish.js 的 <link>/<script> 即可完全還原。
+ */
+
+/* ── 1. 導覽列：真正的毛玻璃，底部用陰影取代硬邊線 ───────────────── */
+nav.fixed.top-0 {
+  /* 只過渡顏色類屬性，縮短到與 logo 切換幾乎同一幀，避免深色 logo 疊在深色底 */
+  transition-property: background-color, box-shadow, border-color, backdrop-filter !important;
+  transition-duration: 120ms !important;
+  transition-timing-function: ease-out !important;
+}
+nav.fixed.top-0.backdrop-blur-lg {
+  background-color: rgba(255, 255, 255, 0.82) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom-color: transparent !important;
+  box-shadow:
+    0 1px 0 rgba(15, 40, 50, 0.05),
+    0 10px 24px -14px rgba(15, 40, 50, 0.22) !important;
+}
+
+/* ── 2. 永不停止的動畫改成「提示幾次就停」 ─────────────────────── */
+/* Hero 底部滑鼠提示：跳 3 次就停，開始捲動後淡出 */
+.animate-bounce {
+  animation-iteration-count: 3 !important;
+  transition: opacity 200ms ease-out;
+}
+.oc-scrolled .animate-bounce {
+  opacity: 0;
+  pointer-events: none;
+}
+/* 右下聯絡按鈕：不再無限閃爍，進站 3 秒後用光環提示兩次 */
+button[aria-label="聯絡我們"].animate-pulse {
+  animation: oc-ring 1.6s ease-out 3s 2 both !important;
+}
+@keyframes oc-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(0, 180, 216, 0.45), 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+  100% { box-shadow: 0 0 0 18px rgba(0, 180, 216, 0), 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+}
+
+/* ── 3. 按下去立刻有回饋（用 scale 屬性，不會蓋掉既有的 transform） ─── */
+:where(#root) :is(button, .btn-primary, .btn-secondary, nav a, a[class*="rounded-lg"], a[class*="rounded-full"]) {
+  -webkit-tap-highlight-color: transparent;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, gap, scale !important;
+}
+:where(#root) :is(button, .btn-primary, .btn-secondary, nav a, a[class*="rounded-lg"], a[class*="rounded-full"]):active {
+  scale: 0.97;
+  transition-duration: 100ms !important;
+}
+/* 大面積的卡片縮得比較少，才不會像在晃 */
+:where(#root) :is(.card, a.group[class*="rounded-2xl"], div.group[class*="rounded-2xl"]):active {
+  scale: 0.985;
+  transition-duration: 100ms !important;
+}
+
+/* 鍵盤操作時看得到焦點 */
+:where(#root) :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #11afca;
+  outline-offset: 3px;
+}
+
+/* ── 4. 進場動畫：縮短時間、縮小位移 ─────────────────────────────── */
+.transition-all.duration-700 {
+  transition-property: opacity, transform !important;
+  transition-duration: 450ms !important;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+.transition-all.duration-700.translate-y-8 {
+  --tw-translate-y: 1rem !important;
+}
+.animate-fade-in-up {
+  animation-duration: 450ms !important;
+}
+
+/* ── 5. 中文大標行距：1.0 太擠 ────────────────────────────────────── */
+#root h1 {
+  line-height: 1.18 !important;
+}
+#root h2 {
+  line-height: 1.3 !important;
+}
+
+/* ── 6. 減少動態／減少透明度／高對比 ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-bounce,
+  button[aria-label="聯絡我們"].animate-pulse {
+    animation: none !important;
+  }
+  /* 進場改成單純淡入，不位移 */
+  .transition-all.duration-700 {
+    transform: none !important;
+    --tw-translate-y: 0 !important;
+    transition-property: opacity !important;
+    transition-duration: 200ms !important;
+  }
+  :where(#root) :is(button, a, .card):active {
+    scale: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  nav.fixed.top-0.backdrop-blur-lg {
+    background-color: #fff !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+@media (prefers-contrast: more) {
+  nav.fixed.top-0.backdrop-blur-lg {
+    background-color: #fff !important;
+    border-bottom: 1px solid #183e4a !important;
+  }
+}
