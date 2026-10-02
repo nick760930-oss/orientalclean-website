@@ -7,3 +7,5 @@
 @media(max-width:360px){.masthead{padding-inline:16px}.brand svg{width:115px}.title-block{left:20px;right:20px}.title-block h1{font-size:56px}.directory,.colophon{padding-inline:18px}.header-right{gap:7px}.cover-summary{font-size:11px}.entry-name{font-size:14px}}
 @media(max-height:550px) and (min-width:621px){.site{min-height:790px}.cover{height:520px}.title-block h1{font-size:70px}.title-block{top:46%}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* verified 2026-10-03 */
