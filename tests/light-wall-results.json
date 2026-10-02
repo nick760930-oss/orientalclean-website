@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-02",
+  "environment": "Linux Chromium 144 + Playwright page.set_content; network content mocked; WebGL context unavailable",
+  "renderer_actually_tested": "canvas2d-static",
+  "script_syntax": "passed",
+  "viewports": ["320x740", "390x844", "430x932", "768x1024", "1440x960", "844x390"],
+  "all_viewports_passed": true,
+  "checks": ["horizontal overflow", "title geometry", "44px directory targets", "no initial project src", "service disclosure", "modal focus loop", "Esc and nested focus return", "reader fixture", "unsafe markup removal", "gallery buttons", "menu history", "contact href", "fallback idle", "no pageerror"],
+  "extra_passed": ["503 fixture recovery", "retry success fixture", "reduced motion CSS", "no-JS direct links"],
+  "not_verified": ["real GPU WebGL compilation and rendering", "iPhone Safari device", "full original PNG logo", "real photograph network loading", "field CWV", "SEO engine integration", "external cross-model review"]
+}

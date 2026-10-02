@@ -1,58 +1,53 @@
-# 官網重新設計狀態
+# 官網持續修改狀態｜水光立面
 
-更新：2026-10-02。先讀 REDESIGN_BRIEF.md、PROJECT_GOAL.md、AGENTS.md。舊狀態完整保存於 docs/archive/QUALITY_STATUS_V8_2.md。
+2026-10-02。使用者最新要求「再改」，先讀REDESIGN_BRIEF.md與PROJECT_GOAL.md。上輪狀態保存docs/archive/QUALITY_STATUS_FABRIC.md。分支v8-self-optimized；同一入口/brand-preview.html。
 
-## 最新工作
+## 本輪來源與改動
 
-使用者要求「重新設計」，本輪新增 /brand-preview.html，主視覺、資訊架構與互動重新製作，不沿用V8左右分欄滑桿。仍在v8-self-optimized；保留/v8-preview.html、全部舊資產、main及Claude其他分支。起始HEAD c6485ac6ada862667e174a9225e46e1c9ac45236。
+起始HEAD：19dfc1ef6fbacd9d24ebbb9615a5b82450d2989b。舊版未刪，正式main、/v8-preview.html與Claude其他版本未修改。
 
-## 程式交付
+已測程式blob SHA：
+- brand-preview.html：9477c5632ee9b5ee0806a41f725a0040f69c81ba
+- assets/brand-redesign.css：3eb5efc46feda41a71165bc4566b42ff4e5fb7d6
+- assets/brand-redesign.js：9569320aa4dfc35d37a3bb7e55ee609ffe5f7480
+- assets/brand-motion.js：3771b6276cc6e831fd6841f0384c9864b5504321
 
-- brand-preview.html：4b0a28e66f55702023936ac6b49ce19b3b937386
-- assets/brand-redesign.css：feada2b4ae5ec87c35d0595e922dd18f4021ca62
-- assets/brand-redesign.js：4124bb8f8708ddbfc72611c675eb2130bb06da78
-- assets/brand-motion.js：eacd070566c58c57e209558ba4d073a98da45191
-以上是本輪已測檔案的Git blob SHA，不是部署ID。
+主視覺從編織物件改成青藍水光面，重新排首頁与所有内容面板；明體中文标题、無首屏照片、可直接進入案例／服務／工程筆記／聯絡。正式案例與文章未重寫，保留實際href。
 
-首頁為白色與青藍編織材質、公司名稱及三個直接入口。沒有工程照片、滑桿、進度／假影格數。使用Canvas2D顯示程序投影曲面，非影片、非WebGL或物理模擬。
+修正nested dialog回到上一層的焦點位置、閱讀內容的標籤／屬性與圖片來源清理、503錯誤重試。修正初稿主視覺起始位置造成可見硬接縫：改為全區光影底圖與漸層融合。著色器平方使用乘法，避免GLSL對負底數pow的未定義結果。
 
-服务、案例、筆記、聯絡與選單使用原生dialog。案例按需載圖、左右切換；文章與案例可從真實URL讀入閱讀器，不是只有標題。保持href與無JS直接閱讀路徑。正式內容不被重寫，不新增工程事實。
+## 實際測試與限制
 
-## 自查中實際修正
+Node syntax check兩個JS通過。Linux Chromium144＋Python Playwright，page.set_content載入本輪HTML/CSS/JS，未導航至網路頁面。未修改瀏覽器管理政策或網路限制。
 
-- 初稿曲面呈網格／三角面：改成連續縱向光照材質，而不是增加更多特效。
-- Canvas初始尺寸為零造成漸層非有限值：先檢查尺寸再繪圖。
-- 手機材質壓到大標：將主體移至標題下方並重新安排比例。
-- 折疊服務的不可見連結進入Tab順序：焦點循環排除未展開details內容。
-- 巢狀面板返回主頁後焦點位置不明：保留主頁觸發元素並恢復焦點。
-- 本地測試history與baseURI不同源：改以目前location的無hash網址更新history，不更動使用者目的地。
-- 停止無限動畫；加入有限播放、背景／面板暂停、reduced-motion静止。
+6種尺寸均通過：320×740、390×844、430×932、768×1024、1440×960、844×390。
+- 無水平頁面溢出，主標幾何範圍不越界，底部導覽高度≥44px。
+- 首屏未設定案例圖片src，進入案例後才設定3張src。
+- 服務details展開、Tab循環、Esc與上層焦點恢復。
+- 工程筆記→閱讀器→返回原連結；測試文章為本地fixture，不是網路文章實測。
+- 案例橫向按鈕、選單→聯絡→上一層history、電話href。
+- 閱讀器503 fixture顯示回復入口、重試成功、移除script／事件／javascript URL。
+- reduced-motion CSS不播放進場、無JS時直接文章入口可見。
+- 無pageerror；Canvas2D靜態降級在靜止時不持續重畫。
 
-## 本輪已完成測試
+本環境WebGL context不可用。本輪實際截圖與瀏覽器測試跑Canvas2D靜態降級，不能冒充WebGL動態／GPU效能已通過。主視覺公式與GLSL靜態檢查不是GPU編譯實測。
 
-Linux Chromium＋Python Playwright，page.set_content載入實際HTML/CSS/JS。環境管理限制禁止正常導航，本輪未修改或繞過限制。
+已檢視1440/390/320寬首屏截圖並修正接縫。視覺測試的Logo是使用者提供JPEG製作的本地裁切fixture，不是部署PNG完整驗收；案例照片沒有在本地成功從外網載入。未宣稱真實素材皆通過。
 
-320×740、390×844、430×932、768×1024、1440×900、844×390 六種尺寸均通過：Canvas渲染無pageerror、無水平頁面溢出、主要入口44px高度、服務展開／焦點循環、Esc及主頁焦點、三篇真實href、閱讀器fixture成功、案例延遲載圖、橫向按鈕、選單→聯絡→返回的history。
+測試摘要：tests/light-wall-results.json。當前可執行測試腳本於本輪工作容器，後續應重建或補存同等規格測試，不以舊布面測試冒充本輪。
 
-另外以最終motion檔重測：reduced-motion下Canvas不持續更新；手動播放結束後影格計數停止。沒有拿此計數當對外電影影格。
+## 待部署驗證
 
-測試使用既有JPEG提取的本地Logo示意與案例圖fixture；閱讀器使用既有文章節錄fixture，不冒充真實網路載入。手機／桌機截圖實際檢視並修正，但不是iPhone Safari或正式原圖驗收。測試摘要保存 tests/brand-redesign-results.json。
+提交後需核對Vercel的本輪commit、branch、Preview/READY、首頁與CSS/JS實際回應。分享token不存repo；部署成功不能視為得獎水準。
 
-原始JPEG已經由GitHub讀取並檢查blob SHA 5283d6a539bcdc9952c6fd6dc39f55722bb327be。它是有損圖，不宣稱像素取樣等於完整品牌色規範；部署Header仍使用既有lossless PNG資產與原有裁切比例。
+## 未通過／待驗證
 
-## 部署狀態
+- 支援WebGL的真實瀏覽器：著色器編譯、動態畫面、暫停、context loss、GPU效能。
+- iPhone Safari真機、精確Logo原色／裁切、真實照片載入和所有內容路由。
+- 200%字體縮放、讀屏、低效能與電量、LCP/INP/CLS實際數據。
+- 文章工程審閱、SEO引擎／GSC／GA4整合與真正Claude／Codex交叉審查。
+- Awwwards／Webby／FWA完成度仍是目標，沒有達標／獲獎宣告。
 
-此提交時尚待Vercel自動部署。接續步驟應核對本提交的commit、branch、Preview/READY，再實際讀取 /brand-preview.html 與CSS/JS、內容URL。驗證結果另存Issue #1或下次狀態，不可把這一行當已通過。分享token不得保存至公開repo。
+## 下一步
 
-## 未完成的品質關卡
-
-- 真實PNG Logo的顏色、縮小辨識度與完整裁切，以及真實案例照片的端到端瀏覽器驗收。
-- iPhone Safari真機、WebKit、讀屏、200%文字縮放、低效能與電量影響。
-- 實際HTTP讀取與全部資產、閱讀器同源fetch、404重試的線上測試。
-- CWV實際使用者資料、LCP／INP／CLS與完整效能評估，沒有測量不能填分數。
-- 工程文章審閱、SEO引擎／GSC／GA4接通與實際Claude／Codex交叉審查。
-- Awwwards／Webby／FWA水準仍是目標，不表示已達標或已得獎。
-
-## 下一輪
-
-以新品牌設計為主，不回退V8滑桿示範。先完成真實素材與手機完整體驗、內容連續閱讀和載入失敗，再依使用者視覺驗收精修。舊V8回歸測試只適用舊/v8-preview.html，不可拿來驗證新首頁。需要用新測試與實際截圖說明差異。
+先以使用者手機驗收水光立面、細明體與畫面比例；確認GPU效果及Logo。持續保留自然中文、內容真實URL、完整閱讀與Preview noindex。不得退回布面／滑桿，不改正式站。新的藝術指導或後續使用者回饋優先，不要自動宣稱方向已獲認可。
