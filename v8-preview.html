@@ -11,8 +11,9 @@
 html,body{margin:0;width:100%;height:100%;font-family:"Noto Sans TC","Helvetica Neue",Arial,sans-serif;background:#f8fbfc;color:#0a343c;overflow:hidden}
 :root{--brand:#00afc8;--ink:#0a343c;--muted:#5f777d;--ice:#eaf7f9;--line:#c9dde1;--paper:#f8fbfc}
 button,a{font:inherit}button{color:inherit}
+button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
 .app{height:100%;position:relative;background:var(--paper);overflow:hidden}
-.topbar{position:absolute;z-index:50;inset:0 0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:18px 24px;mix-blend-mode:normal}
+.topbar{position:absolute;z-index:50;inset:0 0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:18px 24px;background:linear-gradient(to bottom,rgba(248,251,252,.93),rgba(248,251,252,.58),transparent);backdrop-filter:blur(10px)}
 .brand{display:flex;align-items:center;gap:11px;min-width:0}.brand img{height:24px;width:auto;display:block}.brand span{font-size:11px;letter-spacing:.08em;color:#47656b;white-space:nowrap}
 .mode{justify-self:center;font:10px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;color:#6d8a90}
 .menu{justify-self:end;display:flex;gap:7px}.menu button{border:0;background:transparent;padding:9px 11px;font-size:12px;cursor:pointer}.menu button:hover{color:var(--brand)}
@@ -38,27 +39,31 @@ button,a{font:inherit}button{color:inherit}
 .repairLines{position:absolute;inset:0;opacity:0}.repairLines i{position:absolute;height:1px;background:#0a343c;transform-origin:left}.repairLines i:nth-child(1){left:16%;top:31%;width:24%;transform:rotate(16deg)}.repairLines i:nth-child(2){left:39%;top:38%;width:18%;transform:rotate(-28deg)}.repairLines i:nth-child(3){left:31%;top:62%;width:31%;transform:rotate(9deg)}
 .waterLayer{position:absolute;inset:0;opacity:0;background:linear-gradient(180deg,rgba(0,175,200,.12),rgba(0,175,200,.32));transform:translateY(-18%)}
 .scanLine{position:absolute;left:0;right:0;top:20%;height:1px;background:var(--brand);box-shadow:0 0 18px rgba(0,175,200,.72);opacity:0}
-.photoReveal{position:absolute;inset:0;clip-path:inset(0 50% 0 50%);background:linear-gradient(90deg,rgba(5,24,29,.15),rgba(5,24,29,.03)),url('/images/case-morten41.jpg') center/cover;transition:clip-path .06s linear}
+.photoReveal{position:absolute;inset:0;clip-path:inset(0 50% 0 50%);overflow:hidden;background:#d7e8eb;transition:clip-path .06s linear}
+.photoReveal img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .45s}.photoReveal.ready img{opacity:1}
+.photoLoad{position:absolute;inset:auto 3vw 3vh auto;font:10px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;color:#49686e;background:rgba(255,255,255,.84);padding:8px 10px;backdrop-filter:blur(10px)}
+.photoLoad.error{color:#934f4f}
 .photoCaption{position:absolute;z-index:7;right:3vw;bottom:5vh;color:white;text-align:right;opacity:0;transform:translateY(14px);transition:.45s}.photoCaption small{font:10px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:#d7f7fa}.photoCaption strong{display:block;font-size:clamp(28px,3.5vw,52px);font-weight:500;letter-spacing:-.04em;margin-top:9px}
 .infoRail{position:absolute;z-index:20;left:6vw;bottom:12vh;display:flex;gap:8px}.infoRail button{border:1px solid #b9d8dd;background:rgba(255,255,255,.84);backdrop-filter:blur(10px);padding:12px 16px;cursor:pointer;font-size:12px}.infoRail button.primary{background:var(--ink);border-color:var(--ink);color:white}.infoRail button:hover{border-color:var(--brand)}
 .progress{position:absolute;z-index:60;left:0;bottom:0;width:100%;height:3px;background:var(--brand);transform:scaleX(0);transform-origin:left}
 .counter{position:absolute;z-index:30;right:24px;top:22px;font:10px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;color:#708c92}
+.drawer{position:absolute;z-index:75;inset:0;background:rgba(248,251,252,.98);backdrop-filter:blur(16px);transform:translateX(-100%);transition:.8s cubic-bezier(.2,.8,.2,1);padding:8vh 6vw;overflow:auto}.drawer.open{transform:none}.drawerHead{display:flex;justify-content:space-between;align-items:start;gap:30px;margin-bottom:7vh}.drawerHead h2{font-size:clamp(42px,6vw,82px);font-weight:500;letter-spacing:-.06em;margin:0}.drawerHead p{max-width:520px;line-height:1.75;color:#60787e;margin:10px 0 0}.close{border:0;background:none;font-size:13px;cursor:pointer;align-self:flex-start}
+.serviceList{border-top:1px solid var(--line)}.service{display:grid;grid-template-columns:90px minmax(200px,.85fr) 1.15fr;gap:25px;padding:27px 0;border-bottom:1px solid var(--line)}.service .code{font:10px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--brand);letter-spacing:.14em}.service h3{font-size:clamp(25px,3vw,40px);font-weight:500;letter-spacing:-.035em;margin:0}.service p{line-height:1.8;color:#60787e;margin:0}
 .projects{position:absolute;z-index:80;inset:0;background:#f8fbfc;transform:translateX(100%);transition:.85s cubic-bezier(.2,.8,.2,1);display:grid;grid-template-rows:auto 1fr}.projects.open{transform:none}
-.overlayHead{display:flex;justify-content:space-between;align-items:end;padding:7vh 5vw 3vh}.overlayHead h2{font-size:clamp(42px,6vw,82px);font-weight:500;letter-spacing:-.06em;margin:0}.overlayHead p{max-width:460px;line-height:1.75;color:#60787e;margin:0 4vw 0 auto}.close{border:0;background:none;font-size:13px;cursor:pointer;align-self:flex-start}
+.overlayHead{display:flex;justify-content:space-between;align-items:end;padding:7vh 5vw 3vh}.overlayHead h2{font-size:clamp(42px,6vw,82px);font-weight:500;letter-spacing:-.06em;margin:0}.overlayHead p{max-width:460px;line-height:1.75;color:#60787e;margin:0 4vw 0 auto}
 .projectRail{display:flex;gap:18px;overflow-x:auto;padding:1vh 5vw 6vh;scroll-snap-type:x mandatory;overscroll-behavior-x:contain}.projectRail::-webkit-scrollbar{height:3px}.projectRail::-webkit-scrollbar-thumb{background:var(--brand)}
 .projectCard{flex:0 0 min(70vw,900px);scroll-snap-align:center;background:#fff;display:grid;grid-template-rows:1fr auto;min-height:66vh;border:1px solid #dce7e9}.projectCard img{width:100%;height:100%;object-fit:cover}.projectMeta{display:grid;grid-template-columns:1fr auto;gap:18px;padding:22px}.projectMeta h3{font-size:clamp(24px,3vw,38px);font-weight:500;letter-spacing:-.035em;margin:0}.projectMeta span{font:10px ui-monospace,SFMono-Regular,Menlo,monospace;color:#748d92}
-.journal{position:absolute;z-index:90;inset:0;background:#0b3037;color:white;transform:translateY(100%);transition:.85s cubic-bezier(.2,.8,.2,1);padding:8vh 6vw;overflow:auto}.journal.open{transform:none}.journal .overlayHead{padding:0 0 6vh}.journal .overlayHead p{color:#a9c3c8}.journal .close{color:white}.article{display:grid;grid-template-columns:130px 1fr auto;gap:24px;align-items:center;padding:27px 0;border-top:1px solid rgba(255,255,255,.18)}.article time{font:10px ui-monospace,SFMono-Regular,Menlo,monospace;color:#7be0e9}.article h3{font-size:clamp(22px,3vw,38px);font-weight:500;letter-spacing:-.03em;margin:0}.article span{font-size:22px;color:#a9c3c8}
-.srContent{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
-@media(max-width:820px){.topbar{grid-template-columns:1fr auto;padding:15px 16px}.mode{display:none}.brand span{display:none}.menu button:first-child{display:none}.stage{background:linear-gradient(180deg,#fbfefe 0 52%,#eef8fa 52%)}.stage:before{background:linear-gradient(180deg,transparent calc(52% - .5px),rgba(10,52,60,.08) 52%,transparent calc(52% + .5px))}.leftCopy{left:6vw;right:12vw;top:30%;width:auto}.leftCopy h1{font-size:15vw}.leftCopy p{font-size:14px}.visual{inset:52% 0 0}.ropeTrack{left:82%;top:0;bottom:0}.marker{left:calc(82% - 17px);width:34px;height:34px}.levels{left:auto;right:4vw;top:10%;bottom:9%}.stageNote{display:none}.infoRail{left:6vw;bottom:3.5vh}.counter{right:16px;top:18px}.photoCaption{right:5vw;bottom:4vh}.overlayHead{display:block;padding-top:5vh}.overlayHead p{margin:18px 0 0}.projectCard{flex-basis:86vw;min-height:68vh}.article{grid-template-columns:78px 1fr}.article span{display:none}}
-@media(prefers-reduced-motion:reduce){.projects,.journal,.surface,.photoCaption{transition:none}.marker{top:80%!important}.photoReveal{clip-path:inset(0)!important}.photoCaption{opacity:1!important;transform:none!important}}
+.journal{position:absolute;z-index:90;inset:0;background:#0b3037;color:white;transform:translateY(100%);transition:.85s cubic-bezier(.2,.8,.2,1);padding:8vh 6vw;overflow:auto}.journal.open{transform:none}.journal .overlayHead{padding:0 0 6vh}.journal .overlayHead p{color:#a9c3c8}.journal .close{color:white}.article{display:grid;grid-template-columns:130px 1fr auto;gap:24px;align-items:center;padding:27px 0;border-top:1px solid rgba(255,255,255,.18);color:white;text-decoration:none}.article time{font:10px ui-monospace,SFMono-Regular,Menlo,monospace;color:#7be0e9}.article h3{font-size:clamp(22px,3vw,38px);font-weight:500;letter-spacing:-.03em;margin:0}.article span{font-size:22px;color:#a9c3c8}
+@media(max-width:820px){.topbar{grid-template-columns:1fr auto;padding:15px 16px}.mode{display:none}.brand span{display:none}.menu button:first-child{display:none}.stage{background:linear-gradient(180deg,#fbfefe 0 52%,#eef8fa 52%)}.stage:before{background:linear-gradient(180deg,transparent calc(52% - .5px),rgba(10,52,60,.08) 52%,transparent calc(52% + .5px))}.leftCopy{left:6vw;right:12vw;top:30%;width:auto}.leftCopy h1{font-size:15vw}.leftCopy p{font-size:14px}.visual{inset:52% 0 0}.ropeTrack{left:82%;top:0;bottom:0}.marker{left:calc(82% - 17px);width:34px;height:34px}.levels{left:auto;right:4vw;top:10%;bottom:9%}.stageNote{display:none}.infoRail{left:6vw;bottom:3.5vh}.counter{right:16px;top:18px}.photoCaption{right:5vw;bottom:4vh}.drawer{padding:7vh 5vw}.drawerHead{display:block}.drawerHead .close{position:absolute;right:18px;top:18px}.service{grid-template-columns:58px 1fr}.service p{grid-column:2}.overlayHead{display:block;padding-top:5vh}.overlayHead p{margin:18px 0 0}.projectCard{flex-basis:86vw;min-height:68vh}.article{grid-template-columns:78px 1fr}.article span{display:none}}
+@media(prefers-reduced-motion:reduce){.drawer,.projects,.journal,.surface,.photoCaption,.photoReveal img{transition:none}}
 </style>
 </head>
 <body>
 <div class="app">
 <header class="topbar">
   <div class="brand"><img src="/images/logo-brand-color.png" alt="東方繩洗"><span>ORIENTAL CLEAN</span></div>
-  <div class="mode">ROPE-LED FIELD / V8</div>
-  <nav class="menu"><button id="serviceBtn">服務</button><button id="projectsBtn">工程案例</button><button id="journalBtn">工程筆記</button></nav>
+  <div class="mode">ROPE-LED FIELD / V8.1</div>
+  <nav class="menu"><button id="serviceBtn" aria-controls="services">服務</button><button id="projectsBtn" aria-controls="projects">工程案例</button><button id="journalBtn" aria-controls="journal">工程筆記</button></nav>
 </header>
 <main class="stage" id="stage">
   <section class="leftCopy" aria-live="polite">
@@ -67,15 +72,15 @@ button,a{font:inherit}button{color:inherit}
     <p id="description">拖曳青藍色圓點，或使用滑鼠滾輪與手指滑動。畫面依序呈現清洗、修繕、防水、檢查與真實工程。</p>
   </section>
   <div class="ropeTrack"></div>
-  <button class="marker" id="marker" aria-label="拖曳控制工程階段"></button>
-  <div class="levels"><span class="on">進入</span><span>清洗</span><span>修繕</span><span>防水</span><span>檢查</span><span>現場</span></div>
+  <button class="marker" id="marker" aria-label="拖曳控制工程階段" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></button>
+  <div class="levels" aria-hidden="true"><span class="on">進入</span><span>清洗</span><span>修繕</span><span>防水</span><span>檢查</span><span>現場</span></div>
   <section class="visual" aria-hidden="true">
     <div class="surface" id="surface"></div>
     <div class="cleanFilm" id="cleanFilm"></div>
     <div class="repairLines" id="repairLines"><i></i><i></i><i></i></div>
     <div class="waterLayer" id="waterLayer"></div>
     <div class="scanLine" id="scanLine"></div>
-    <div class="photoReveal" id="photoReveal"></div>
+    <div class="photoReveal" id="photoReveal"><img id="heroPhoto" alt="東方繩洗高樓外牆工程現場"><div class="photoLoad" id="photoLoad">工程影像待載入</div></div>
     <div class="photoCaption" id="photoCaption"><small>SELECTED PROJECT</small><strong>建築外牆工程現場</strong></div>
   </section>
   <div class="stageNote">DRAG THE ROPE / 亦可使用滾輪或滑動</div>
@@ -83,31 +88,32 @@ button,a{font:inherit}button{color:inherit}
   <div class="counter" id="counter">00 / 100</div>
   <div class="progress" id="progress"></div>
 </main>
-<section class="projects" id="projects" aria-label="工程案例">
-  <div class="overlayHead"><h2>工程案例</h2><p>案例將整理現場問題、外牆材質、施工方式、作業設備與完工結果。此版先驗證瀏覽方式。</p><button class="close" id="closeProjects">關閉 ×</button></div>
-  <div class="projectRail">
-    <article class="projectCard"><img src="/images/case-dajiang.jpg" alt="外牆工程案例"><div class="projectMeta"><h3>外牆工程紀錄</h3><span>CLEANING / ACCESS</span></div></article>
-    <article class="projectCard"><img src="/images/case-tonlin.jpg" alt="高空外牆施工"><div class="projectMeta"><h3>高空施工紀錄</h3><span>FACADE / ROPE</span></div></article>
-    <article class="projectCard"><img src="/images/case-morten41.jpg" alt="建築外牆清潔"><div class="projectMeta"><h3>建築外牆清潔</h3><span>SELECTED PROJECT</span></div></article>
+<section class="drawer" id="services" aria-label="外牆工程服務" aria-hidden="true">
+  <div class="drawerHead"><div><h2>外牆工程</h2><p>高空接近方式只是進入工作面的手段。施工前先確認材質、缺失範圍、作業動線與現場風險，再安排工法。</p></div><button class="close" id="closeServices">關閉 ×</button></div>
+  <div class="serviceList">
+    <article class="service"><div class="code">01</div><h3>外牆清洗</h3><p>依玻璃、帷幕牆、磁磚與污染狀況選擇清潔方式，不用同一套藥劑與壓力處理所有表面。</p></article>
+    <article class="service"><div class="code">02</div><h3>外牆修繕</h3><p>磁磚空鼓、剝落與裂縫先確認範圍，再評估局部修補、補強、灌注或打除重做。</p></article>
+    <article class="service"><div class="code">03</div><h3>外牆防水</h3><p>先確認可能水路、接縫、窗框與基面狀況，再決定補縫、表面防水或其他處理方式。</p></article>
+    <article class="service"><div class="code">04</div><h3>高空檢查</h3><p>進入一般設備不容易抵達的位置，記錄外牆缺失、材質狀況與需要處理的範圍。</p></article>
   </div>
 </section>
-<section class="journal" id="journal" aria-label="工程筆記">
-  <div class="overlayHead"><h2>工程筆記</h2><p>長篇內容不求數量。只整理現場真的需要判斷、客戶真的會搜尋的問題。</p><button class="close" id="closeJournal">關閉 ×</button></div>
-  <a class="article" href="#"><time>2026.09</time><h3>外牆防水做完後，牆角為什麼還會滲水？</h3><span>↗</span></a>
-  <a class="article" href="#"><time>2026.09</time><h3>磁磚空鼓：灌注、局部修補與打除重做怎麼選？</h3><span>↗</span></a>
-  <a class="article" href="#"><time>2026.09</time><h3>繩索作業與吊籠施工，差異不只在價格。</h3><span>↗</span></a>
+<section class="projects" id="projects" aria-label="工程案例" aria-hidden="true">
+  <div class="overlayHead"><h2>工程案例</h2><p>案例將整理現場問題、外牆材質、施工方式、作業設備與完工結果。此版先驗證瀏覽方式。</p><button class="close" id="closeProjects">關閉 ×</button></div>
+  <div class="projectRail">
+    <article class="projectCard"><img loading="lazy" decoding="async" src="/images/case-dajiang.jpg" alt="外牆工程案例"><div class="projectMeta"><h3>外牆工程紀錄</h3><span>CLEANING / ACCESS</span></div></article>
+    <article class="projectCard"><img loading="lazy" decoding="async" src="/images/case-tonlin.jpg" alt="高空外牆施工"><div class="projectMeta"><h3>高空施工紀錄</h3><span>FACADE / ROPE</span></div></article>
+    <article class="projectCard"><img loading="lazy" decoding="async" src="/images/case-morten41.jpg" alt="建築外牆清潔"><div class="projectMeta"><h3>建築外牆清潔</h3><span>SELECTED PROJECT</span></div></article>
+  </div>
 </section>
-<section class="srContent" aria-label="東方繩洗服務內容">
-  <h1>東方繩洗有限公司外牆工程</h1>
-  <p>東方繩洗提供外牆清洗、外牆修繕、防水、高空檢查、繩索與吊籠作業。施工前依建築條件、外牆材質、作業動線與現場問題安排工法。</p>
-  <h2>外牆清洗</h2><p>依玻璃、帷幕牆、磁磚與污染狀況選擇清潔方式。</p>
-  <h2>外牆修繕</h2><p>磁磚空鼓、剝落與裂縫先確認範圍，再評估局部修補、補強或打除重做。</p>
-  <h2>外牆防水</h2><p>先確認可能水路、接縫與基面狀況，再安排處理方式。</p>
-  <h2>高空檢查</h2><p>進入一般設備不容易抵達的位置，記錄外牆缺失與需要處理的範圍。</p>
+<section class="journal" id="journal" aria-label="工程筆記" aria-hidden="true">
+  <div class="overlayHead"><h2>工程筆記</h2><p>長篇內容不求數量。只整理現場真的需要判斷、客戶真的會搜尋的問題。</p><button class="close" id="closeJournal">關閉 ×</button></div>
+  <article class="article"><time datetime="2026-09">2026.09</time><h3>外牆防水做完後，牆角為什麼還會滲水？</h3><span>↗</span></article>
+  <article class="article"><time datetime="2026-09">2026.09</time><h3>磁磚空鼓：灌注、局部修補與打除重做怎麼選？</h3><span>↗</span></article>
+  <article class="article"><time datetime="2026-09">2026.09</time><h3>繩索作業與吊籠施工，差異不只在價格。</h3><span>↗</span></article>
 </section>
 </div>
 <script>
-const marker=document.getElementById('marker'),stage=document.getElementById('stage'),headline=document.getElementById('headline'),description=document.getElementById('description'),eyebrow=document.getElementById('eyebrow'),counter=document.getElementById('counter'),progress=document.getElementById('progress'),surface=document.getElementById('surface'),cleanFilm=document.getElementById('cleanFilm'),repairLines=document.getElementById('repairLines'),waterLayer=document.getElementById('waterLayer'),scanLine=document.getElementById('scanLine'),photoReveal=document.getElementById('photoReveal'),photoCaption=document.getElementById('photoCaption'),levels=[...document.querySelectorAll('.levels span')];
+const marker=document.getElementById('marker'),stage=document.getElementById('stage'),headline=document.getElementById('headline'),description=document.getElementById('description'),eyebrow=document.getElementById('eyebrow'),counter=document.getElementById('counter'),progress=document.getElementById('progress'),surface=document.getElementById('surface'),cleanFilm=document.getElementById('cleanFilm'),repairLines=document.getElementById('repairLines'),waterLayer=document.getElementById('waterLayer'),scanLine=document.getElementById('scanLine'),photoReveal=document.getElementById('photoReveal'),photoCaption=document.getElementById('photoCaption'),photoLoad=document.getElementById('photoLoad'),heroPhoto=document.getElementById('heroPhoto'),levels=[...document.querySelectorAll('.levels span')];
 const scenes=[
   ['東方繩洗 / 高樓外牆工程','沿著<span>繩索</span><br>進入工作面','拖曳青藍色圓點，或使用滑鼠滾輪與手指滑動。畫面依序呈現清洗、修繕、防水、檢查與真實工程。'],
   ['01 / 外牆清洗','先看<span>材質</span><br>再決定清潔方式','玻璃、帷幕牆、磁磚與表面污染狀況不同，使用的藥劑、壓力與施工方式也不同。'],
@@ -116,14 +122,21 @@ const scenes=[
   ['04 / 高空檢查','把難以抵達的<br>位置變成<span>資料</span>','記錄外牆缺失、材質狀況與需要處理的範圍，作為後續施工與驗收依據。'],
   ['05 / 真實工程','最後回到<br><span>實際現場</span>','案例、施工紀錄與工程筆記，才是網站真正要長期累積的內容。']
 ];
-let value=0,dragging=false,lastScene=-1;
+let value=0,dragging=false,lastScene=-1,photoRequested=false;
 function clamp(v){return Math.max(0,Math.min(1,v))}
-function setValue(v){value=clamp(v);const mobile=innerWidth<=820,start=mobile?10:12,end=mobile?86:86;marker.style.top=(start+value*(end-start))+'%';progress.style.transform='scaleX('+value+')';counter.textContent=String(Math.round(value*100)).padStart(2,'0')+' / 100';surface.style.transform='scale('+(1+value*.035)+')';surface.style.filter='saturate('+(1-value*.16)+')';cleanFilm.style.opacity=value>.12&&value<.36?1:0;cleanFilm.style.transform='translateX('+(-130+Math.max(0,value-.12)*520)+'%)';repairLines.style.opacity=value>.30&&value<.56?Math.min(1,(value-.30)*7):0;waterLayer.style.opacity=value>.48&&value<.72?Math.min(1,(value-.48)*7):0;waterLayer.style.transform='translateY('+(-18+Math.max(0,value-.48)*110)+'%)';scanLine.style.opacity=value>.64&&value<.87?1:0;scanLine.style.top=(12+Math.max(0,value-.64)*300)+'%';const reveal=clamp((value-.82)/.18);photoReveal.style.clipPath='inset(0 '+(50-reveal*50)+'% 0 '+(50-reveal*50)+'%)';photoCaption.style.opacity=reveal;photoCaption.style.transform='translateY('+(14-reveal*14)+'px)';const i=Math.min(5,Math.floor(value*6));if(i!==lastScene){lastScene=i;eyebrow.textContent=scenes[i][0];headline.innerHTML=scenes[i][1];description.textContent=scenes[i][2];levels.forEach((el,j)=>el.classList.toggle('on',j===i))}}
-function valueFromPointer(e){const r=stage.getBoundingClientRect();return innerWidth<=820?(e.clientY-r.top)/r.height:(e.clientY-r.top)/r.height}
+function requestHeroPhoto(){if(photoRequested)return;photoRequested=true;heroPhoto.onload=()=>{photoReveal.classList.add('ready');photoLoad.remove()};heroPhoto.onerror=()=>{photoLoad.textContent='工程影像載入失敗';photoLoad.classList.add('error')};heroPhoto.src='/images/case-morten41.jpg'}
+function setValue(v){value=clamp(v);const mobile=innerWidth<=820,start=mobile?10:12,end=mobile?86:86;marker.style.top=(start+value*(end-start))+'%';marker.setAttribute('aria-valuenow',String(Math.round(value*100)));progress.style.transform='scaleX('+value+')';counter.textContent=String(Math.round(value*100)).padStart(2,'0')+' / 100';surface.style.transform='scale('+(1+value*.035)+')';surface.style.filter='saturate('+(1-value*.16)+')';cleanFilm.style.opacity=value>.12&&value<.36?1:0;cleanFilm.style.transform='translateX('+(-130+Math.max(0,value-.12)*520)+'%)';repairLines.style.opacity=value>.30&&value<.56?Math.min(1,(value-.30)*7):0;waterLayer.style.opacity=value>.48&&value<.72?Math.min(1,(value-.48)*7):0;waterLayer.style.transform='translateY('+(-18+Math.max(0,value-.48)*110)+'%)';scanLine.style.opacity=value>.64&&value<.87?1:0;scanLine.style.top=(12+Math.max(0,value-.64)*300)+'%';if(value>.74)requestHeroPhoto();const reveal=clamp((value-.82)/.18);photoReveal.style.clipPath='inset(0 '+(50-reveal*50)+'% 0 '+(50-reveal*50)+'%)';photoCaption.style.opacity=reveal;photoCaption.style.transform='translateY('+(14-reveal*14)+'px)';const i=Math.min(5,Math.floor(value*6));if(i!==lastScene){lastScene=i;eyebrow.textContent=scenes[i][0];headline.innerHTML=scenes[i][1];description.textContent=scenes[i][2];levels.forEach((el,j)=>el.classList.toggle('on',j===i))}}
+function valueFromPointer(e){const r=stage.getBoundingClientRect(),start=r.top+r.height*(innerWidth<=820?.10:.12),end=r.top+r.height*.86;return (e.clientY-start)/(end-start)}
 marker.addEventListener('pointerdown',e=>{dragging=true;marker.setPointerCapture(e.pointerId);setValue(valueFromPointer(e))});marker.addEventListener('pointermove',e=>{if(dragging)setValue(valueFromPointer(e))});marker.addEventListener('pointerup',()=>dragging=false);marker.addEventListener('pointercancel',()=>dragging=false);
+marker.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();setValue(value+.04)}if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();setValue(value-.04)}if(e.key==='Home'){e.preventDefault();setValue(0)}if(e.key==='End'){e.preventDefault();setValue(1)}});
 stage.addEventListener('wheel',e=>{e.preventDefault();setValue(value+e.deltaY*.0009)},{passive:false});
 let touchY=null;stage.addEventListener('touchstart',e=>touchY=e.touches[0].clientY,{passive:true});stage.addEventListener('touchmove',e=>{if(touchY===null)return;const y=e.touches[0].clientY;setValue(value+(touchY-y)/innerHeight);touchY=y},{passive:true});stage.addEventListener('touchend',()=>touchY=null,{passive:true});
-const projects=document.getElementById('projects'),journal=document.getElementById('journal');['projectsBtn','projectsBtn2'].forEach(id=>document.getElementById(id).onclick=()=>projects.classList.add('open'));['journalBtn','journalBtn2'].forEach(id=>document.getElementById(id).onclick=()=>journal.classList.add('open'));document.getElementById('closeProjects').onclick=()=>projects.classList.remove('open');document.getElementById('closeJournal').onclick=()=>journal.classList.remove('open');document.getElementById('serviceBtn').onclick=()=>setValue(.24);setValue(0);
+const services=document.getElementById('services'),projects=document.getElementById('projects'),journal=document.getElementById('journal');
+function openPanel(panel){panel.classList.add('open');panel.setAttribute('aria-hidden','false');panel.querySelector('.close').focus()}
+function closePanel(panel){panel.classList.remove('open');panel.setAttribute('aria-hidden','true')}
+document.getElementById('serviceBtn').onclick=()=>openPanel(services);['projectsBtn','projectsBtn2'].forEach(id=>document.getElementById(id).onclick=()=>openPanel(projects));['journalBtn','journalBtn2'].forEach(id=>document.getElementById(id).onclick=()=>openPanel(journal));document.getElementById('closeServices').onclick=()=>closePanel(services);document.getElementById('closeProjects').onclick=()=>closePanel(projects);document.getElementById('closeJournal').onclick=()=>closePanel(journal);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){[services,projects,journal].forEach(closePanel)}});
+const reduce=matchMedia('(prefers-reduced-motion: reduce)');if(reduce.matches)setValue(1);else setValue(0);if('requestIdleCallback'in window)requestIdleCallback(requestHeroPhoto,{timeout:3000});else setTimeout(requestHeroPhoto,1800);
 </script>
 </body>
 </html>
