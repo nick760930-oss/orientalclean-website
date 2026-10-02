@@ -1,0 +1,19 @@
+/* Reflow safeguard for narrow CSS viewports created by zoom/text scaling. */
+@media (max-width:300px){
+  .masthead{flex-wrap:wrap;align-items:flex-start;gap:6px 12px;padding:12px}
+  .brand{flex-basis:100%}
+  .brand svg{width:105px;height:30px}
+  .header-right{width:100%;justify-content:space-between}
+  .site{grid-template-rows:auto minmax(650px,1fr) auto auto}
+  .cover{margin-inline:8px;min-height:650px}
+  .title-block{left:16px;right:16px}
+  .title-block h1{font-size:48px;line-height:1.18}
+  .title-block h1 span{display:block}
+  .title-block h1 span+span{margin-left:0}
+  .directory{grid-template-columns:1fr;padding-inline:14px}
+  .directory a{justify-content:flex-start!important;padding:14px 0;min-height:58px}
+  .colophon{display:block;padding-inline:14px;line-height:1.8}
+  .colophon span:last-child{display:block;max-width:none;text-align:left}
+  .phone{font-size:28px;overflow-wrap:anywhere}
+  .contact-links{flex-direction:column;gap:8px}
+}
