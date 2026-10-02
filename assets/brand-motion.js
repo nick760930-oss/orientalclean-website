@@ -43,7 +43,7 @@ window.OCMotion = function (canvas, button) {
     if(!gl){fallback();return api;}
     function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
     const vert=shader(gl.VERTEX_SHADER,'attribute vec2 a; varying vec2 v; void main(){v=(a+1.)*.5;gl_Position=vec4(a,0.,1.);}');
-    const frag=shader(gl.FRAGMENT_SHADER,`precision highp float;
+    const fp=gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER,gl.HIGH_FLOAT);\n    const precision=fp&&fp.precision>0?'highp':'mediump';\n    const frag=shader(gl.FRAGMENT_SHADER,`precision ${precision} float;
       varying vec2 v; uniform vec2 res; uniform vec2 mouse; uniform float time;
       float wave(vec2 p){
         return .44*sin(p.x*4.2+p.y*1.6+time*.20)
