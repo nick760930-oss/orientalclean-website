@@ -51,7 +51,7 @@
   });
   addEventListener('popstate',sync);addEventListener('hashchange',sync);
   const rail=$('#works');
-  function gallery(direction){const gap=parseFloat(getComputedStyle(rail).columnGap)||0;rail.scrollBy({left:direction*(rail.querySelector('.work').getBoundingClientRect().width+gap),behavior:reduced.matches?'instant':'smooth'});}
+  function gallery(direction){const gap=parseFloat(getComputedStyle(rail).columnGap)||0;rail.scrollBy({left:direction*(rail.querySelector('.work').getBoundingClientRect().width+gap),behavior:reduced.matches?'auto':'smooth'});}
   $$('[data-direction]').forEach(b=>b.addEventListener('click',()=>gallery(Number(b.dataset.direction))));
   rail.addEventListener('keydown',e=>{if(e.target===rail&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();gallery(e.key==='ArrowRight'?1:-1);}});
   $$('.service-accordion details').forEach(item=>item.addEventListener('toggle',()=>{if(item.open)$$('.service-accordion details').filter(x=>x!==item).forEach(x=>x.open=false);}));
