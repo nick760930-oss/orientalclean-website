@@ -24,6 +24,7 @@
   function close(){if(history.state?.ocBrand)history.back();else{history.replaceState(null,'',location.href.split('#')[0]);sync();}}
   function sync(){
     const route=getRoute();
+    document.documentElement.classList.toggle('panel-open',Boolean(route.id));
     if(active?.id!==route.id){
       if(active){active.close();active=null;}
       if(route.id){active=document.getElementById(route.id);active.showModal();active.scrollTop=0;const remembered=focusMemory.get(route.id);(remembered?.isConnected?remembered:active.querySelector('.close'))?.focus({preventScroll:true});motion.pause();if(route.id==='projects')active.querySelectorAll('.media').forEach(loadImage);}
