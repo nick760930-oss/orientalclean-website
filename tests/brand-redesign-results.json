@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-02",
+  "entry": "/brand-preview.html",
+  "scope": "Linux Chromium via Playwright set_content, real new frontend code, local JPEG-derived logo proxy, synthetic case-image fixture and repository article excerpt fixture. Browser navigation is blocked by environment administration and was not bypassed.",
+  "tested_blobs": {
+    "brand-preview.html": "4b0a28e66f55702023936ac6b49ce19b3b937386",
+    "assets/brand-redesign.css": "feada2b4ae5ec87c35d0595e922dd18f4021ca62",
+    "assets/brand-redesign.js": "4124bb8f8708ddbfc72611c675eb2130bb06da78",
+    "assets/brand-motion.js": "eacd070566c58c57e209558ba4d073a98da45191"
+  },
+  "viewports": [
+    {"width":320,"height":740,"passed":true,"reader_fixture_loaded":true},
+    {"width":390,"height":844,"passed":true,"reader_fixture_loaded":true},
+    {"width":430,"height":932,"passed":true,"reader_fixture_loaded":true},
+    {"width":768,"height":1024,"passed":true,"reader_fixture_loaded":true},
+    {"width":1440,"height":900,"passed":true,"reader_fixture_loaded":true},
+    {"width":844,"height":390,"passed":true,"reader_fixture_loaded":true}
+  ],
+  "checks": ["Canvas render without pageerror", "no initial engineering image src", "no horizontal page overflow", "primary targets at least 44px tall", "service accordion and focus loop", "Escape and home focus restoration", "three real article hrefs", "reader fixture fetched and rendered", "project images assigned only on entry", "horizontal gallery buttons", "nested menu/contact history"],
+  "additional": {"reduced_motion_static":true,"finite_animation_stops":true},
+  "not_verified": ["iPhone Safari physical device", "WebKit", "original PNG and real case photos in online browser", "full real-source HTTP reader flow", "field Core Web Vitals", "SEO engine integration", "Claude or Codex independent review", "award-level external evaluation"]
+}

@@ -1,74 +1,58 @@
-# 官網持續優化狀態
+# 官網重新設計狀態
 
-更新：2026-10-02。先讀 PROJECT_GOAL.md、AGENTS.md，再讀本檔。不要把本檔的待辦視為已完成。
+更新：2026-10-02。先讀 REDESIGN_BRIEF.md、PROJECT_GOAL.md、AGENTS.md。舊狀態完整保存於 docs/archive/QUALITY_STATUS_V8_2.md。
 
-## 本輪成果
+## 最新工作
 
-- 起始程式 commit：126a1f43b908d8580c9ec9b9f861f1c2875d3876（V8.1）。
-- 已測程式 commit：4ad66e48b0e9a8c772c60d03eca6716c7b60d121（V8.2）。後續測試／目標文件提交不等於新視覺版本。
-- 工作分支：v8-self-optimized；預覽入口：/v8-preview.html。
-- 已建立 PROJECT_GOAL.md、AGENTS.md、CLAUDE.md，保存設計限制、國際獎項完成度目標、SEO內容流程、自主迭代與安全邊界。
-- 本輪未修改 main、正式網域、其他設計分支或 Claude 三版。
+使用者要求「重新設計」，本輪新增 /brand-preview.html，主視覺、資訊架構與互動重新製作，不沿用V8左右分欄滑桿。仍在v8-self-optimized；保留/v8-preview.html、全部舊資產、main及Claude其他分支。起始HEAD c6485ac6ada862667e174a9225e46e1c9ac45236。
 
-## 實際修正
+## 程式交付
 
-1. 恢復手機服務入口；服務、工程、筆記、聯絡均有可操作入口。
-2. 用原生垂直 range 控制工程階段，提供直接點選與鍵盤，不再重複 pointer／touch 更新同一狀態。
-3. 使用原生 dialog，加上焦點循環、Esc關閉、回到觸發按鈕，以及面板的返回／前進狀態。
-4. 工程筆記由無法點擊的假標題改為既有三篇完整文章的實際連結，不新增假日期。
-5. 案例改用已讀取 portfolio.html 的名稱／照片／工項配對：森聯摩天41玻璃清洗、台北統領百貨外牆清洗、大江購物中心矽利康更新。
-6. 首頁不預先指定工程照片src；只有進入現場階段／工程面板才載入。補上錯誤提示與重試。
-7. 精簡首頁口號，保留工程說明與直接內容入口；禁止JavaScript時仍有服務、案例、筆記、聯絡連結。
-8. CSS、JS拆檔；無持續空轉rAF；保留reduced motion與Preview noindex。
+- brand-preview.html：4b0a28e66f55702023936ac6b49ce19b3b937386
+- assets/brand-redesign.css：feada2b4ae5ec87c35d0595e922dd18f4021ca62
+- assets/brand-redesign.js：4124bb8f8708ddbfc72611c675eb2130bb06da78
+- assets/brand-motion.js：eacd070566c58c57e209558ba4d073a98da45191
+以上是本輪已測檔案的Git blob SHA，不是部署ID。
 
-## 本轮自查中真的發現並修掉的問題
+首頁為白色與青藍編織材質、公司名稱及三個直接入口。沒有工程照片、滑桿、進度／假影格數。使用Canvas2D顯示程序投影曲面，非影片、非WebGL或物理模擬。
 
-- 初次鍵盤測試發現Tab會離開面板：新增首尾焦點循環，重跑通過。
-- 清洗光帶可能越過畫面容器：改為容器內背景位置變化，避免transform溢出。
-- 原先把「建好文章入口」說成SEO引擎完成不準確：現已分開列出狀態。
+服务、案例、筆記、聯絡與選單使用原生dialog。案例按需載圖、左右切換；文章與案例可從真實URL讀入閱讀器，不是只有標題。保持href與無JS直接閱讀路徑。正式內容不被重寫，不新增工程事實。
 
-## 已執行測試（不要擴大解讀）
+## 自查中實際修正
 
-環境：Linux Chromium 144.0.7559.96 + Python Playwright。執行 tests/v8_regression.py，最後一次重跑成功。
+- 初稿曲面呈網格／三角面：改成連續縱向光照材質，而不是增加更多特效。
+- Canvas初始尺寸為零造成漸層非有限值：先檢查尺寸再繪圖。
+- 手機材質壓到大標：將主體移至標題下方並重新安排比例。
+- 折疊服務的不可見連結進入Tab順序：焦點循環排除未展開details內容。
+- 巢狀面板返回主頁後焦點位置不明：保留主頁觸發元素並恢復焦點。
+- 本地測試history與baseURI不同源：改以目前location的無hash網址更新history，不更動使用者目的地。
+- 停止無限動畫；加入有限播放、背景／面板暂停、reduced-motion静止。
 
-本機瀏覽器網頁導航受環境管理限制，本輪未移除限制；透過page.set_content載入原始HTML、CSS、JS進行離線DOM與互動測試。
+## 本輪已完成測試
 
-- 六種viewport：320×740、390×844、430×932、768×1024、1440×900、844×390。
-- 六種尺寸皆通過：主選單可見與44px高度、頁面無水平溢出、5階段切換、range Home/End、面板焦點、Esc焦點返回、三篇文章href、橫向案例按鈕、面板history、無pageerror。
-- 額外通過：Chromium觸控事件模擬的原生滑桿、reduced-motion取消進場動畫、禁用JS的可見內容連結。
-- 圖片錯誤／重試測試使用合成DOM error/load事件，確認UI狀態與重試src；不是實際網路下載測試。
-- 已檢視手機與桌機離線截圖；截圖沒有真實Logo／照片，不算品牌色、攝影裁切或真機視覺驗收。
+Linux Chromium＋Python Playwright，page.set_content載入實際HTML/CSS/JS。環境管理限制禁止正常導航，本輪未修改或繞過限制。
 
-## 已驗證部署（與瀏覽器實測分開）
+320×740、390×844、430×932、768×1024、1440×900、844×390 六種尺寸均通過：Canvas渲染無pageerror、無水平頁面溢出、主要入口44px高度、服務展開／焦點循環、Esc及主頁焦點、三篇真實href、閱讀器fixture成功、案例延遲載圖、橫向按鈕、選單→聯絡→返回的history。
 
-- Vercel deployment：dpl_AbP46RFqdic44HvitazV9x1z8LKx。
-- branch v8-self-optimized；commit 4ad66e48b0e9a8c772c60d03eca6716c7b60d121；狀態READY；非Production。
-- 主機：oriental-clean-website-kp22uk06f-orientalclean.vercel.app。
-- Vercel connector HTTP已確認 /v8-preview.html 回200、V8.2內容、X-Robots-Tag noindex。
-- /journal/facade-cleaning-quote 回200，含完整文章內容，不是只有標題。該頁繼承既有日期與Schema，本輪未替其工程審閱背書。
-- 分享驗證token不可存入repo。要交付使用者時重新取得有效分享網址。
+另外以最終motion檔重測：reduced-motion下Canvas不持續更新；手動播放結束後影格計數停止。沒有拿此計數當對外電影影格。
 
-## 尚未完成／不能宣稱通過
+測試使用既有JPEG提取的本地Logo示意與案例圖fixture；閱讀器使用既有文章節錄fixture，不冒充真實網路載入。手機／桌機截圖實際檢視並修正，但不是iPhone Safari或正式原圖驗收。測試摘要保存 tests/brand-redesign-results.json。
 
-- Awwwards／Webby／FWA品質：仍在優化，不宣稱已达獎項水準；本輪以功能與可信度修正為主。
-- 真實Logo取樣與縮放辨識、真實素材載入／裁切、線條材質與轉場的完整視覺驗收。
-- iPhone Safari真機、WebKit、低效能裝置、200%文字縮放、讀屏完整流程。
-- CSS／JS與所有圖片的公開網路載入、所有內容路由端到端驗證（目前只驗證上列兩條HTTP路徑）。
-- LCP／INP／CLS、真實使用者數據、持續FPS與耗電測量；未測不填分數。
-- SEO引擎、Open SEO Advisor、GA4、GSC整合未確認；沒有真正執行就不能標啟用。
-- Claude／Codex跨模型審查：交接文件已準備，但本輪沒有實際呼叫對方，仍待執行。
+原始JPEG已經由GitHub讀取並檢查blob SHA 5283d6a539bcdc9952c6fd6dc39f55722bb327be。它是有損圖，不宣稱像素取樣等於完整品牌色規範；部署Header仍使用既有lossless PNG資產與原有裁切比例。
 
-## 下一輪順序
+## 部署狀態
 
-1. 先確認本分支最新HEAD是否被別的工作更新；對照這次測試基準，不能覆盖。
-2. 取得實際Logo與照片，核對青藍取樣、Header比例、320/390/430寬與横向短屏；在允許的瀏覽器工具中跑真實素材版本，不繞過環境限制。
-3. 以品牌藝術指導重新精修首屏材質、光線與繩索動態；只有一個有意義的核心效果，不加回幾何、假影格計數或空洞口號。對照修改前後，不反覆另開V9等空殼。
-4. 跑全部內容路由與資產；補文章返回互動首頁的連續體驗、讀屏與縮放測試、真機效能。不要把既有內容頁的普通版面當成整站視覺完成。
-5. 讀scripts/build_content.py及現有文章的真正來源；查清SEO工具與權限，再建立題目篩選→有來源草稿→工程審閱→Preview→核准發布流程。初期每週檢查題目，不強迫發文。
-6. 工程專業文章重視工法限制與第一手證據；缺乏資料先處理可核實的委託指南，不自動杜撰現場結果。
-7. 可取得Claude／Codex工具時做真實交叉審查，保存commit與回覆；否則待辦且繼續其他可執行工作。
-8. 更新本紀錄、重新測試與部署；只有可驗收成果、真正阻礙或需決策事項才通知使用者。
+此提交時尚待Vercel自動部署。接續步驟應核對本提交的commit、branch、Preview/READY，再實際讀取 /brand-preview.html 與CSS/JS、內容URL。驗證結果另存Issue #1或下次狀態，不可把這一行當已通過。分享token不得保存至公開repo。
 
-## 完成判定
+## 未完成的品質關卡
 
-功能、視覺、內容、SEO、效能、無障礙和素材可信度都必須有證據，才能交使用者最終驗收。READY不是完成、內部自評不是得獎。未經使用者核准不能合併main或發布正式站。
+- 真實PNG Logo的顏色、縮小辨識度與完整裁切，以及真實案例照片的端到端瀏覽器驗收。
+- iPhone Safari真機、WebKit、讀屏、200%文字縮放、低效能與電量影響。
+- 實際HTTP讀取與全部資產、閱讀器同源fetch、404重試的線上測試。
+- CWV實際使用者資料、LCP／INP／CLS與完整效能評估，沒有測量不能填分數。
+- 工程文章審閱、SEO引擎／GSC／GA4接通與實際Claude／Codex交叉審查。
+- Awwwards／Webby／FWA水準仍是目標，不表示已達標或已得獎。
+
+## 下一輪
+
+以新品牌設計為主，不回退V8滑桿示範。先完成真實素材與手機完整體驗、內容連續閱讀和載入失敗，再依使用者視覺驗收精修。舊V8回歸測試只適用舊/v8-preview.html，不可拿來驗證新首頁。需要用新測試與實際截圖說明差異。
