@@ -9,3 +9,5 @@
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
 
 @media(max-width:300px){.masthead{flex-wrap:wrap}}
+
+@media(max-width:300px){.title-block h1{font-size:48px}.title-block h1 span{display:block}.title-block h1 span+span{margin-left:0}}
