@@ -96,3 +96,12 @@ Node syntax check兩個JS通過。Linux Chromium144＋Python Playwright，page.s
 - 真實照片在手機端的裁切、載入與 reader 同源 fetch 完整流程。
 - VoiceOver／Safari 200% 動態字體、實體手機電量與 CWV。
 - SEO 引擎、GSC／GA4 與 Claude／Codex 實際接通。
+
+
+## 2026-10-03 live asset and safe-area follow-up
+
+- Removed visible prototype language from the current homepage presentation: the decorative vertical English label is hidden and the footer now presents the actual service line instead of an internal design-preview label.
+- Confirmed the lossless header logo source `images/logo-light-white-bg.png` is an 8-bit RGBA PNG with IHDR 1250×833 (blob `06db6f4685b2173613e6e0044f34ba8879e291b4`). This confirms source dimensions/format only; it is not a formal brand-colour specification.
+- On the current Preview, the homepage, CSS/JS, a full journal article, a full case page, the PNG logo, and the three homepage case images all returned HTTP 200 with their expected content types. The Preview remains noindex.
+- Added safe-area padding to full-screen dialogs as well as the homepage so panel content is less likely to collide with iPhone notches/home indicators. This is source-level hardening; physical iPhone Safari remains unverified.
+- Same-origin reader cleaning/error recovery has Chromium fixture coverage, while the target article/case sources are now verified live. A real Safari/browser session executing the complete same-origin fetch path is still an open gate and must not be claimed as complete.
