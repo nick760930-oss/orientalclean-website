@@ -16,3 +16,7 @@
 
 /* brand-facing cleanup: remove preview/demo labels from visible UI */
 .light-caption{display:none!important}.colophon span:last-child{font-size:0}.colophon span:last-child::after{content:"清洗・修繕・防水・高空作業";font-size:10px;letter-spacing:.04em}
+
+/* iOS modal safe-area refinement */
+.screen{padding:calc(26px + var(--safe-top)) max(5vw,var(--safe-right)) calc(36px + var(--safe-bottom)) max(5vw,var(--safe-left))}
+@media(max-width:620px){.screen{padding:calc(17px + var(--safe-top)) max(23px,var(--safe-right)) calc(30px + var(--safe-bottom)) max(23px,var(--safe-left))}}
