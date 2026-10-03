@@ -105,3 +105,27 @@ Node syntax check兩個JS通過。Linux Chromium144＋Python Playwright，page.s
 - On the current Preview, the homepage, CSS/JS, a full journal article, a full case page, the PNG logo, and the three homepage case images all returned HTTP 200 with their expected content types. The Preview remains noindex.
 - Added safe-area padding to full-screen dialogs as well as the homepage so panel content is less likely to collide with iPhone notches/home indicators. This is source-level hardening; physical iPhone Safari remains unverified.
 - Same-origin reader cleaning/error recovery has Chromium fixture coverage, while the target article/case sources are now verified live. A real Safari/browser session executing the complete same-origin fetch path is still an open gate and must not be claimed as complete.
+
+
+## 2026-10-03 再設計｜懸垂立面
+
+使用者再次要求「再設計」，本輪不做單純換色或局部修補，直接重做首頁構圖。
+
+### 實作
+- HTML commit：`a5a9483b876a9387ba594d6f36079b54cafbfd5b`
+- CSS commit／當輪 HEAD：`6c0380d45420793dc66144d753df64388927c8ba`
+- 首頁主視覺改為「懸垂立面」：水光表皮＋三條垂直結構軸＋錯位細明體品牌字。
+- 移除原本「左文右效果＋下方三欄」模板骨架；案例入口直接置入立面右側，三個主要入口改成與垂直軸線相接的底部索引。
+- 對外 title 移除「驗收版」，仍保留 Preview noindex。
+- 服務、案例、工程筆記、聯絡、reader 邏輯與真實 href 保留，未改 main／正式站／DNS／LINE。
+
+### 已實際核對
+- GitHub 分支 HEAD 為 `6c0380d45420793dc66144d753df64388927c8ba`。
+- Vercel deployment `dpl_FJPhaWskA6kRyZ3WgdAqbkVnbwAc` 為 READY、非 Production，branch = `v8-self-optimized`，commit 與 HEAD 一致。
+- Vercel connector 直接讀取 `/brand-preview.html` 與 `/assets/brand-redesign.css` 均為 HTTP 200，內容為本輪新版。
+- HTML 仍含 `noindex,nofollow`。
+
+### 仍待驗證
+- 本輪新構圖尚未取得 iPhone Safari 真機截圖；不能把 Vercel READY 或原始碼檢查視為真機視覺通過。
+- WebGL 底層沿用先前 Chromium 驗證，但本輪沒有新增 iOS GPU／耗電／FPS 證據。
+- 需在下一輪優先檢查 390/430 iPhone 構圖、Logo 實際比例、案例面板、reader 同源 fetch、VoiceOver／文字縮放與 CWV。
