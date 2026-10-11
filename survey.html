@@ -772,18 +772,13 @@ async function submitForm() {
   const currentFloor = f.value.trim();
   const currentUnit = u.value.trim();
 
-  // 🌟 修正：防重複送出 (必須「棟別」與「戶號」同時相同才阻擋)
-  const uniqueKey = [document.getElementById('community').value, document.getElementById('daterange').value, currentFloor, currentUnit].map(encodeURIComponent).join('_');
-  if (currentFloor && currentUnit && localStorage.getItem('oriental_clean_' + uniqueKey) === 'yes') {
-    alert('系統紀錄顯示，您已經成功送出過【' + currentFloor + ' ' + currentUnit + '】的評價囉！感謝您的寶貴回饋。');
-    return; 
-  }
-  
   if (!currentFloor) { f.classList.add('invalid'); ef.style.display = 'block'; ok = false; }
   if (!currentUnit) { u.classList.add('invalid'); eu.style.display = 'block'; ok = false; }
   if (!ok) { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
 
   const submitBtn = document.querySelector('.submit-btn');
+  if (submitBtn.disabled) return;
+  submitBtn.disabled = true;
   const originalBtnText = submitBtn.innerHTML;
   submitBtn.innerHTML = '資料傳送中...';
   submitBtn.style.pointerEvents = 'none';
@@ -808,7 +803,7 @@ async function submitForm() {
   });
   const personnelText = personnelData.length > 0 ? personnelData.join('\n') : '無個別人員評價';
 
-  // 🌟 修正：改用 URLSearchParams 格式，保證 100% 成功穿越 Google 的安全阻擋
+  // 建立問卷內容，由儲存端確認成功並處理重複提交。
   const params = new URLSearchParams();
   params.append('community', document.getElementById('community') ? document.getElementById('community').value : '');
   params.append('floor', currentFloor);
@@ -827,8 +822,7 @@ async function submitForm() {
   try {
     await window.submitOrientalSurvey(params);
     
-    // 🌟 記憶這組「棟別_戶號」
-    localStorage.setItem('oriental_clean_' + uniqueKey, 'yes');
+    // 儲存端已確認成功；瀏覽器儲存設定不影響送出結果。
 
     document.getElementById('overlay').classList.add('show');
     setTimeout(() => {
@@ -840,6 +834,7 @@ async function submitForm() {
     alert(error.message || '系統連線發生異常，請稍後再試。');
     submitBtn.innerHTML = originalBtnText;
     submitBtn.style.pointerEvents = 'auto';
+    submitBtn.disabled = false;
   }
 }
 </script>
