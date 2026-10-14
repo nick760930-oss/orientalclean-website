@@ -39,6 +39,7 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
 .row{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
 #bars{display:flex;gap:5px;align-items:flex-end;justify-content:center;height:54px;margin:14px 0 4px}
 #bars i{display:block;width:12px;border-radius:4px;box-shadow:0 0 10px currentColor}
+#bSkip{position:fixed;left:50%;top:136px;transform:translateX(-50%);display:none;z-index:5}
 #toast{position:fixed;left:50%;top:84px;transform:translate(-50%,-10px);background:rgba(20,24,56,.92);border:1px solid rgba(255,255,255,.18);padding:9px 16px;border-radius:999px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
@@ -67,8 +68,8 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
   <p>每天一道光線謎題。你的解答，是一段旋律，也是一幅畫。</p>
   <ul>
     <li>點擊空格放置鏡子，再點一次可旋轉或移除（放鏡子時不會發光）</li>
-    <li>排好後按下<b>「發射」</b>，讓光線貫穿<b>所有光點</b>，每個光點會響起一個音符</li>
-    <li>路線不同，旋律就不同。前三關是新手教學，之後每天一題，完成後生成專屬海報</li>
+    <li>排好後按下<b>「發射」</b>，讓光線貫穿<b>所有光點</b>，每個光點會依序響起這段旋律的音符</li>
+    <li>每一關是一首名曲的短短一小段；集齊一首歌的所有片段，就會完整演奏給你聽</li>
   </ul>
   <button class="pri" id="bStart">開始</button>
 </div></div>
@@ -88,6 +89,13 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
   <p>瀏覽器不允許自動複製，請長按下方文字全選後複製：</p>
   <textarea id="copyta" readonly></textarea>
   <div class="row"><button class="pri" id="bCopyClose">關閉</button></div>
+</div></div>
+<button id="bSkip">跳過演奏</button>
+<div class="ov hidden" id="songcard"><div class="card">
+  <div class="kicker">FULL MELODY</div>
+  <h2 id="sc-t"></h2>
+  <p id="sc-n"></p>
+  <div class="row"><button id="bSongAgain">再聽一次</button><button class="pri" id="bSongNext">下一首</button></div>
 </div></div>
 <div id="toast"></div>
 
@@ -222,28 +230,86 @@ let time=0,particles=[];
 const SPEED=11;
 const hueAt=d=>(G.hue+d*22)%360;
 
-const TUTS=[{seed:11,n:5,M:1,T:3,o:{walls:0,decoys:0}},{seed:23,n:6,M:2,T:3,o:{walls:.04,decoys:0}},{seed:37,n:7,M:3,T:4,o:{walls:.08,decoys:1}}];
-let tutIdx=0;
-const tutDone=()=>parseInt(lsGet('pm-tut')||'0',10)||0;
+const CAMP=[
+ {name:'小星星',bpm:100,order:[0,1,2,3],ph:[[[0,1],[0,1],[7,1],[7,1]],[[9,1],[9,1],[7,2]],[[5,1],[5,1],[4,1],[4,1]],[[2,1],[2,1],[0,2]]]},
+ {name:'歡樂頌',bpm:108,order:[0,1,2,3],ph:[[[4,1],[4,1],[5,1],[7,1]],[[7,1],[5,1],[4,1],[2,1]],[[0,1],[0,1],[2,1],[4,1]],[[4,1.5],[2,.5],[2,2]]]},
+ {name:'兩隻老虎',bpm:112,order:[0,0,1,1,2,2,3,3],ph:[[[0,1],[2,1],[4,1],[0,1]],[[4,1],[5,1],[7,2]],[[7,.75],[9,.25],[7,1],[5,1],[4,1],[0,1]],[[0,1],[-5,1],[0,2]]]},
+ {name:'生日快樂',bpm:100,order:[0,1,2,3],ph:[[[7,.75],[7,.25],[9,1],[7,1],[12,1],[11,2]],[[7,.75],[7,.25],[9,1],[7,1],[14,1],[12,2]],[[7,.75],[7,.25],[19,1],[16,1],[12,1],[11,1],[9,2]],[[17,.75],[17,.25],[16,1],[12,1],[14,1],[12,2]]]},
+ {name:'平安夜',bpm:84,order:[0,0,1,2,3,0],ph:[[[7,1.5],[9,.5],[7,1],[4,3]],[[14,2],[14,1],[11,3]],[[12,2],[12,1],[7,3]],[[9,2],[9,1],[12,1.5],[11,.5],[9,1]]]},
+ {name:'給愛麗絲',bpm:100,order:[0,1,2,3],ph:[[[16,.5],[15,.5],[16,.5],[15,.5],[16,.5]],[[11,.5],[14,.5],[12,.5],[9,1.5]],[[0,.5],[4,.5],[9,.5],[11,1.5]],[[4,.5],[8,.5],[11,.5],[12,1.5]]]},
+ {name:'卡農',bpm:84,order:[0,1,2,3],ph:[[[16,1],[14,1],[12,1],[11,1]],[[9,1],[7,1],[9,1],[11,1]],[[12,1],[11,1],[9,1],[7,1]],[[5,1],[4,1],[5,1],[2,2]]]}
+];
+const CAMP_LV=[];CAMP.forEach((sg,si)=>sg.ph.forEach((_,pi)=>CAMP_LV.push({si,pi})));
+let campIdx=0,sf=null;
+const campDone=()=>parseInt(lsGet('pm-camp')||'0',10)||0;
 function gen(seed,n,M,T,o){for(let m=M;m>=1;m--)for(let k=0;k<40;k++){const g=generate(seed+k,n,m,T,o);if(g)return g}return null}
+function modeTag(){
+  if(mode==='camp'){const lv=CAMP_LV[campIdx],sg=CAMP[lv.si];return '《'+sg.name+'》 '+(lv.pi+1)+'/'+sg.ph.length}
+  return mode==='daily'?'#'+dayNo()+'  '+fmtDate(new Date()):'LEVEL '+level;
+}
 function newGame(m){
-  mode=m;placed=new Map();hist=[];hint=null;hintsUsed=0;won=false;particles=[];
+  mode=m;placed=new Map();hist=[];hint=null;hintsUsed=0;won=false;particles=[];sf=null;
+  hideSkip();$('#songcard').classList.add('hidden');
   const L=level-1;
-  if(m==='tut'){const t=TUTS[tutIdx];G=gen(t.seed,t.n,t.M,t.T,t.o)}
+  if(m==='camp'){
+    const lv=CAMP_LV[campIdx],ph=CAMP[lv.si].ph[lv.pi],gl=campIdx;
+    G=gen(1000+gl*7,5+Math.min(4,Math.floor(gl/6)),1+Math.min(5,Math.floor(gl/4)),ph.length,{walls:Math.min(.12,.02+gl*.004),decoys:Math.min(3,Math.floor(gl/6))});
+    if(G){G.melody=ph.map(n=>n[0]);G.root=261.63}
+  }
   else if(m==='daily'){G=gen(hashStr('PM-'+fmtDate(new Date())),9,6,7,{walls:.15,decoys:4})}
   else{G=gen((Math.random()*4e9)>>>0,7+Math.min(2,Math.floor(L/2)),3+Math.min(4,L),Math.min(4+Math.floor(L/2),8),{walls:.1+.01*Math.min(L,6),decoys:2+Math.min(3,L)})}
   if(!G){G=generate(12345,7,3,5)}
-  $('#sub').textContent=m==='tut'?('教學 '+(tutIdx+1)+'/3'):m==='daily'?('今日挑戰 #'+dayNo()+' · '+fmtDate(new Date())):('無限模式 · 第 '+level+' 關');
-  $('#bMode').textContent=m==='tut'?'略過教學':m==='daily'?'無限模式':'今日挑戰';
+  $('#sub').textContent=m==='camp'?('第 '+(campIdx+1)+'/'+CAMP_LV.length+' 關 · '+modeTag()):m==='daily'?('今日挑戰 #'+dayNo()+' · '+fmtDate(new Date())):('無限模式 · 第 '+level+' 關');
+  $('#bMode').textContent=m==='camp'?'每日挑戰':m==='daily'?'無限模式':'曲目關卡';
   $('#win').classList.add('hidden');
   layout();retrace();updateHud();
-  if(m==='tut')toast('放好鏡子後按「發射」，讓光穿過所有光點');
+  if(m==='camp'&&CAMP_LV[campIdx].pi===0)toast('每一關是《'+CAMP[CAMP_LV[campIdx].si].name+'》的一小段，全部完成後會完整演奏');
 }
+function startSong(si){
+  const sg=CAMP[si],beat=60/sg.bpm,notes=[];let t=.8,k=0;
+  for(const pi of sg.order){for(const[semi,b]of sg.ph[pi]){notes.push({t,d:b*beat,semi,k:k++});t+=b*beat}t+=.3*beat}
+  initAudio();
+  notes.forEach(n=>tone(261.63*Math.pow(2,n.semi/12),n.t,.34,Math.max(1.2,n.d*1.8)));
+  tone(130.81,.8,.1,Math.min(10,t),'sine');
+  sf={t0:time,notes,total:t,end:t+2.8,done:false,sg,hue:(si*47+200)%360};
+  $('#win').classList.add('hidden');$('#songcard').classList.add('hidden');showSkip();
+}
+function endSong(){
+  if(!sf||sf.done)return;sf.done=true;hideSkip();
+  const last=campIdx>=CAMP_LV.length-1;
+  $('#sc-t').textContent='《'+sf.sg.name+'》';
+  $('#sc-n').textContent='全部片段拼起來了！共 '+sf.notes.length+' 個音符';
+  $('#bSongNext').textContent=last?'完成全部曲目':'下一首';
+  $('#songcard').classList.remove('hidden');
+}
+function drawSong(x){
+  const tt=time-sf.t0,w=W,h=H,FONT='"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+  x.fillStyle='rgba(4,5,13,.92)';x.fillRect(0,0,w,h);
+  const pad=w*.06,aw=w-pad*2,ah=h*.28,ay=h*.34,N=sf.notes.length;
+  const sm=sf.notes.map(n=>n.semi),mn=Math.min(...sm),mx=Math.max(...sm);
+  x.save();x.globalCompositeOperation='lighter';
+  for(const n of sf.notes){
+    const bx=pad+n.t/sf.total*aw,bw=Math.max(5,n.d/sf.total*aw*.88),by=ay+ah-(n.semi-mn)/((mx-mn)||1)*ah,bh=Math.max(10,Math.min(24,aw/N*.7));
+    const on=tt>=n.t,glow=on?Math.max(0,1-(tt-n.t)/(n.d*1.6+.6)):0,hue=(sf.hue+n.k*(140/N))%360;
+    if(glow>0){const g=x.createRadialGradient(bx+bw/2,by,0,bx+bw/2,by,bh*3.2);g.addColorStop(0,`hsla(${hue},100%,70%,${.55*glow})`);g.addColorStop(1,'transparent');x.fillStyle=g;x.fillRect(bx-bh*3,by-bh*3,bw+bh*6,bh*6)}
+    rr(x,bx,by-bh/2,bw,bh,bh/2);x.fillStyle=`hsla(${hue},100%,${on?66:40}%,${on?.95:.35})`;x.fill();
+  }
+  x.restore();
+  if(tt<sf.total){x.fillStyle='rgba(255,255,255,.5)';x.fillRect(pad+tt/sf.total*aw,ay-30,2,ah+60)}
+  x.textAlign='center';
+  x.fillStyle='#8a93c0';x.font='400 15px '+FONT;
+  if(tt<sf.total)x.fillText('♪ 完整旋律演奏中…',w/2,h*.2);
+  else{const a=Math.min(1,(tt-sf.total)/1.2);x.globalAlpha=a;x.fillStyle='#e8ecff';x.font='800 '+Math.round(Math.min(w*.13,56))+'px '+FONT;x.fillText('《'+sf.sg.name+'》',w/2,h*.28);x.globalAlpha=1}
+  if(tt>=sf.end)endSong();
+}
+function showSkip(){$('#bSkip').style.display='block'}
+function hideSkip(){$('#bSkip').style.display='none'}
 function retrace(){
   T=trace(G,placed);
   anim={prog:0,fired:new Set(),n:0,silent:false,done:false,launched:false};
 }
 function launch(){
+  if(sf&&!sf.done)return;
   initAudio();startPad();hint=null;
   T=trace(G,placed);
   anim={prog:0,fired:new Set(),n:0,silent:false,done:false,launched:true};
@@ -432,6 +498,7 @@ function frame(now){
     if(hint&&time>hint.until)hint=null;
     drawBoard(ctx,L.gx,L.gy,L.cell,T,anim.prog,time,{hover:hover,hint:hint});
     drawParticles(ctx,dt);
+    if(sf&&!sf.done)drawSong(ctx);
   }
   requestAnimationFrame(frame);
 }
@@ -445,23 +512,30 @@ function onBeamDone(){
 function emojiSq(h){return['🟥','🟧','🟨','🟩','🟦','🟪'][Math.floor((((h%360)+360)%360)/60)%6]}
 function shareText(){
   const sq=T.hits.map(h=>emojiSq(hueAt(h.d))).join('');
-  const name=mode==='daily'?'光譜旋律 #'+dayNo():'光譜旋律 無限 第'+level+'關';
+  const name=mode==='camp'?'光譜旋律 '+modeTag():mode==='daily'?'光譜旋律 #'+dayNo():'光譜旋律 無限 第'+level+'關';
   return name+' ✨\n鏡子 '+placed.size+'/'+G.M+' · 旋律 '+T.hits.length+' 音'+(hintsUsed?' · 提示×'+hintsUsed:'')+'\n'+sq+'\n你能做出更好聽的嗎？\n'+location.href.split('#')[0];
 }
 function showWin(){
   const used=placed.size;
-  $('#wk').textContent=mode==='daily'?('DAILY #'+dayNo()):('LEVEL '+level);
-  $('#ws').textContent='用 '+used+' 面鏡子，點亮 '+G.T+' 個光點'+(used<G.M?'（比預期更少！）':'')+'。';
+  let last=false;
+  if(mode==='camp'){
+    const lv=CAMP_LV[campIdx],sg=CAMP[lv.si];last=lv.pi===sg.ph.length-1;
+    lsSet('pm-camp',String(Math.max(campDone(),campIdx+1)));
+    $('#wk').textContent='《'+sg.name+'》 '+(lv.pi+1)+'/'+sg.ph.length;
+    $('#ws').innerHTML='這一小段旋律完成了<br>'+sg.ph.map((_,i)=>i<=lv.pi?'●':'○').join(' ')+'<br>用 '+used+' 面鏡子'+(last?'<br><b>全部片段到齊，來聽完整的曲子！</b>':'<br><small>完成全部片段，就能聽到完整的曲子</small>');
+  }else{
+    $('#wk').textContent=mode==='daily'?('DAILY #'+dayNo()):('LEVEL '+level);
+    $('#ws').textContent='用 '+used+' 面鏡子，點亮 '+G.T+' 個光點'+(used<G.M?'（比預期更少！）':'')+'。';
+  }
   const bars=$('#bars');bars.innerHTML='';
   T.hits.forEach((h,i)=>{const b=document.createElement('i');const semi=G.melody[i%G.melody.length];
-    b.style.height=(14+semi*1.8)+'px';b.style.background=b.style.color=`hsl(${hueAt(h.d)},100%,65%)`;bars.appendChild(b)});
+    b.style.height=(14+Math.max(0,semi+6)*1.8)+'px';b.style.background=b.style.color=`hsl(${hueAt(h.d)},100%,65%)`;bars.appendChild(b)});
   if(mode==='daily'){
     const key='pm-d-'+fmtDate(new Date()),prev=parseInt(lsGet(key)||'99',10);
     lsSet(key,String(Math.min(prev,used)));
     $('#streak').textContent='連續挑戰 '+streak()+' 天';
   }else $('#streak').textContent='';
-  if(mode==='tut')lsSet('pm-tut',String(Math.max(tutDone(),tutIdx+1)));
-  $('#bNext').textContent=mode==='tut'?(tutIdx<2?'下一關':'進入今日挑戰'):mode==='daily'?'無限模式':'下一關';
+  $('#bNext').textContent=mode==='camp'?(last?'聆聽全曲':'下一關'):mode==='daily'?'無限模式':'下一關';
   $('#win').classList.remove('hidden');
 }
 function makePoster(){
@@ -471,7 +545,7 @@ function makePoster(){
   const tg=x.createLinearGradient(240,0,840,0);tg.addColorStop(0,'#7cf0ff');tg.addColorStop(.5,'#b794ff');tg.addColorStop(1,'#ff8fd1');
   x.fillStyle=tg;x.font='800 120px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';x.fillText('光譜旋律',Wd/2,220);
   x.fillStyle='#8a93c0';x.font='400 34px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
-  x.fillText('PRISM MELODY  ·  '+(mode==='daily'?'#'+dayNo()+'  '+fmtDate(new Date()):'LEVEL '+level),Wd/2,290);
+  x.fillText('PRISM MELODY  ·  '+modeTag(),Wd/2,290);
   const cell=Math.floor((Wd-140)/G.n),gx=Math.round((Wd-cell*G.n)/2),gy=380;
   drawBoard(x,gx,gy,cell,T,T.total+1,0,{});
   const by=gy+cell*G.n+120;
@@ -528,6 +602,7 @@ cv.addEventListener('pointerup',e=>{
   if(Math.hypot(e.clientX-d.x,e.clientY-d.y)>10)return;
   const p=cellAt(e);if(!p||p.c!==d.p.c||p.r!==d.p.r)return;
   if(anim.launched&&!anim.done)return;
+  if(sf&&!sf.done)return;
   initAudio();
   const key=p.r*G.n+p.c;
   if(G.walls.has(key)||G.fixed.has(key))return;
@@ -548,20 +623,23 @@ $('#bHint').onclick=()=>{
   hint={...miss,until:time+4};hintsUsed++;toast('虛線處是答案中的一面鏡子');
 };
 $('#bFire').onclick=launch;
-$('#bMode').onclick=()=>{initAudio();if(mode==='tut'){lsSet('pm-tut','3');newGame('daily')}else if(mode==='daily'){level=1;newGame('free')}else newGame('daily')};
+$('#bMode').onclick=()=>{initAudio();if(mode==='camp')newGame('daily');else if(mode==='daily'){level=1;newGame('free')}else{campIdx=Math.min(campDone(),CAMP_LV.length-1);newGame('camp')}};
+$('#bSkip').onclick=endSong;
+$('#bSongAgain').onclick=()=>startSong(CAMP.indexOf(sf.sg));
+$('#bSongNext').onclick=()=>{initAudio();campIdx++;if(campIdx>=CAMP_LV.length){campIdx=0;toast('全部曲目完成！');newGame('daily')}else newGame('camp')};
 $('#bMute').onclick=()=>{muted=!muted;if(master)master.gain.value=muted?0:.7;$('#bMute').textContent='音效 '+(muted?'關':'開')};
 $('#bShare').onclick=sharePoster;
 $('#bCopy').onclick=copyScore;
 $('#bAgain').onclick=()=>{$('#win').classList.add('hidden');launch()};
 $('#bNext').onclick=()=>{initAudio();
-  if(mode==='tut'){tutIdx++;if(tutIdx>=3){tutIdx=0;newGame('daily')}else newGame('tut')}
+  if(mode==='camp'){const lv=CAMP_LV[campIdx];if(lv.pi===CAMP[lv.si].ph.length-1)startSong(lv.si);else{campIdx++;newGame('camp')}}
   else if(mode==='daily'){level=1;newGame('free')}else{level++;newGame('free')}};
 addEventListener('resize',layout);
 
-tutIdx=Math.min(2,tutDone());
-newGame(tutDone()<3?'tut':'daily');
+campIdx=campDone()<CAMP_LV.length?campDone():0;
+newGame(campDone()<CAMP_LV.length?'camp':'daily');
 requestAnimationFrame(frame);
-window.__pm={newGame,get mode(){return mode},get G(){return G},get placed(){return placed},get T(){return T},retrace,makePoster,updateHud};
+window.__pm={newGame,get idx(){return campIdx},get total(){return CAMP_LV.length},get sf(){return sf},get mode(){return mode},get G(){return G},get placed(){return placed},get T(){return T},retrace,makePoster,updateHud};
 })();
 </script>
 </body>
