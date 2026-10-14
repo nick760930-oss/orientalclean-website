@@ -39,7 +39,6 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
 .row{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
 #bars{display:flex;gap:5px;align-items:flex-end;justify-content:center;height:54px;margin:14px 0 4px}
 #bars i{display:block;width:12px;border-radius:4px;box-shadow:0 0 10px currentColor}
-#bSkip{position:fixed;left:50%;top:136px;transform:translateX(-50%);display:none;z-index:5}
 #toast{position:fixed;left:50%;top:84px;transform:translate(-50%,-10px);background:rgba(20,24,56,.92);border:1px solid rgba(255,255,255,.18);padding:9px 16px;border-radius:999px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
@@ -68,15 +67,15 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
   <p>每天一道光線謎題。你的解答，是一段旋律，也是一幅畫。</p>
   <ul>
     <li>點擊空格放置鏡子，再點一次可旋轉或移除（放鏡子時不會發光）</li>
-    <li>排好後按下<b>「發射」</b>：光穿過<b>旋律球</b>會彈出音符，並要點亮所有光點</li>
-    <li>前三關是耳熟能詳的名曲教學；之後每天一首神祕旋律，依序收集旋律球，完成後會演奏出完整樂章</li>
+    <li>排好後按下<b>「發射」</b>，讓光線貫穿<b>所有光點</b>，每個光點會響起一個音符</li>
+    <li>路線不同，旋律就不同。前三關是新手教學，之後每天一題，完成後生成專屬海報</li>
   </ul>
   <button class="pri" id="bStart">開始</button>
 </div></div>
 
 <div class="ov hidden" id="win"><div class="card">
   <div class="kicker" id="wk"></div>
-  <h2 id="wh">光線貫通</h2>
+  <h2>光線貫通</h2>
   <p id="ws"></p>
   <div id="bars"></div>
   <p id="streak" style="color:var(--accent)"></p>
@@ -90,7 +89,6 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
   <textarea id="copyta" readonly></textarea>
   <div class="row"><button class="pri" id="bCopyClose">關閉</button></div>
 </div></div>
-<button id="bSkip">跳過演奏</button>
 <div id="toast"></div>
 
 <script>
@@ -138,28 +136,17 @@ function tone(f,when,vol,dur,type){
 }
 function startPad(){
   if(!AC||padOn||!G)return;padOn=true;
-  [G.song.root/2,G.song.root*.75].forEach(f=>{
+  [G.root/2,G.root*.75].forEach(f=>{
     const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;
     g.gain.setValueAtTime(0,AC.currentTime);g.gain.linearRampToValueAtTime(.03,AC.currentTime+3);
     o.connect(g);g.connect(master);o.start();
   });
 }
 
-/* ---------- songs ---------- */
-// notes: [semitone from root, beats]; chords: semitones from root, one chord per chordBeats
-const SONGS={
- star:{name:'小星星',root:261.63,bpm:96,oct:0,notes:[[0,1],[0,1],[7,1],[7,1],[9,1],[9,1],[7,2]],chordBeats:4,chords:[[0,4,7],[5,9,12]]},
- ode:{name:'歡樂頌',root:261.63,bpm:104,oct:0,notes:[[4,1],[4,1],[5,1],[7,1],[7,1],[5,1],[4,1],[2,1]],chordBeats:4,chords:[[0,4,7],[7,11,14]]},
- tiger:{name:'兩隻老虎',root:261.63,bpm:108,oct:0,notes:[[0,1],[2,1],[4,1],[0,1],[0,1],[2,1],[4,1],[0,1]],chordBeats:4,chords:[[0,4,7],[0,4,7]]},
- jasmine:{name:'茉莉花',root:261.63,bpm:80,oct:0,notes:[[4,1],[4,.5],[7,.5],[9,1],[12,1],[9,1],[7,2],[7,1],[4,.5],[7,.5],[9,1],[7,3]],chordBeats:4,chords:[[0,4,7],[-3,0,4],[5,9,12],[0,4,7]]},
- canon:{name:'卡農',root:261.63,bpm:76,oct:0,notes:[[16,1],[14,1],[12,1],[11,1],[9,1],[7,1],[9,1],[11,1]],chordBeats:2,chords:[[0,4,7],[-5,-1,2],[-3,0,4],[-8,-5,-1]]},
- silent:{name:'平安夜',root:261.63,bpm:66,oct:0,notes:[[7,1.5],[9,.5],[7,1],[4,3],[7,1.5],[9,.5],[7,1],[4,3]],chordBeats:6,chords:[[0,4,7],[0,4,7]]},
- green:{name:'綠袖子',root:261.63,bpm:88,oct:0,notes:[[9,1],[12,2],[14,1],[16,1.5],[17,.5],[16,1],[14,2],[11,1],[7,1.5],[9,.5],[11,1],[12,2]],chordBeats:3,chords:[[-3,0,4],[0,4,7],[-5,-1,2],[-8,-5,-1],[-3,0,4]]},
- elise:{name:'給愛麗絲',root:261.63,bpm:72,oct:0,notes:[[16,.5],[15,.5],[16,.5],[15,.5],[16,.5],[11,.5],[14,.5],[12,.5],[9,1.5],[0,.5],[4,.5],[9,.5],[11,1.5]],chordBeats:3,chords:[[-3,0,4],[-3,0,4],[-8,-4,-1],[-3,0,4]]}
-};
-
 /* ---------- puzzle generation ---------- */
-function generate(seed,n,M,T,K,songKey,o){
+const SEMI=[0,2,4,7,9,12,14,16,19,21];
+const ROOTS=[196,220,246.94,261.63,293.66,329.63];
+function generate(seed,n,M,T,o){
   o=o||{};
   const rng=mulberry32(seed);
   const R=(a,b)=>a+Math.floor(rng()*(b-a+1));
@@ -192,96 +179,76 @@ function generate(seed,n,M,T,K,songKey,o){
     }
     if(!ok)continue;
     while(inb(c,r)){if(used.has(r*n+c)){ok=false;break}used.add(r*n+c);plain.push({c,r});c+=dx;r+=dy}
-    if(!ok||plain.length<T+K+3)continue;
-    // orbs sit along the intended path in song order (evenly spread)
-    const orbIdx=new Set(),orbs=[];let prev=-1;
-    for(let i=0;i<K;i++){
-      const base=Math.round(i*(plain.length-1)/Math.max(1,K-1)),hi=plain.length-(K-i);
-      const pi=Math.max(prev+1,Math.min(hi,base+R(-1,1)));prev=pi;
-      orbIdx.add(pi);orbs.push({c:plain[pi].c,r:plain[pi].r,i});
-    }
-    const rest=plain.filter((_,pi)=>!orbIdx.has(pi));shuffle(rest);
-    const targets=rest.slice(0,T);
+    if(!ok||plain.length<T+3)continue;
+    shuffle(plain);
+    const targets=plain.slice(0,T);
     const free=[];
     for(let r_=0;r_<n;r_++)for(let c_=0;c_<n;c_++)if(!used.has(r_*n+c_))free.push(r_*n+c_);
     shuffle(free);
-    const nw=Math.round(n*n*(o.walls||0)),walls=new Set(free.slice(0,nw));
+    const nw=Math.round(n*n*(o.walls==null?.13:o.walls)),walls=new Set(free.slice(0,nw));
     const fixed=new Map();
-    free.slice(nw,nw+(o.decoys||0)).forEach(k=>fixed.set(k,rng()<.5?'/':'\\'));
-    const G={n,M,T,src,walls,fixed,targets,orbs,sol,seed,hue:R(0,359),song:SONGS[songKey],tut:!!o.tut};
+    free.slice(nw,nw+(o.decoys==null?2:o.decoys)).forEach(k=>fixed.set(k,rng()<.5?'/':'\\'));
+    const melody=[];let mi=4;
+    for(let i=0;i<24;i++){mi=Math.max(0,Math.min(9,mi+[-2,-1,1,2,1,-1][R(0,5)]));melody.push(SEMI[mi])}
+    const G={n,M,T,src,walls,fixed,targets,sol,melody,seed,hue:R(0,359),root:ROOTS[R(0,ROOTS.length-1)]};
     const t0=trace(G,new Map());
-    if(T>=2&&t0.hits.length>T-2)continue;
-    if(t0.orbHits.length>Math.max(0,K-2))continue;
+    if(t0.hits.length>T-2)continue;
     return G;
   }
   return null;
 }
 function trace(g,placed){
-  const n=g.n,s=g.src,pts=[[s.c+.5,s.r+.5]],hits=[],orbHits=[],seen=new Set(),seenO=new Set();
+  const n=g.n,s=g.src,pts=[[s.c+.5,s.r+.5]],hits=[],seen=new Set();
   let c=s.c,r=s.r,dx=s.dx,dy=s.dy,k=0;
   const tmap=new Map(g.targets.map((t,i)=>[t.r*n+t.c,i]));
-  const omap=new Map(g.orbs.map(o=>[o.r*n+o.c,o.i]));
   for(let step=0;step<400;step++){
     c+=dx;r+=dy;k++;
     if(c<0||r<0||c>=n||r>=n){pts.push([c+.5,r+.5]);break}
     const key=r*n+c;
     if(g.walls.has(key)){pts.push([c+.5-dx*.42,r+.5-dy*.42]);break}
     if(tmap.has(key)&&!seen.has(key)){seen.add(key);hits.push({i:tmap.get(key),d:k})}
-    if(omap.has(key)&&!seenO.has(key)){seenO.add(key);orbHits.push({i:omap.get(key),d:k})}
     const m=g.fixed.get(key)||placed.get(key);
     if(m){pts.push([c+.5,r+.5]);const ndx=m==='/'?-dy:dy,ndy=m==='/'?-dx:dx;dx=ndx;dy=ndy}
   }
   const cum=[0];
   for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
-  return{pts,cum,hits,orbHits,total:cum[cum.length-1]};
+  return{pts,cum,hits,total:cum[cum.length-1]};
 }
 
 /* ---------- state ---------- */
-let G=null,placed=new Map(),T=null,mode='daily',level=1,hover=null,hint=null,hintsUsed=0,won=false,tutIdx=0,lastR=null;
-let anim={prog:0,fired:new Set(),done:false,launched:false};
-let time=0,particles=[],finale=null,pulse={},hist=[];
+let G=null,placed=new Map(),T=null,mode='daily',level=1,hover=null,hint=null,hintsUsed=0,won=false;
+let anim={prog:0,fired:new Set(),n:0,silent:false,done:false};
+let time=0,particles=[];
 const SPEED=11;
 const hueAt=d=>(G.hue+d*22)%360;
-const orbHue=i=>(32+i*26)%360;
-const TUTS=[
-  {seed:11,n:6,M:2,T:0,K:7,song:'star',o:{tut:true}},
-  {seed:23,n:7,M:3,T:2,K:8,song:'ode',o:{tut:true}},
-  {seed:37,n:7,M:4,T:3,K:8,song:'tiger',o:{tut:true,walls:.06}}
-];
-const POOL=['jasmine','canon','silent','green','elise'];
+
+const TUTS=[{seed:11,n:5,M:1,T:3,o:{walls:0,decoys:0}},{seed:23,n:6,M:2,T:3,o:{walls:.04,decoys:0}},{seed:37,n:7,M:3,T:4,o:{walls:.08,decoys:1}}];
+let tutIdx=0;
 const tutDone=()=>parseInt(lsGet('pm-tut')||'0',10)||0;
-function genRetry(seed,n,M,T,K,song,o){
-  const k=Math.min(K,SONGS[song].notes.length);
-  for(let m=M;m>=2;m--)for(let s=0;s<40;s++){const g=generate(seed+s,n,m,T,k,song,o);if(g)return g}
-  return null;
-}
+function gen(seed,n,M,T,o){for(let m=M;m>=1;m--)for(let k=0;k<40;k++){const g=generate(seed+k,n,m,T,o);if(g)return g}return null}
 function newGame(m){
-  mode=m;placed=new Map();hist=[];hint=null;hintsUsed=0;won=false;particles=[];finale=null;pulse={};lastR=null;
-  hideSkip();
+  mode=m;placed=new Map();hist=[];hint=null;hintsUsed=0;won=false;particles=[];
   const L=level-1;
-  if(m==='tut'){const s=TUTS[tutIdx];G=genRetry(s.seed,s.n,s.M,s.T,s.K,s.song,s.o)}
-  else if(m==='daily'){G=genRetry(hashStr('PM-'+fmtDate(new Date())),9,6,5,8,POOL[(dayNo()-1)%POOL.length],{walls:.15,decoys:4})}
-  else{
-    G=genRetry((Math.random()*4e9)>>>0,7+Math.min(2,Math.floor(L/2)),3+Math.min(4,L),3+Math.min(3,Math.floor(L/2)),
-      Math.min(10,6+Math.floor(L/2)),POOL[Math.floor(Math.random()*POOL.length)],{walls:.1+.01*Math.min(L,6),decoys:2+Math.min(3,L)});
-  }
-  if(!G)G=generate(12345,7,3,3,6,'ode',{walls:.1});
-  $('#sub').textContent=m==='tut'?('教學 '+(tutIdx+1)+'/3 · 《'+G.song.name+'》'):m==='daily'?('今日挑戰 #'+dayNo()+' · 神祕旋律'):('無限模式 · 第 '+level+' 關');
+  if(m==='tut'){const t=TUTS[tutIdx];G=gen(t.seed,t.n,t.M,t.T,t.o)}
+  else if(m==='daily'){G=gen(hashStr('PM-'+fmtDate(new Date())),9,6,7,{walls:.15,decoys:4})}
+  else{G=gen((Math.random()*4e9)>>>0,7+Math.min(2,Math.floor(L/2)),3+Math.min(4,L),Math.min(4+Math.floor(L/2),8),{walls:.1+.01*Math.min(L,6),decoys:2+Math.min(3,L)})}
+  if(!G){G=generate(12345,7,3,5)}
+  $('#sub').textContent=m==='tut'?('教學 '+(tutIdx+1)+'/3'):m==='daily'?('今日挑戰 #'+dayNo()+' · '+fmtDate(new Date())):('無限模式 · 第 '+level+' 關');
   $('#bMode').textContent=m==='tut'?'略過教學':m==='daily'?'無限模式':'今日挑戰';
   $('#win').classList.add('hidden');
   layout();retrace();updateHud();
-  if(m==='tut')toast('排好鏡子，讓光依 1→'+G.orbs.length+' 的順序穿過旋律球');
+  if(m==='tut')toast('放好鏡子後按「發射」，讓光穿過所有光點');
 }
 function retrace(){
   T=trace(G,placed);
-  anim={prog:0,fired:new Set(),done:false,launched:false};
+  anim={prog:0,fired:new Set(),n:0,silent:false,done:false,launched:false};
 }
 function launch(){
-  if(finale&&!finale.done)return;
   initAudio();startPad();hint=null;
   T=trace(G,placed);
-  anim={prog:0,fired:new Set(),done:false,launched:true};
+  anim={prog:0,fired:new Set(),n:0,silent:false,done:false,launched:true};
 }
+let hist=[];
 function snap(){hist.push(new Map(placed));if(hist.length>50)hist.shift()}
 function updateHud(){
   const p=$('#pips');p.innerHTML='';
@@ -389,23 +356,6 @@ function drawBoard(x,gx,gy,cell,T,prog,t,o){
     }
     x.restore();
   });
-  // melody orbs
-  const oLit=new Map();for(const h of T.orbHits)if(h.d<=prog)oLit.set(h.i,h);
-  G.orbs.forEach(ob=>{
-    const lit=oLit.has(ob.i),hue=orbHue(ob.i),cx=gx+(ob.c+.5)*cell,cy=gy+(ob.r+.5)*cell+Math.sin(t*2+ob.i)*cell*.02;
-    const pu=o.poster?0:Math.max(0,.7-(t-(pulse[ob.i]||-9)))/.7,gr_=cell*(.5+.35*pu+(lit?.15:0));
-    x.save();x.globalCompositeOperation='lighter';
-    const gr=x.createRadialGradient(cx,cy,0,cx,cy,gr_);
-    gr.addColorStop(0,`hsla(${hue},100%,${lit?85:70}%,${lit?.9:.45})`);gr.addColorStop(1,'transparent');
-    x.fillStyle=gr;x.beginPath();x.arc(cx,cy,gr_,0,6.283);x.fill();
-    x.globalCompositeOperation='source-over';
-    const sg=x.createRadialGradient(cx-cell*.07,cy-cell*.08,0,cx,cy,cell*.25);
-    sg.addColorStop(0,'#ffffff');sg.addColorStop(.5,`hsl(${hue},90%,${lit?76:62}%)`);sg.addColorStop(1,`hsl(${hue},80%,38%)`);
-    x.fillStyle=sg;x.beginPath();x.arc(cx,cy,cell*.24,0,6.283);x.fill();
-    x.fillStyle='rgba(20,18,50,.85)';x.textAlign='center';x.textBaseline='middle';x.font='700 '+Math.round(cell*.26)+'px sans-serif';
-    x.fillText(G.tut?String(ob.i+1):'♪',cx,cy+cell*.01);
-    x.restore();
-  });
   // mirrors
   for(const[k,tp]of G.fixed)drawMirror(x,gx+((k%n)+.5)*cell,gy+(((k/n)|0)+.5)*cell,cell,tp,'fixed');
   for(const[k,tp]of placed)drawMirror(x,gx+((k%n)+.5)*cell,gy+(((k/n)|0)+.5)*cell,cell,tp,'player');
@@ -464,17 +414,17 @@ function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;time+=dt;
   if(G&&T&&anim.launched&&!anim.done){
     anim.prog=Math.min(T.total,anim.prog+dt*SPEED);
-    for(const h of T.hits){const k='t'+h.i;
-      if(!anim.fired.has(k)&&anim.prog>=h.d){anim.fired.add(k);tone(G.song.root*4,0,.06,.5,'sine');burst(G.targets[h.i],hueAt(h.d))}}
-    for(const h of T.orbHits){const k='o'+h.i;
-      if(!anim.fired.has(k)&&anim.prog>=h.d){anim.fired.add(k);const sg=G.song,nt=sg.notes[h.i];
-        tone(sg.root*Math.pow(2,(nt[0]+(sg.oct||0))/12),0,.34,1.6);burst(G.orbs[h.i],orbHue(h.i));pulse[h.i]=time}}
+    for(const h of T.hits){
+      if(!anim.fired.has(h.i)&&anim.prog>=h.d){
+        anim.fired.add(h.i);
+        if(!anim.silent){
+          const semi=G.melody[anim.n%G.melody.length];anim.n++;
+          tone(G.root*Math.pow(2,semi/12),0,.32,1.5);
+        }
+        burst(G.targets[h.i],hueAt(h.d));
+      }
+    }
     if(anim.prog>=T.total){anim.done=true;onBeamDone()}
-  }
-  if(finale&&!finale.done){
-    const tt=time-finale.t0;
-    while(finale.idx<finale.lead.length&&tt>=finale.lead[finale.idx].t){const e=finale.lead[finale.idx++];pulse[e.i]=time;burst(G.orbs[e.i],orbHue(e.i))}
-    if(tt>=finale.end)endFinale();
   }
   ctx.setTransform(dpr,0,0,dpr,0,0);
   drawBackground(ctx,W,H,time);
@@ -485,95 +435,56 @@ function frame(now){
   }
   requestAnimationFrame(frame);
 }
-function result(){
-  const seq=T.orbHits.map(h=>h.i),all=seq.length===G.orbs.length;
-  let ordered=all;for(let k=1;k<seq.length;k++)if(seq[k]<seq[k-1])ordered=false;
-  return{all,perfect:all&&ordered,count:seq.length,stars:1+(all?1:0)+(all&&ordered?1:0)};
-}
 function onBeamDone(){
-  if(won||(finale&&!finale.done))return;
-  const r=result();
-  if(T.hits.length<G.T){toast('還差 '+(G.T-T.hits.length)+' 個光點，調整鏡子後再發射');return}
-  if(G.tut&&!r.perfect){toast(r.all?'旋律順序不對，換個方向再試':'還有旋律球沒收集到，再調整看看');return}
-  won=true;startFinale(r);
+  if(won)return;
+  if(T.hits.length===G.T){won=true;setTimeout(showWin,900)}
+  else toast('還差 '+(G.T-T.hits.length)+' 個光點，調整鏡子後再發射')
 }
-function showSkip(){$('#bSkip').style.display='block'}
-function hideSkip(){$('#bSkip').style.display='none'}
-function startFinale(r){
-  lastR=r;initAudio();
-  const s=G.song,beat=60/s.bpm,got=new Set(T.orbHits.map(h=>h.i)),lead=[];
-  let t=.6;
-  s.notes.slice(0,G.orbs.length).forEach(([semi,b],i)=>{
-    if(got.has(i)){lead.push({t,i});tone(s.root*Math.pow(2,(semi+(s.oct||0))/12),t,.34,Math.max(1.2,b*beat*1.6))}
-    t+=b*beat;
-  });
-  const total=t;
-  if(r.perfect){
-    const cb=s.chordBeats*beat;
-    for(let c=0;c*cb<total-.2;c++){
-      const ch=s.chords[c%s.chords.length],t0=.6+c*cb;
-      tone(s.root*Math.pow(2,(ch[0]-12)/12),t0,.2,cb*1.3,'sine');
-      ch.forEach((semi,k)=>tone(s.root*Math.pow(2,semi/12),t0+cb*(k+1)/4,.09,cb*1.1,'sine'));
-    }
-  }
-  finale={t0:time,lead,idx:0,end:total+(r.perfect?2.4:1.4),done:false,r};
-  showSkip();toast('\u266a 聆聽你的樂章');
-}
-function endFinale(){
-  if(!finale||finale.done)return;
-  finale.done=true;hideSkip();showWin(finale.r);
-}
+
+/* ---------- win / share ---------- */
+function emojiSq(h){return['🟥','🟧','🟨','🟩','🟦','🟪'][Math.floor((((h%360)+360)%360)/60)%6]}
 function shareText(){
-  const r=lastR||result(),sg=G.song;
-  const name=mode==='daily'?'光譜旋律 #'+dayNo():mode==='tut'?'光譜旋律 教學':'光譜旋律 無限 第'+level+'關';
-  return name+' '+'\u2605'.repeat(r.stars)+'\n🎵 '+(mode==='daily'?'猜猜這是哪首名曲？':'《'+sg.name+'》')+' · 旋律球 '+r.count+'/'+G.orbs.length+' · 鏡子 '+placed.size+'/'+G.M+(hintsUsed?' · 提示×'+hintsUsed:'')+'\n'+(r.perfect?'🎼 完美樂章':'🎼 你能收集全部旋律球嗎？')+'\n'+location.href.split('#')[0];
+  const sq=T.hits.map(h=>emojiSq(hueAt(h.d))).join('');
+  const name=mode==='daily'?'光譜旋律 #'+dayNo():'光譜旋律 無限 第'+level+'關';
+  return name+' ✨\n鏡子 '+placed.size+'/'+G.M+' · 旋律 '+T.hits.length+' 音'+(hintsUsed?' · 提示×'+hintsUsed:'')+'\n'+sq+'\n你能做出更好聽的嗎？\n'+location.href.split('#')[0];
 }
-function showWin(r){
-  r=r||lastR||result();lastR=r;
-  const used=placed.size,K=G.orbs.length;
-  $('#wk').textContent=mode==='daily'?('DAILY #'+dayNo()):mode==='tut'?('教學 '+(tutIdx+1)+'/3'):('LEVEL '+level);
-  $('#wh').textContent=r.perfect?'完美樂章':'光線貫通';
-  $('#ws').innerHTML='《'+G.song.name+'》<br>'+'\u2605'.repeat(r.stars)+'\u2606'.repeat(3-r.stars)+'<br>旋律球 '+r.count+'/'+K+' · 鏡子 '+used+'/'+G.M+(r.perfect?'':'<br><small>收集全部旋律球並依序通過，解鎖完整編曲</small>');
+function showWin(){
+  const used=placed.size;
+  $('#wk').textContent=mode==='daily'?('DAILY #'+dayNo()):('LEVEL '+level);
+  $('#ws').textContent='用 '+used+' 面鏡子，點亮 '+G.T+' 個光點'+(used<G.M?'（比預期更少！）':'')+'。';
   const bars=$('#bars');bars.innerHTML='';
-  const sm=G.song.notes.slice(0,K).map(n=>n[0]),mn=Math.min(...sm),mx=Math.max(...sm),got=new Set(T.orbHits.map(h=>h.i));
-  sm.forEach((v,i)=>{const b=document.createElement('i'),on=got.has(i);
-    b.style.height=(14+(v-mn)/((mx-mn)||1)*38)+'px';
-    b.style.background=b.style.color=on?`hsl(${orbHue(i)},100%,65%)`:'#3a4066';if(!on)b.style.boxShadow='none';bars.appendChild(b)});
-  if(mode==='tut')lsSet('pm-tut',String(Math.max(tutDone(),tutIdx+1)));
+  T.hits.forEach((h,i)=>{const b=document.createElement('i');const semi=G.melody[i%G.melody.length];
+    b.style.height=(14+semi*1.8)+'px';b.style.background=b.style.color=`hsl(${hueAt(h.d)},100%,65%)`;bars.appendChild(b)});
   if(mode==='daily'){
     const key='pm-d-'+fmtDate(new Date()),prev=parseInt(lsGet(key)||'99',10);
     lsSet(key,String(Math.min(prev,used)));
     $('#streak').textContent='連續挑戰 '+streak()+' 天';
   }else $('#streak').textContent='';
+  if(mode==='tut')lsSet('pm-tut',String(Math.max(tutDone(),tutIdx+1)));
   $('#bNext').textContent=mode==='tut'?(tutIdx<2?'下一關':'進入今日挑戰'):mode==='daily'?'無限模式':'下一關';
   $('#win').classList.remove('hidden');
 }
 function makePoster(){
-  const r=lastR||result(),K=G.orbs.length;
   const Wd=1080,Ht=1920,c=document.createElement('canvas');c.width=Wd;c.height=Ht;const x=c.getContext('2d');
-  const FONT='"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
   drawBackground(x,Wd,Ht,0);
   x.textAlign='center';
   const tg=x.createLinearGradient(240,0,840,0);tg.addColorStop(0,'#7cf0ff');tg.addColorStop(.5,'#b794ff');tg.addColorStop(1,'#ff8fd1');
-  x.fillStyle=tg;x.font='800 120px '+FONT;x.fillText('光譜旋律',Wd/2,220);
-  x.fillStyle='#8a93c0';x.font='400 34px '+FONT;
-  x.fillText('PRISM MELODY  ·  '+(mode==='daily'?'#'+dayNo()+'  '+fmtDate(new Date()):mode==='tut'?'TUTORIAL':'LEVEL '+level),Wd/2,290);
+  x.fillStyle=tg;x.font='800 120px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';x.fillText('光譜旋律',Wd/2,220);
+  x.fillStyle='#8a93c0';x.font='400 34px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+  x.fillText('PRISM MELODY  ·  '+(mode==='daily'?'#'+dayNo()+'  '+fmtDate(new Date()):'LEVEL '+level),Wd/2,290);
   const cell=Math.floor((Wd-140)/G.n),gx=Math.round((Wd-cell*G.n)/2),gy=380;
-  drawBoard(x,gx,gy,cell,T,T.total+1,0,{poster:true});
-  const by=gy+cell*G.n+90;
-  x.fillStyle='#ffd36b';x.font='700 76px '+FONT;x.fillText('\u2605'.repeat(r.stars)+'\u2606'.repeat(3-r.stars),Wd/2,by);
-  const sm=G.song.notes.slice(0,K).map(n=>n[0]),mn=Math.min(...sm),mx=Math.max(...sm),got=new Set(T.orbHits.map(h=>h.i));
-  const bw=34,gap=14,tot=K*(bw+gap)-gap;
-  sm.forEach((v,i)=>{
-    const hh=40+(v-mn)/((mx-mn)||1)*110,bx=(Wd-tot)/2+i*(bw+gap),on=got.has(i);
-    x.save();x.globalCompositeOperation=on?'lighter':'source-over';x.fillStyle=on?`hsl(${orbHue(i)},100%,62%)`:'#2a3058';
-    if(on){x.shadowColor=x.fillStyle;x.shadowBlur=24}
-    rr(x,bx,by+60+150-hh,bw,hh,10);x.fill();x.restore();
+  drawBoard(x,gx,gy,cell,T,T.total+1,0,{});
+  const by=gy+cell*G.n+120;
+  const bw=34,gap=14,tot=T.hits.length*(bw+gap)-gap;
+  T.hits.forEach((h,i)=>{
+    const semi=G.melody[i%G.melody.length],hh=40+semi*7,bx=(Wd-tot)/2+i*(bw+gap);
+    x.save();x.globalCompositeOperation='lighter';x.fillStyle=`hsl(${hueAt(h.d)},100%,62%)`;x.shadowColor=x.fillStyle;x.shadowBlur=24;
+    rr(x,bx,by+150-hh,bw,hh,10);x.fill();x.restore();
   });
-  x.fillStyle='#e8ecff';x.font='600 42px '+FONT;
-  x.fillText((r.perfect?'完美樂章 · ':'')+'收集 '+r.count+'/'+K+' 顆旋律球 · '+placed.size+' 面鏡子',Wd/2,by+310);
-  x.fillStyle='#8a93c0';x.font='400 34px '+FONT;
-  x.fillText(mode==='daily'?'猜猜這是哪首名曲？來聽聽你的版本':'《'+G.song.name+'》 · 你的路線，就是你的旋律',Wd/2,by+370);
+  x.fillStyle='#e8ecff';x.font='600 42px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+  x.fillText('用 '+placed.size+' 面鏡子，點亮 '+G.T+' 個光點',Wd/2,by+250);
+  x.fillStyle='#8a93c0';x.font='400 34px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+  x.fillText('你的路線，就是你的旋律。來挑戰這一題',Wd/2,by+310);
   x.fillStyle='#7cf0ff';x.font='500 30px sans-serif';x.fillText(location.href.split('#')[0].replace(/^https?:\/\//,''),Wd/2,Ht-70);
   return c;
 }
@@ -617,7 +528,6 @@ cv.addEventListener('pointerup',e=>{
   if(Math.hypot(e.clientX-d.x,e.clientY-d.y)>10)return;
   const p=cellAt(e);if(!p||p.c!==d.p.c||p.r!==d.p.r)return;
   if(anim.launched&&!anim.done)return;
-  if(finale&&!finale.done)return;
   initAudio();
   const key=p.r*G.n+p.c;
   if(G.walls.has(key)||G.fixed.has(key))return;
@@ -642,8 +552,7 @@ $('#bMode').onclick=()=>{initAudio();if(mode==='tut'){lsSet('pm-tut','3');newGam
 $('#bMute').onclick=()=>{muted=!muted;if(master)master.gain.value=muted?0:.7;$('#bMute').textContent='音效 '+(muted?'關':'開')};
 $('#bShare').onclick=sharePoster;
 $('#bCopy').onclick=copyScore;
-$('#bAgain').onclick=()=>{$('#win').classList.add('hidden');startFinale(lastR||result())};
-$('#bSkip').onclick=endFinale;
+$('#bAgain').onclick=()=>{$('#win').classList.add('hidden');launch()};
 $('#bNext').onclick=()=>{initAudio();
   if(mode==='tut'){tutIdx++;if(tutIdx>=3){tutIdx=0;newGame('daily')}else newGame('tut')}
   else if(mode==='daily'){level=1;newGame('free')}else{level++;newGame('free')}};
@@ -652,7 +561,7 @@ addEventListener('resize',layout);
 tutIdx=Math.min(2,tutDone());
 newGame(tutDone()<3?'tut':'daily');
 requestAnimationFrame(frame);
-window.__pm={get G(){return G},get placed(){return placed},get T(){return T},get mode(){return mode},retrace,makePoster,updateHud,result,newGame};
+window.__pm={newGame,get mode(){return mode},get G(){return G},get placed(){return placed},get T(){return T},retrace,makePoster,updateHud};
 })();
 </script>
 </body>
