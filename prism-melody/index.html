@@ -13,7 +13,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:
 canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 .hud{position:fixed;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;pointer-events:none}
 .top{top:env(safe-area-inset-top,0)}
-.bottom{bottom:env(safe-area-inset-bottom,0);justify-content:center;gap:8px;padding-bottom:18px;flex-wrap:wrap}
+.bottom{bottom:env(safe-area-inset-bottom,0);flex-direction:column;justify-content:flex-end;gap:10px;padding-bottom:16px}
+.bottom .rowb{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+#bFire{font-size:18px;padding:13px 54px;letter-spacing:.2em}
+.bottom .rowb button:not(#bFire){font-size:13px;padding:8px 14px}
+#copyov textarea{width:100%;height:150px;background:rgba(0,0,0,.35);color:var(--fg);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:10px;font:inherit;font-size:14px;resize:none;user-select:text;-webkit-user-select:text}
 h1{margin:0;font-size:22px;letter-spacing:.08em;font-weight:800;background:linear-gradient(90deg,#7cf0ff,#b794ff,#ff8fd1);-webkit-background-clip:text;background-clip:text;color:transparent}
 .sub{font-size:12px;color:var(--dim);margin-top:2px;letter-spacing:.06em}
 .pips{display:flex;gap:6px;align-items:center;justify-content:flex-end}
@@ -25,7 +29,8 @@ button:hover{background:rgba(255,255,255,.14)}
 button:active{transform:scale(.96)}
 button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transparent;color:#04060f;font-weight:700}
 .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,4,12,.72);backdrop-filter:blur(6px);padding:20px;transition:opacity .4s}
-.ov.hidden{opacity:0;pointer-events:none}
+.ov.hidden{opacity:0;pointer-events:none;visibility:hidden;transition:opacity .4s,visibility 0s .4s}
+.ov.hidden *{pointer-events:none!important}
 .card{max-width:380px;width:100%;background:linear-gradient(160deg,rgba(30,36,80,.85),rgba(14,16,40,.9));border:1px solid rgba(255,255,255,.14);border-radius:24px;padding:26px 24px;text-align:center;box-shadow:0 20px 80px rgba(80,120,255,.25)}
 .card h2{margin:6px 0 10px;font-size:26px}
 .card p{color:#b9c1ea;line-height:1.7;margin:8px 0;font-size:14px}
@@ -46,11 +51,14 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
   <div><div class="lbl" id="lbl">鏡子</div><div class="pips" id="pips"></div></div>
 </div>
 <div class="hud bottom">
-  <button id="bReset">重置</button>
-  <button id="bHint">提示</button>
-  <button id="bPlay">聽旋律</button>
-  <button id="bMode">無限模式</button>
-  <button id="bMute">音效 開</button>
+  <div class="rowb"><button class="pri" id="bFire">發射</button></div>
+  <div class="rowb">
+    <button id="bUndo">復原</button>
+    <button id="bReset">重置</button>
+    <button id="bHint">提示</button>
+    <button id="bMode">無限模式</button>
+    <button id="bMute">音效 開</button>
+  </div>
 </div>
 
 <div class="ov" id="intro"><div class="card">
@@ -58,8 +66,8 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
   <h2>光譜旋律</h2>
   <p>每天一道光線謎題。你的解答，是一段旋律，也是一幅畫。</p>
   <ul>
-    <li>點擊空格放置鏡子，再點一次可旋轉或移除</li>
-    <li>讓光線貫穿<b>所有光點</b>，每個光點會響起一個音符</li>
+    <li>點擊空格放置鏡子，再點一次可旋轉或移除（放鏡子時不會發光）</li>
+    <li>排好後按下<b>「發射」</b>，讓光線貫穿<b>所有光點</b>，每個光點會響起一個音符</li>
     <li>路線不同，旋律就不同。完成後生成專屬海報</li>
   </ul>
   <button class="pri" id="bStart">開始今天的挑戰</button>
@@ -75,6 +83,12 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
   <div class="row"><button id="bAgain">再聽一次</button><button id="bNext">下一關</button></div>
 </div></div>
 
+<div class="ov hidden" id="copyov"><div class="card">
+  <h2 style="font-size:20px">複製成績</h2>
+  <p>瀏覽器不允許自動複製，請長按下方文字全選後複製：</p>
+  <textarea id="copyta" readonly></textarea>
+  <div class="row"><button class="pri" id="bCopyClose">關閉</button></div>
+</div></div>
 <div id="toast"></div>
 
 <script>
@@ -208,7 +222,7 @@ const SPEED=11;
 const hueAt=d=>(G.hue+d*22)%360;
 
 function newGame(m){
-  mode=m;placed=new Map();hint=null;hintsUsed=0;won=false;particles=[];
+  mode=m;placed=new Map();hist=[];hint=null;hintsUsed=0;won=false;particles=[];
   if(m==='daily'){G=generate(hashStr('PM-'+fmtDate(new Date())),9,4,6)}
   else{
     const L=level-1,n=6+Math.min(3,Math.floor(L/2)),M=2+Math.min(3,Math.floor(L/2)),Tn=Math.min(M+2,7);
@@ -218,12 +232,19 @@ function newGame(m){
   $('#sub').textContent=m==='daily'?('今日挑戰 #'+dayNo()+' · '+fmtDate(new Date())):('無限模式 · 第 '+level+' 關');
   $('#bMode').textContent=m==='daily'?'無限模式':'今日挑戰';
   $('#win').classList.add('hidden');
-  layout();retrace(true);updateHud();
+  layout();retrace();updateHud();
 }
-function retrace(silentNoSound){
+function retrace(){
   T=trace(G,placed);
-  anim={prog:0,fired:new Set(),n:0,silent:!!silentNoSound,done:false};
+  anim={prog:0,fired:new Set(),n:0,silent:false,done:false,launched:false};
 }
+function launch(){
+  initAudio();startPad();hint=null;
+  T=trace(G,placed);
+  anim={prog:0,fired:new Set(),n:0,silent:false,done:false,launched:true};
+}
+let hist=[];
+function snap(){hist.push(new Map(placed));if(hist.length>50)hist.shift()}
 function updateHud(){
   const p=$('#pips');p.innerHTML='';
   for(let i=0;i<G.M;i++){const s=document.createElement('span');s.className='pip'+(i>=placed.size?' on':'');p.appendChild(s)}
@@ -236,7 +257,7 @@ function layout(){
   dpr=Math.min(2.5,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
   cv.width=W*dpr;cv.height=H*dpr;
   if(!G)return;
-  const topH=78,botH=H<640?96:84,n=G.n;
+  const topH=78,botH=H<640?130:118,n=G.n;
   const aw=W-12,ah=H-topH-botH;
   const cell=Math.floor(Math.min(aw/(n+2),ah/(n+2)));
   L.cell=cell;L.gx=Math.round((W-cell*n)/2);L.gy=Math.round(topH+(ah-cell*(n+2))/2+cell);
@@ -386,7 +407,7 @@ function burst(tg,hue){
 let last=performance.now();
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;time+=dt;
-  if(G&&T&&!anim.done){
+  if(G&&T&&anim.launched&&!anim.done){
     anim.prog=Math.min(T.total,anim.prog+dt*SPEED);
     for(const h of T.hits){
       if(!anim.fired.has(h.i)&&anim.prog>=h.d){
@@ -411,10 +432,8 @@ function frame(now){
 }
 function onBeamDone(){
   if(won)return;
-  if(T.hits.length===G.T){
-    if(anim.replay){anim.replay=false;return}
-    won=true;setTimeout(showWin,900);
-  }
+  if(T.hits.length===G.T){won=true;setTimeout(showWin,900)}
+  else toast('還差 '+(G.T-T.hits.length)+' 個光點，調整鏡子後再發射')
 }
 
 /* ---------- win / share ---------- */
@@ -474,9 +493,15 @@ async function sharePoster(){
   document.body.appendChild(a);a.click();a.remove();toast('海報已下載');
 }
 async function copyScore(){
-  try{await navigator.clipboard.writeText(shareText());toast('成績已複製，貼給朋友吧')}
-  catch(e){toast('此瀏覽器無法複製，請改用分享海報')}
+  const text=shareText();
+  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);toast('成績已複製，貼給朋友吧');return}}catch(e){}
+  const ta=$('#copyta');ta.value=text;
+  try{ta.removeAttribute('readonly');ta.select();ta.setSelectionRange(0,text.length);
+    const ok=document.execCommand&&document.execCommand('copy');ta.setAttribute('readonly','');
+    if(ok){toast('成績已複製，貼給朋友吧');return}}catch(e){}
+  $('#copyov').classList.remove('hidden');ta.focus();ta.select();
 }
+$('#bCopyClose').onclick=()=>$('#copyov').classList.add('hidden');
 
 /* ---------- input ---------- */
 function cellAt(e){
@@ -485,33 +510,43 @@ function cellAt(e){
 }
 cv.addEventListener('pointermove',e=>{if(!G)return;const p=cellAt(e);hover=(p&&!G.walls.has(p.r*G.n+p.c)&&!G.fixed.has(p.r*G.n+p.c))?p:null});
 cv.addEventListener('pointerleave',()=>{hover=null});
+let down=null;
 cv.addEventListener('pointerdown',e=>{
   if(!G||!$('#intro').classList.contains('hidden'))return;
+  down={p:cellAt(e),x:e.clientX,y:e.clientY,t:performance.now()};
+});
+cv.addEventListener('pointercancel',()=>{down=null});
+cv.addEventListener('pointerup',e=>{
+  const d=down;down=null;
+  if(!G||!d||!d.p||!$('#intro').classList.contains('hidden'))return;
+  if(Math.hypot(e.clientX-d.x,e.clientY-d.y)>10)return;
+  const p=cellAt(e);if(!p||p.c!==d.p.c||p.r!==d.p.r)return;
+  if(anim.launched&&!anim.done)return;
   initAudio();
-  const p=cellAt(e);if(!p)return;
   const key=p.r*G.n+p.c;
   if(G.walls.has(key)||G.fixed.has(key))return;
   const cur=placed.get(key);
-  if(!cur){
-    if(placed.size>=G.M){toast('鏡子用完了：點擊已放置的鏡子可旋轉或移除');return}
-    placed.set(key,'/');tone(880,0,.12,.25,'sine');
-  }else if(cur==='/'){placed.set(key,'\\');tone(988,0,.12,.25,'sine')}
+  if(!cur&&placed.size>=G.M){toast('鏡子用完了：點擊已放置的鏡子可旋轉或移除');return}
+  snap();
+  if(!cur){placed.set(key,'/');tone(880,0,.12,.25,'sine')}
+  else if(cur==='/'){placed.set(key,'\\');tone(988,0,.12,.25,'sine')}
   else{placed.delete(key);tone(440,0,.12,.25,'sine')}
-  won=false;hint=null;retrace(false);updateHud();
+  won=false;hint=null;retrace();updateHud();
 });
 $('#bStart').onclick=()=>{initAudio();startPad();$('#intro').classList.add('hidden')};
-$('#bReset').onclick=()=>{placed=new Map();won=false;hint=null;retrace(true);updateHud()};
+$('#bReset').onclick=()=>{if(!placed.size)return;snap();placed=new Map();won=false;hint=null;retrace();updateHud()};
+$('#bUndo').onclick=()=>{if(!hist.length){toast('沒有可復原的步驟');return}placed=hist.pop();won=false;hint=null;retrace();updateHud()};
 $('#bHint').onclick=()=>{
   const miss=G.sol.find(s=>placed.get(s.r*G.n+s.c)!==s.t);
   if(!miss){toast('已經放對了，看看光線吧');return}
   hint={...miss,until:time+4};hintsUsed++;toast('虛線處是答案中的一面鏡子');
 };
-$('#bPlay').onclick=()=>{initAudio();anim={prog:0,fired:new Set(),n:0,silent:false,done:false,replay:true}};
+$('#bFire').onclick=launch;
 $('#bMode').onclick=()=>{initAudio();if(mode==='daily'){level=1;newGame('free')}else newGame('daily')};
 $('#bMute').onclick=()=>{muted=!muted;if(master)master.gain.value=muted?0:.7;$('#bMute').textContent='音效 '+(muted?'關':'開')};
 $('#bShare').onclick=sharePoster;
 $('#bCopy').onclick=copyScore;
-$('#bAgain').onclick=()=>{$('#win').classList.add('hidden');anim={prog:0,fired:new Set(),n:0,silent:false,done:false,replay:true}};
+$('#bAgain').onclick=()=>{$('#win').classList.add('hidden');launch()};
 $('#bNext').onclick=()=>{initAudio();if(mode==='daily'){level=1}else level++;newGame('free')};
 addEventListener('resize',layout);
 
