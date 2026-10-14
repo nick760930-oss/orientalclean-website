@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>光譜旋律 Prism Melody</title>
+<meta name="description" content="每日光線解謎：放置鏡子讓光打中每個光點，你的解答就是一段獨一無二的旋律與一幅光之畫。">
+<meta name="theme-color" content="#05060f">
+<style>
+:root{--bg:#05060f;--fg:#e8ecff;--dim:#8a93c0;--accent:#7cf0ff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+.hud{position:fixed;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;pointer-events:none}
+.top{top:env(safe-area-inset-top,0)}
+.bottom{bottom:env(safe-area-inset-bottom,0);justify-content:center;gap:8px;padding-bottom:18px;flex-wrap:wrap}
+h1{margin:0;font-size:22px;letter-spacing:.08em;font-weight:800;background:linear-gradient(90deg,#7cf0ff,#b794ff,#ff8fd1);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:12px;color:var(--dim);margin-top:2px;letter-spacing:.06em}
+.pips{display:flex;gap:6px;align-items:center;justify-content:flex-end}
+.pip{width:14px;height:14px;border-radius:50%;border:2px solid #4b557f;transition:.25s}
+.pip.on{background:var(--accent);border-color:var(--accent);box-shadow:0 0 10px var(--accent)}
+.lbl{font-size:12px;color:var(--dim);text-align:right;margin-bottom:5px;letter-spacing:.06em}
+button{pointer-events:auto;font:inherit;font-size:14px;color:var(--fg);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:10px 16px;cursor:pointer;backdrop-filter:blur(8px);transition:.15s}
+button:hover{background:rgba(255,255,255,.14)}
+button:active{transform:scale(.96)}
+button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transparent;color:#04060f;font-weight:700}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,4,12,.72);backdrop-filter:blur(6px);padding:20px;transition:opacity .4s}
+.ov.hidden{opacity:0;pointer-events:none}
+.card{max-width:380px;width:100%;background:linear-gradient(160deg,rgba(30,36,80,.85),rgba(14,16,40,.9));border:1px solid rgba(255,255,255,.14);border-radius:24px;padding:26px 24px;text-align:center;box-shadow:0 20px 80px rgba(80,120,255,.25)}
+.card h2{margin:6px 0 10px;font-size:26px}
+.card p{color:#b9c1ea;line-height:1.7;margin:8px 0;font-size:14px}
+.card ul{text-align:left;color:#cfd5f5;line-height:1.9;font-size:14px;padding-left:20px;margin:12px 0 18px}
+.kicker{font-size:12px;letter-spacing:.2em;color:var(--accent)}
+.row{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+#bars{display:flex;gap:5px;align-items:flex-end;justify-content:center;height:54px;margin:14px 0 4px}
+#bars i{display:block;width:12px;border-radius:4px;box-shadow:0 0 10px currentColor}
+#toast{position:fixed;left:50%;top:84px;transform:translate(-50%,-10px);background:rgba(20,24,56,.92);border:1px solid rgba(255,255,255,.18);padding:9px 16px;border-radius:999px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="hud top">
+  <div><h1>光譜旋律</h1><div class="sub" id="sub">PRISM MELODY</div></div>
+  <div><div class="lbl" id="lbl">鏡子</div><div class="pips" id="pips"></div></div>
+</div>
+<div class="hud bottom">
+  <button id="bReset">重置</button>
+  <button id="bHint">提示</button>
+  <button id="bPlay">聽旋律</button>
+  <button id="bMode">無限模式</button>
+  <button id="bMute">音效 開</button>
+</div>
+
+<div class="ov" id="intro"><div class="card">
+  <div class="kicker">DAILY LIGHT PUZZLE</div>
+  <h2>光譜旋律</h2>
+  <p>每天一道光線謎題。你的解答，是一段旋律，也是一幅畫。</p>
+  <ul>
+    <li>點擊空格放置鏡子，再點一次可旋轉或移除</li>
+    <li>讓光線貫穿<b>所有光點</b>，每個光點會響起一個音符</li>
+    <li>路線不同，旋律就不同。完成後生成專屬海報</li>
+  </ul>
+  <button class="pri" id="bStart">開始今天的挑戰</button>
+</div></div>
+
+<div class="ov hidden" id="win"><div class="card">
+  <div class="kicker" id="wk"></div>
+  <h2>光線貫通</h2>
+  <p id="ws"></p>
+  <div id="bars"></div>
+  <p id="streak" style="color:var(--accent)"></p>
+  <div class="row"><button class="pri" id="bShare">分享海報</button><button id="bCopy">複製成績</button></div>
+  <div class="row"><button id="bAgain">再聽一次</button><button id="bNext">下一關</button></div>
+</div></div>
+
+<div id="toast"></div>
+
+<script>
+(()=>{
+'use strict';
+const $=s=>document.querySelector(s);
+const cv=$('#c'),ctx=cv.getContext('2d');
+let W=0,H=0,dpr=1;
+
+/* ---------- utils ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+const pad2=n=>String(n).padStart(2,'0');
+const fmtDate=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+function dayNo(){const d=new Date();return Math.max(1,Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(2026,9,1))/864e5)+1)}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function streak(){let s=0;const d=new Date();while(lsGet('pm-d-'+fmtDate(d))!=null&&s<999){s++;d.setDate(d.getDate()-1)}return s}
+function rr(x,px,py,w,h,r){x.beginPath();x.moveTo(px+r,py);x.arcTo(px+w,py,px+w,py+h,r);x.arcTo(px+w,py+h,px,py+h,r);x.arcTo(px,py+h,px,py,r);x.arcTo(px,py,px+w,py,r);x.closePath()}
+let toastT=0;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)}
+
+/* ---------- audio ---------- */
+let AC=null,master=null,wet=null,muted=false,padOn=false;
+function initAudio(){
+  if(AC){if(AC.state==='suspended')AC.resume();return}
+  try{
+    AC=new(window.AudioContext||window.webkitAudioContext)();
+    master=AC.createGain();master.gain.value=muted?0:.7;
+    const comp=AC.createDynamicsCompressor();master.connect(comp);comp.connect(AC.destination);
+    const dly=AC.createDelay(1);dly.delayTime.value=.27;
+    const fb=AC.createGain();fb.gain.value=.38;
+    const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2400;
+    wet=AC.createGain();wet.gain.value=.45;
+    wet.connect(dly);dly.connect(lp);lp.connect(fb);fb.connect(dly);lp.connect(comp);
+  }catch(e){AC=null}
+}
+function tone(f,when,vol,dur,type){
+  if(!AC)return;const t=AC.currentTime+(when||0);dur=dur||1.4;
+  const o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain(),g2=AC.createGain();
+  o.type=type||'triangle';o2.type='sine';o.frequency.value=f;o2.frequency.value=f*2;g2.gain.value=.25;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.3,t+.006);g.gain.exponentialRampToValueAtTime(.0008,t+dur);
+  o.connect(g);o2.connect(g2);g2.connect(g);g.connect(master);g.connect(wet);
+  o.start(t);o2.start(t);o.stop(t+dur+.05);o2.stop(t+dur+.05);
+}
+function startPad(){
+  if(!AC||padOn||!G)return;padOn=true;
+  [G.root/2,G.root*.75].forEach(f=>{
+    const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(0,AC.currentTime);g.gain.linearRampToValueAtTime(.03,AC.currentTime+3);
+    o.connect(g);g.connect(master);o.start();
+  });
+}
+
+/* ---------- puzzle generation ---------- */
+const SEMI=[0,2,4,7,9,12,14,16,19,21];
+const ROOTS=[196,220,246.94,261.63,293.66,329.63];
+function generate(seed,n,M,T){
+  const rng=mulberry32(seed);
+  const R=(a,b)=>a+Math.floor(rng()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+  const inb=(c,r)=>c>=0&&r>=0&&c<n&&r<n;
+  for(let att=0;att<800;att++){
+    const side=R(0,3),idx=R(1,n-2);
+    const src=[{c:-1,r:idx,dx:1,dy:0},{c:n,r:idx,dx:-1,dy:0},{c:idx,r:-1,dx:0,dy:1},{c:idx,r:n,dx:0,dy:-1}][side];
+    const used=new Set(),plain=[],sol=[];
+    let c=src.c+src.dx,r=src.r+src.dy,dx=src.dx,dy=src.dy,ok=true;
+    for(let m=0;m<M&&ok;m++){
+      if(!inb(c,r)||used.has(r*n+c)){ok=false;break}
+      let maxk=0;
+      while(true){const cc=c+dx*(maxk+1),rr_=r+dy*(maxk+1);if(inb(cc,rr_)&&!used.has(rr_*n+cc))maxk++;else break}
+      if(maxk<1){ok=false;break}
+      const ks=[];for(let k=1;k<=maxk;k++)ks.push(k);shuffle(ks);
+      let ch=null;
+      for(const k of ks){
+        const mc=c+dx*k,mr=r+dy*k;
+        for(const t of(rng()<.5?['/','\\']:['\\','/'])){
+          const ndx=t==='/'?-dy:dy,ndy=t==='/'?-dx:dx,nc=mc+ndx,nr=mr+ndy;
+          if(inb(nc,nr)&&!used.has(nr*n+nc)){ch={k,mc,mr,t,ndx,ndy};break}
+        }
+        if(ch)break;
+      }
+      if(!ch){ok=false;break}
+      for(let i=0;i<ch.k;i++){const cc=c+dx*i,rr_=r+dy*i;used.add(rr_*n+cc);plain.push({c:cc,r:rr_})}
+      used.add(ch.mr*n+ch.mc);sol.push({c:ch.mc,r:ch.mr,t:ch.t});
+      c=ch.mc+ch.ndx;r=ch.mr+ch.ndy;dx=ch.ndx;dy=ch.ndy;
+    }
+    if(!ok)continue;
+    while(inb(c,r)){if(used.has(r*n+c)){ok=false;break}used.add(r*n+c);plain.push({c,r});c+=dx;r+=dy}
+    if(!ok||plain.length<T+3)continue;
+    shuffle(plain);
+    const targets=plain.slice(0,T);
+    const free=[];
+    for(let r_=0;r_<n;r_++)for(let c_=0;c_<n;c_++)if(!used.has(r_*n+c_))free.push(r_*n+c_);
+    shuffle(free);
+    const nw=Math.round(n*n*.13),walls=new Set(free.slice(0,nw));
+    const fixed=new Map();
+    free.slice(nw,nw+2).forEach(k=>fixed.set(k,rng()<.5?'/':'\\'));
+    const melody=[];let mi=4;
+    for(let i=0;i<24;i++){mi=Math.max(0,Math.min(9,mi+[-2,-1,1,2,1,-1][R(0,5)]));melody.push(SEMI[mi])}
+    const G={n,M,T,src,walls,fixed,targets,sol,melody,seed,hue:R(0,359),root:ROOTS[R(0,ROOTS.length-1)]};
+    const t0=trace(G,new Map());
+    if(t0.hits.length>T-2)continue;
+    return G;
+  }
+  return null;
+}
+function trace(g,placed){
+  const n=g.n,s=g.src,pts=[[s.c+.5,s.r+.5]],hits=[],seen=new Set();
+  let c=s.c,r=s.r,dx=s.dx,dy=s.dy,k=0;
+  const tmap=new Map(g.targets.map((t,i)=>[t.r*n+t.c,i]));
+  for(let step=0;step<400;step++){
+    c+=dx;r+=dy;k++;
+    if(c<0||r<0||c>=n||r>=n){pts.push([c+.5,r+.5]);break}
+    const key=r*n+c;
+    if(g.walls.has(key)){pts.push([c+.5-dx*.42,r+.5-dy*.42]);break}
+    if(tmap.has(key)&&!seen.has(key)){seen.add(key);hits.push({i:tmap.get(key),d:k})}
+    const m=g.fixed.get(key)||placed.get(key);
+    if(m){pts.push([c+.5,r+.5]);const ndx=m==='/'?-dy:dy,ndy=m==='/'?-dx:dx;dx=ndx;dy=ndy}
+  }
+  const cum=[0];
+  for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
+  return{pts,cum,hits,total:cum[cum.length-1]};
+}
+
+/* ---------- state ---------- */
+let G=null,placed=new Map(),T=null,mode='daily',level=1,hover=null,hint=null,hintsUsed=0,won=false;
+let anim={prog:0,fired:new Set(),n:0,silent:false,done:false};
+let time=0,particles=[];
+const SPEED=11;
+const hueAt=d=>(G.hue+d*22)%360;
+
+function newGame(m){
+  mode=m;placed=new Map();hint=null;hintsUsed=0;won=false;particles=[];
+  if(m==='daily'){G=generate(hashStr('PM-'+fmtDate(new Date())),9,4,6)}
+  else{
+    const L=level-1,n=6+Math.min(3,Math.floor(L/2)),M=2+Math.min(3,Math.floor(L/2)),Tn=Math.min(M+2,7);
+    G=generate((Math.random()*4e9)>>>0,n,M,Tn);
+  }
+  if(!G){G=generate(12345,7,3,5)}
+  $('#sub').textContent=m==='daily'?('今日挑戰 #'+dayNo()+' · '+fmtDate(new Date())):('無限模式 · 第 '+level+' 關');
+  $('#bMode').textContent=m==='daily'?'無限模式':'今日挑戰';
+  $('#win').classList.add('hidden');
+  layout();retrace(true);updateHud();
+}
+function retrace(silentNoSound){
+  T=trace(G,placed);
+  anim={prog:0,fired:new Set(),n:0,silent:!!silentNoSound,done:false};
+}
+function updateHud(){
+  const p=$('#pips');p.innerHTML='';
+  for(let i=0;i<G.M;i++){const s=document.createElement('span');s.className='pip'+(i>=placed.size?' on':'');p.appendChild(s)}
+  $('#lbl').textContent='剩餘鏡子 '+(G.M-placed.size);
+}
+
+/* ---------- layout ---------- */
+let L={cell:40,gx:0,gy:0};
+function layout(){
+  dpr=Math.min(2.5,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+  cv.width=W*dpr;cv.height=H*dpr;
+  if(!G)return;
+  const topH=78,botH=H<640?96:84,n=G.n;
+  const aw=W-12,ah=H-topH-botH;
+  const cell=Math.floor(Math.min(aw/(n+2),ah/(n+2)));
+  L.cell=cell;L.gx=Math.round((W-cell*n)/2);L.gy=Math.round(topH+(ah-cell*(n+2))/2+cell);
+}
+
+/* ---------- drawing ---------- */
+const stars=(()=>{const r=mulberry32(77);return Array.from({length:90},()=>({x:r(),y:r(),r:r()*1.4+.3,p:r()*6.28}))})();
+function drawBackground(x,w,h,t){
+  const g=x.createRadialGradient(w/2,h*.4,0,w/2,h*.4,Math.max(w,h)*.8);
+  g.addColorStop(0,'#10173a');g.addColorStop(1,'#04050d');
+  x.fillStyle=g;x.fillRect(0,0,w,h);
+  if(G){
+    x.save();x.globalCompositeOperation='lighter';
+    const b=x.createRadialGradient(w*.2,h*.25,0,w*.2,h*.25,Math.max(w,h)*.5);
+    b.addColorStop(0,`hsla(${G.hue},80%,50%,.10)`);b.addColorStop(1,'transparent');x.fillStyle=b;x.fillRect(0,0,w,h);
+    const b2=x.createRadialGradient(w*.85,h*.8,0,w*.85,h*.8,Math.max(w,h)*.5);
+    b2.addColorStop(0,`hsla(${(G.hue+140)%360},80%,50%,.09)`);b2.addColorStop(1,'transparent');x.fillStyle=b2;x.fillRect(0,0,w,h);
+    x.restore();
+  }
+  for(const s of stars){
+    x.globalAlpha=.25+.45*(.5+.5*Math.sin(t*1.3+s.p));x.fillStyle='#cfe0ff';
+    x.beginPath();x.arc(s.x*w,s.y*h,s.r*(w>900?1.6:1),0,6.283);x.fill();
+  }
+  x.globalAlpha=1;
+}
+function drawMirror(x,cx,cy,cell,type,kind,alpha){
+  const s=cell*.36,a=type==='/'?[cx-s,cy+s,cx+s,cy-s]:[cx-s,cy-s,cx+s,cy+s];
+  x.save();x.globalAlpha=alpha==null?1:alpha;x.lineCap='round';
+  if(kind==='fixed'){
+    x.strokeStyle='#ffb86b';x.lineWidth=cell*.07;x.shadowColor='#ff9a3c';x.shadowBlur=cell*.18;
+    x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(a[2],a[3]);x.stroke();
+    x.shadowBlur=0;x.fillStyle='#5a3a1a';
+    for(const [px,py] of [[a[0],a[1]],[a[2],a[3]]]){x.beginPath();x.arc(px,py,cell*.06,0,6.283);x.fill()}
+  }else{
+    const g=x.createLinearGradient(a[0],a[1],a[2],a[3]);g.addColorStop(0,'#bff6ff');g.addColorStop(.5,'#ffffff');g.addColorStop(1,'#bda8ff');
+    x.strokeStyle=g;x.lineWidth=cell*.085;x.shadowColor='#7cf0ff';x.shadowBlur=cell*.4;
+    x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(a[2],a[3]);x.stroke();
+    x.shadowBlur=0;x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=cell*.025;
+    x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(a[2],a[3]);x.stroke();
+  }
+  x.restore();
+}
+function drawBoard(x,gx,gy,cell,T,prog,t,o){
+  const n=G.n;o=o||{};
+  rr(x,gx-cell*.15,gy-cell*.15,n*cell+cell*.3,n*cell+cell*.3,cell*.3);
+  x.fillStyle='rgba(110,130,255,.05)';x.fill();x.strokeStyle='rgba(255,255,255,.10)';x.lineWidth=1.5;x.stroke();
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    rr(x,gx+c*cell+cell*.04,gy+r*cell+cell*.04,cell*.92,cell*.92,cell*.14);
+    x.fillStyle='rgba(255,255,255,.03)';x.fill();
+  }
+  for(const k of G.walls){
+    const c=k%n,r=(k/n)|0,px=gx+c*cell,py=gy+r*cell;
+    rr(x,px+cell*.06,py+cell*.06,cell*.88,cell*.88,cell*.16);
+    const g=x.createLinearGradient(px,py,px+cell,py+cell);g.addColorStop(0,'#1b2048');g.addColorStop(1,'#0a0c20');
+    x.fillStyle=g;x.fill();x.strokeStyle='rgba(150,165,255,.22)';x.lineWidth=1.5;x.stroke();
+    rr(x,px+cell*.3,py+cell*.3,cell*.4,cell*.4,cell*.08);x.fillStyle='rgba(120,135,230,.12)';x.fill();
+  }
+  if(o.hover){
+    const{c,r}=o.hover;
+    rr(x,gx+c*cell+cell*.04,gy+r*cell+cell*.04,cell*.92,cell*.92,cell*.14);
+    x.fillStyle='rgba(124,240,255,.10)';x.fill();x.strokeStyle='rgba(124,240,255,.4)';x.lineWidth=1.5;x.stroke();
+  }
+  // source
+  const s=G.src;
+  x.save();x.translate(gx+(s.c+.5)*cell,gy+(s.r+.5)*cell);x.rotate(Math.atan2(s.dy,s.dx));
+  rr(x,-cell*.36,-cell*.22,cell*.5,cell*.44,cell*.12);
+  x.fillStyle='#1a2050';x.fill();x.strokeStyle='rgba(180,200,255,.6)';x.lineWidth=1.5;x.stroke();
+  x.globalCompositeOperation='lighter';
+  const sg=x.createRadialGradient(cell*.1,0,0,cell*.1,0,cell*.5);sg.addColorStop(0,'rgba(255,255,255,.95)');sg.addColorStop(.3,`hsla(${G.hue},100%,65%,.7)`);sg.addColorStop(1,'transparent');
+  x.fillStyle=sg;x.beginPath();x.arc(cell*.1,0,cell*.5,0,6.283);x.fill();x.restore();
+  // beam
+  drawBeam(x,gx,gy,cell,T,prog);
+  // targets
+  const lit=new Map();for(const h of T.hits)if(h.d<=prog)lit.set(h.i,h);
+  G.targets.forEach((tg,i)=>{
+    const cx=gx+(tg.c+.5)*cell,cy=gy+(tg.r+.5)*cell,h=lit.get(i);
+    x.save();
+    if(h){
+      const hue=hueAt(h.d);x.globalCompositeOperation='lighter';
+      const g=x.createRadialGradient(cx,cy,0,cx,cy,cell*.6);
+      g.addColorStop(0,`hsla(${hue},100%,80%,.95)`);g.addColorStop(.35,`hsla(${hue},100%,60%,.45)`);g.addColorStop(1,'transparent');
+      x.fillStyle=g;x.beginPath();x.arc(cx,cy,cell*.6,0,6.283);x.fill();
+      x.globalCompositeOperation='source-over';
+      x.strokeStyle=`hsl(${hue},100%,78%)`;x.lineWidth=cell*.06;x.beginPath();x.arc(cx,cy,cell*.27,0,6.283);x.stroke();
+      x.fillStyle='#fff';x.beginPath();x.arc(cx,cy,cell*.1,0,6.283);x.fill();
+    }else{
+      const p=.5+.5*Math.sin(t*2.2+i);
+      x.strokeStyle=`rgba(210,220,255,${.4+.25*p})`;x.lineWidth=cell*.05;
+      x.beginPath();x.arc(cx,cy,cell*.26+p*cell*.02,0,6.283);x.stroke();
+      x.fillStyle='rgba(210,220,255,.5)';x.beginPath();x.arc(cx,cy,cell*.06,0,6.283);x.fill();
+    }
+    x.restore();
+  });
+  // mirrors
+  for(const[k,tp]of G.fixed)drawMirror(x,gx+((k%n)+.5)*cell,gy+(((k/n)|0)+.5)*cell,cell,tp,'fixed');
+  for(const[k,tp]of placed)drawMirror(x,gx+((k%n)+.5)*cell,gy+(((k/n)|0)+.5)*cell,cell,tp,'player');
+  if(o.hint){
+    const hh=o.hint;x.save();x.setLineDash([cell*.1,cell*.1]);
+    drawMirror(x,gx+(hh.c+.5)*cell,gy+(hh.r+.5)*cell,cell,hh.t,'player',.35+.4*Math.sin(t*6)**2);x.restore();
+  }
+}
+function drawBeam(x,gx,gy,cell,T,prog){
+  x.save();x.globalCompositeOperation='lighter';x.lineCap='round';x.lineJoin='round';
+  let head=null;
+  for(let i=1;i<T.pts.length;i++){
+    const d0=T.cum[i-1],d1=T.cum[i];if(prog<=d0)break;
+    const f=Math.min(1,(prog-d0)/(d1-d0||1));
+    const[x0,y0]=T.pts[i-1],[x1,y1]=T.pts[i];
+    const ax=gx+x0*cell,ay=gy+y0*cell,bx=gx+(x0+(x1-x0)*f)*cell,by=gy+(y0+(y1-y0)*f)*cell;
+    const h=hueAt((d0+d1)/2);
+    for(const[w,al,l]of[[.4,.07,55],[.2,.2,60],[.085,.8,72],[.03,1,95]]){
+      x.strokeStyle=`hsla(${h},100%,${l}%,${al})`;x.lineWidth=cell*w;
+      x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke();
+    }
+    head=[bx,by,h];
+  }
+  if(head&&prog<T.total){
+    const g=x.createRadialGradient(head[0],head[1],0,head[0],head[1],cell*.7);
+    g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.3,`hsla(${head[2]},100%,65%,.6)`);g.addColorStop(1,'transparent');
+    x.fillStyle=g;x.beginPath();x.arc(head[0],head[1],cell*.7,0,6.283);x.fill();
+  }
+  x.restore();
+}
+function drawParticles(x,dt){
+  x.save();x.globalCompositeOperation='lighter';
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];p.life-=dt;if(p.life<=0){particles.splice(i,1);continue}
+    const a=p.life/p.max,px=L.gx+p.x*L.cell,py=L.gy+p.y*L.cell;
+    if(p.ring){
+      const rad=L.cell*(.3+(1-a)*1.1);x.strokeStyle=`hsla(${p.hue},100%,70%,${a*.8})`;x.lineWidth=L.cell*.05*a+1;
+      x.beginPath();x.arc(px,py,rad,0,6.283);x.stroke();
+    }else{
+      p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97;
+      x.fillStyle=`hsla(${p.hue},100%,70%,${a})`;x.beginPath();x.arc(px,py,L.cell*.05*(.4+a),0,6.283);x.fill();
+    }
+  }
+  x.restore();
+}
+function burst(tg,hue){
+  const cx=tg.c+.5,cy=tg.r+.5;
+  particles.push({ring:true,x:cx,y:cy,life:.9,max:.9,hue});
+  for(let i=0;i<16;i++){const a=Math.random()*6.283,sp=1.2+Math.random()*2.4;
+    particles.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:.8,max:.8,hue:hue+Math.random()*40-20})}
+}
+
+/* ---------- main loop ---------- */
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;time+=dt;
+  if(G&&T&&!anim.done){
+    anim.prog=Math.min(T.total,anim.prog+dt*SPEED);
+    for(const h of T.hits){
+      if(!anim.fired.has(h.i)&&anim.prog>=h.d){
+        anim.fired.add(h.i);
+        if(!anim.silent){
+          const semi=G.melody[anim.n%G.melody.length];anim.n++;
+          tone(G.root*Math.pow(2,semi/12),0,.32,1.5);
+        }
+        burst(G.targets[h.i],hueAt(h.d));
+      }
+    }
+    if(anim.prog>=T.total){anim.done=true;onBeamDone()}
+  }
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  drawBackground(ctx,W,H,time);
+  if(G&&T){
+    if(hint&&time>hint.until)hint=null;
+    drawBoard(ctx,L.gx,L.gy,L.cell,T,anim.prog,time,{hover:hover,hint:hint});
+    drawParticles(ctx,dt);
+  }
+  requestAnimationFrame(frame);
+}
+function onBeamDone(){
+  if(won)return;
+  if(T.hits.length===G.T){
+    if(anim.replay){anim.replay=false;return}
+    won=true;setTimeout(showWin,900);
+  }
+}
+
+/* ---------- win / share ---------- */
+function emojiSq(h){return['🟥','🟧','🟨','🟩','🟦','🟪'][Math.floor((((h%360)+360)%360)/60)%6]}
+function shareText(){
+  const sq=T.hits.map(h=>emojiSq(hueAt(h.d))).join('');
+  const name=mode==='daily'?'光譜旋律 #'+dayNo():'光譜旋律 無限 第'+level+'關';
+  return name+' ✨\n鏡子 '+placed.size+'/'+G.M+' · 旋律 '+T.hits.length+' 音'+(hintsUsed?' · 提示×'+hintsUsed:'')+'\n'+sq+'\n你能做出更好聽的嗎？\n'+location.href.split('#')[0];
+}
+function showWin(){
+  const used=placed.size;
+  $('#wk').textContent=mode==='daily'?('DAILY #'+dayNo()):('LEVEL '+level);
+  $('#ws').textContent='用 '+used+' 面鏡子，點亮 '+G.T+' 個光點'+(used<G.M?'（比預期更少！）':'')+'。';
+  const bars=$('#bars');bars.innerHTML='';
+  T.hits.forEach((h,i)=>{const b=document.createElement('i');const semi=G.melody[i%G.melody.length];
+    b.style.height=(14+semi*1.8)+'px';b.style.background=b.style.color=`hsl(${hueAt(h.d)},100%,65%)`;bars.appendChild(b)});
+  if(mode==='daily'){
+    const key='pm-d-'+fmtDate(new Date()),prev=parseInt(lsGet(key)||'99',10);
+    lsSet(key,String(Math.min(prev,used)));
+    $('#streak').textContent='連續挑戰 '+streak()+' 天';
+  }else $('#streak').textContent='';
+  $('#bNext').textContent=mode==='daily'?'無限模式':'下一關';
+  $('#win').classList.remove('hidden');
+}
+function makePoster(){
+  const Wd=1080,Ht=1920,c=document.createElement('canvas');c.width=Wd;c.height=Ht;const x=c.getContext('2d');
+  drawBackground(x,Wd,Ht,0);
+  x.textAlign='center';
+  const tg=x.createLinearGradient(240,0,840,0);tg.addColorStop(0,'#7cf0ff');tg.addColorStop(.5,'#b794ff');tg.addColorStop(1,'#ff8fd1');
+  x.fillStyle=tg;x.font='800 120px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';x.fillText('光譜旋律',Wd/2,220);
+  x.fillStyle='#8a93c0';x.font='400 34px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+  x.fillText('PRISM MELODY  ·  '+(mode==='daily'?'#'+dayNo()+'  '+fmtDate(new Date()):'LEVEL '+level),Wd/2,290);
+  const cell=Math.floor((Wd-140)/G.n),gx=Math.round((Wd-cell*G.n)/2),gy=380;
+  drawBoard(x,gx,gy,cell,T,T.total+1,0,{});
+  const by=gy+cell*G.n+120;
+  const bw=34,gap=14,tot=T.hits.length*(bw+gap)-gap;
+  T.hits.forEach((h,i)=>{
+    const semi=G.melody[i%G.melody.length],hh=40+semi*7,bx=(Wd-tot)/2+i*(bw+gap);
+    x.save();x.globalCompositeOperation='lighter';x.fillStyle=`hsl(${hueAt(h.d)},100%,62%)`;x.shadowColor=x.fillStyle;x.shadowBlur=24;
+    rr(x,bx,by+150-hh,bw,hh,10);x.fill();x.restore();
+  });
+  x.fillStyle='#e8ecff';x.font='600 42px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+  x.fillText('用 '+placed.size+' 面鏡子，點亮 '+G.T+' 個光點',Wd/2,by+250);
+  x.fillStyle='#8a93c0';x.font='400 34px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+  x.fillText('你的路線，就是你的旋律。來挑戰這一題',Wd/2,by+310);
+  x.fillStyle='#7cf0ff';x.font='500 30px sans-serif';x.fillText(location.href.split('#')[0].replace(/^https?:\/\//,''),Wd/2,Ht-70);
+  return c;
+}
+async function sharePoster(){
+  const c=makePoster();
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+  const file=new File([blob],'prism-melody.png',{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],text:shareText(),title:'光譜旋律'});return}catch(e){if(e&&e.name==='AbortError')return}
+  }
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='prism-melody.png';
+  document.body.appendChild(a);a.click();a.remove();toast('海報已下載');
+}
+async function copyScore(){
+  try{await navigator.clipboard.writeText(shareText());toast('成績已複製，貼給朋友吧')}
+  catch(e){toast('此瀏覽器無法複製，請改用分享海報')}
+}
+
+/* ---------- input ---------- */
+function cellAt(e){
+  const c=Math.floor((e.clientX-L.gx)/L.cell),r=Math.floor((e.clientY-L.gy)/L.cell);
+  return(c>=0&&r>=0&&c<G.n&&r<G.n)?{c,r}:null;
+}
+cv.addEventListener('pointermove',e=>{if(!G)return;const p=cellAt(e);hover=(p&&!G.walls.has(p.r*G.n+p.c)&&!G.fixed.has(p.r*G.n+p.c))?p:null});
+cv.addEventListener('pointerleave',()=>{hover=null});
+cv.addEventListener('pointerdown',e=>{
+  if(!G||!$('#intro').classList.contains('hidden'))return;
+  initAudio();
+  const p=cellAt(e);if(!p)return;
+  const key=p.r*G.n+p.c;
+  if(G.walls.has(key)||G.fixed.has(key))return;
+  const cur=placed.get(key);
+  if(!cur){
+    if(placed.size>=G.M){toast('鏡子用完了：點擊已放置的鏡子可旋轉或移除');return}
+    placed.set(key,'/');tone(880,0,.12,.25,'sine');
+  }else if(cur==='/'){placed.set(key,'\\');tone(988,0,.12,.25,'sine')}
+  else{placed.delete(key);tone(440,0,.12,.25,'sine')}
+  won=false;hint=null;retrace(false);updateHud();
+});
+$('#bStart').onclick=()=>{initAudio();startPad();$('#intro').classList.add('hidden')};
+$('#bReset').onclick=()=>{placed=new Map();won=false;hint=null;retrace(true);updateHud()};
+$('#bHint').onclick=()=>{
+  const miss=G.sol.find(s=>placed.get(s.r*G.n+s.c)!==s.t);
+  if(!miss){toast('已經放對了，看看光線吧');return}
+  hint={...miss,until:time+4};hintsUsed++;toast('虛線處是答案中的一面鏡子');
+};
+$('#bPlay').onclick=()=>{initAudio();anim={prog:0,fired:new Set(),n:0,silent:false,done:false,replay:true}};
+$('#bMode').onclick=()=>{initAudio();if(mode==='daily'){level=1;newGame('free')}else newGame('daily')};
+$('#bMute').onclick=()=>{muted=!muted;if(master)master.gain.value=muted?0:.7;$('#bMute').textContent='音效 '+(muted?'關':'開')};
+$('#bShare').onclick=sharePoster;
+$('#bCopy').onclick=copyScore;
+$('#bAgain').onclick=()=>{$('#win').classList.add('hidden');anim={prog:0,fired:new Set(),n:0,silent:false,done:false,replay:true}};
+$('#bNext').onclick=()=>{initAudio();if(mode==='daily'){level=1}else level++;newGame('free')};
+addEventListener('resize',layout);
+
+newGame('daily');
+requestAnimationFrame(frame);
+window.__pm={get G(){return G},get placed(){return placed},get T(){return T},retrace,makePoster,updateHud};
+})();
+</script>
+</body>
+</html>
