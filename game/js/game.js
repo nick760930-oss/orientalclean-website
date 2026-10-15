@@ -78,13 +78,37 @@
     btn.addEventListener('lostpointercapture', release);
   });
 
+  // 連線中的同伴（P2）輸入：由網路訊息填入，不讀本機鍵盤
+  const remote = { held: new Set(), pressed: new Set() };
+  let netActive = false;
+
   const dn = (pi, a) => {
+    if (pi === 1 && netActive) return remote.held.has(a);
     const b = BIND[pi][a];
     return Array.isArray(b) ? b.some((k) => down.has(k)) : down.has(b);
   };
   const pr = (pi, a) => {
+    if (pi === 1 && netActive) return remote.pressed.has(a);
     const b = BIND[pi][a];
     return Array.isArray(b) ? b.some((k) => pressed.has(k)) : pressed.has(b);
+  };
+
+  // 網路傳送用的動作名稱；同伴裝置把 P1 與 P2 的按鍵都對應成同一組動作
+  const ACTIONS = ['L', 'R', 'U', 'D', 'J', 'A', 'S1', 'S2', 'P', 'ENTER', 'ESC'];
+  const codesOf = (a) => {
+    const out = [];
+    for (const b of BIND) {
+      const v = b[a];
+      if (Array.isArray(v)) out.push(...v);
+      else if (v) out.push(v);
+    }
+    return out;
+  };
+  const localHeld = (a) => a !== 'ENTER' && a !== 'ESC' && codesOf(a).some((c) => down.has(c));
+  const localPressed = (a) => {
+    if (a === 'ENTER') return pressed.has('Enter');
+    if (a === 'ESC') return pressed.has('Escape');
+    return codesOf(a).some((c) => pressed.has(c));
   };
 
   // ---------- 小工具 ----------
@@ -121,6 +145,15 @@
   let pendingEnding = 0;
   let kills = 0;
   let musicBoss = false;
+  let titleIdx = 0;
+  let netRole = null;   // null | 'host' | 'guest'
+  let netSfx = [];      // 主機：本次快照要一起送給同伴播放的音效
+
+  // 本機播放音效；主機同時記下來，隨畫面狀態送給同伴
+  function sfx(name) {
+    AUDIO.play(name);
+    if (netRole === 'host') netSfx.push(name);
+  }
 
   function freshQuests() {
     return { q1: { s: 'none', p: 0 }, q2: { s: 'none', p: 0 }, q3: { s: 'none', p: 0 } };
@@ -174,7 +207,7 @@
       leveled = true;
     }
     if (leveled) {
-      AUDIO.play('lvl');
+      sfx('lvl');
       texts.push({ text: 'LEVEL UP!', x: p.x + p.w / 2, y: p.y - 30, vy: -50, life: 1.6, col: '#ffe066', big: true });
       burst(p.x + p.w / 2, p.y + p.h / 2, ['#ffe066', '#fff', '#8ff'], 24);
     }
@@ -290,7 +323,7 @@
     kills++;
     const cx = m.x + m.w / 2, cy = m.y + m.h / 2;
     burst(cx, cy, ['#9fd8ff', '#4fa8f0', '#fff'], 12);
-    AUDIO.play('death');
+    sfx('death');
     alivePlayers().forEach((p) => gainExp(p, m.def.exp));
     const n = 1 + Math.floor(Math.random() * 3);
     for (let k = 0; k < n; k++) {
@@ -314,7 +347,7 @@
       st.p = Math.min(q.need[type], st.p + 1);
       if (st.p >= q.need[type]) {
         st.s = 'ready';
-        AUDIO.play('quest');
+        sfx('quest');
         showToast(`任務可交回：${q.title}（找村長）`);
       }
     }
@@ -324,7 +357,7 @@
     b.dead = true;
     bossDefeated = true;
     shake = 18;
-    AUDIO.play('boss');
+    sfx('boss');
     for (let k = 0; k < 6; k++) burst(b.x + b.w / 2 + rand(-60, 60), b.y + rand(20, 120), ['#ff9ad5', '#ffe066', '#fff'], 16);
     alivePlayers().forEach((p) => {
       gainExp(p, BOSS.exp);
@@ -341,7 +374,7 @@
       '星核重新發出溫暖的光，漂浮的島嶼慢慢停止了下沉。',
       `你們擊敗了 ${kills} 隻怪物。星砂群島重獲安寧，但霧影的源頭仍未被找到……`,
     ], [], 0);
-    AUDIO.play('quest');
+    sfx('quest');
   }
 
   // ---------- 戰鬥 ----------
@@ -361,8 +394,8 @@
       text: String(d.v), x: m.x + m.w / 2, y: m.y, vy: -70, life: 0.8,
       col: d.crit ? '#ffd93d' : '#ffffff', big: d.crit,
     });
-    if (m.boss) AUDIO.play(d.crit ? 'crit' : 'bossHit');
-    else AUDIO.play(d.crit ? 'crit' : 'hit');
+    if (m.boss) sfx(d.crit ? 'crit' : 'bossHit');
+    else sfx(d.crit ? 'crit' : 'hit');
     burst(m.x + m.w / 2, m.y + m.h / 2, d.crit ? ['#ffd93d', '#fff'] : ['#ffffff', '#ffe0a0'], d.crit ? 10 : 5);
     if (m.hp <= 0) {
       if (m.boss) bossDown(m);
@@ -379,7 +412,7 @@
     p.vy = -260;
     p.climb = null;
     texts.push({ text: '-' + dmg, x: p.x + p.w / 2, y: p.y, vy: -60, life: 0.9, col: '#ff6b6b', big: false });
-    AUDIO.play('hurt');
+    sfx('hurt');
     shake = Math.max(shake, 4);
     if (p.hp <= 0) die(p);
   }
@@ -391,7 +424,7 @@
     p.climb = null;
     p.vx = 0;
     p.vy = 0;
-    AUDIO.play('death');
+    sfx('death');
     showToast(`P${p.i + 1} 倒下了：同伴按住 ↑ 可以復活（6 秒後自動復活）`);
   }
 
@@ -421,7 +454,7 @@
   function explode(pr) {
     const R = 120;
     shake = Math.max(shake, 8);
-    AUDIO.play('explode');
+    sfx('explode');
     fx.push({ kind: 'ring', x: pr.x, y: pr.y, life: 0.4, max: 0.4, col: '#ff8bd6', r: R });
     burst(pr.x, pr.y, ['#ff8bd6', '#ffe066', '#fff'], 22);
     for (const m of monsters) {
@@ -440,13 +473,13 @@
     if (C.id === 'knight') {
       addHitbox(p, f > 0 ? p.x + p.w - 4 : p.x - 56, p.y + 6, 60, p.h - 10, 1.0, 0.14, 'slash');
       fx.push({ kind: 'slash', x: cx + f * 22, y: p.y + p.h / 2, face: f, life: 0.16, max: 0.16, col: '#dff3ff', w: 56 });
-      AUDIO.play('swing');
+      sfx('swing');
     } else if (C.id === 'mage') {
       addProj(p, { kind: 'bolt', x: cx + f * 14, y: p.y + 18, vx: f * 460, vy: 0, w: 16, h: 16, life: 1.1, mult: 1.0, col: '#c58bff' });
-      AUDIO.play('swing');
+      sfx('swing');
     } else {
       addProj(p, { kind: 'arrow', x: cx + f * 14, y: p.y + 18, vx: f * 720, vy: -40, w: 24, h: 6, life: 1.2, grav: 120, mult: 0.95 });
-      AUDIO.play('swing');
+      sfx('swing');
     }
   }
 
@@ -457,7 +490,7 @@
     p.atkT = 0.3;
     const f = p.face;
     const cx = p.x + p.w / 2;
-    AUDIO.play('skill');
+    sfx('skill');
     if (C.id === 'knight') {
       addHitbox(p, p.x - 90, p.y - 10, p.w + 180, p.h + 20, 2.2, 0.2, 'wide');
       fx.push({ kind: 'slash', x: cx, y: p.y + p.h / 2, face: f, life: 0.3, max: 0.3, col: '#8fd0ff', w: 150, big: true });
@@ -484,7 +517,7 @@
           fx.push({ kind: 'ring', x: q.x + q.w / 2, y: q.y + q.h / 2, life: 0.5, max: 0.5, col: '#8fe8ff', r: 60 });
         }
       });
-      AUDIO.play('shield');
+      sfx('shield');
     } else if (C.id === 'mage') {
       const amt = 30 + p.lv * 4;
       alivePlayers().forEach((q) => {
@@ -495,11 +528,11 @@
           fx.push({ kind: 'ring', x: q.x + q.w / 2, y: q.y + q.h / 2, life: 0.6, max: 0.6, col: '#7dff9a', r: 70 });
         }
       });
-      AUDIO.play('heal');
+      sfx('heal');
     } else {
       p.buffT = 4;
       fx.push({ kind: 'ring', x: cx, y: p.y + p.h / 2, life: 0.4, max: 0.4, col: '#b8f08a', r: 50 });
-      AUDIO.play('skill');
+      sfx('skill');
     }
   }
 
@@ -510,7 +543,7 @@
     p.hp = Math.min(p.hpMax, p.hp + 60);
     texts.push({ text: '+' + (p.hp - before), x: p.x + p.w / 2, y: p.y, vy: -60, life: 0.9, col: '#7dff9a', big: false });
     burst(p.x + p.w / 2, p.y + p.h / 2, ['#ff6b8a', '#7dff9a'], 10);
-    AUDIO.play('potion');
+    sfx('potion');
   }
 
   // ---------- 特效 ----------
@@ -552,7 +585,7 @@
   function acceptQuest(id) {
     quests[id].s = 'active';
     quests[id].p = 0;
-    AUDIO.play('quest');
+    sfx('quest');
     showToast(`接受任務：${QUESTS[id].title}`);
   }
 
@@ -563,7 +596,7 @@
       p.meso += q.reward.meso;
       gainExp(p, q.reward.exp);
     });
-    AUDIO.play('quest');
+    sfx('quest');
     showToast(`任務完成：${q.title}（+${q.reward.meso} 星幣）`);
     if (id === 'q2') {
       quests.q3.s = 'active';
@@ -576,7 +609,7 @@
     if (!p) return;
     if (p.meso < POTION_PRICE) {
       showToast('星幣不足');
-      AUDIO.play('ui');
+      sfx('ui');
       return;
     }
     if (p.potions >= 9) {
@@ -585,7 +618,7 @@
     }
     p.meso -= POTION_PRICE;
     p.potions++;
-    AUDIO.play('coin');
+    sfx('coin');
     showToast(`購買星砂藥水，剩餘 ${p.potions} 瓶`);
   }
 
@@ -631,7 +664,7 @@
       if (Math.abs(cx - n.x) < 70 && p.y + p.h > FLOOR - 60) {
         if (n.id === 'elder') talkElder(p.i);
         else if (n.id === 'shop') talkShop(p.i);
-        AUDIO.play('ui');
+        sfx('ui');
         return true;
       }
     }
@@ -640,10 +673,10 @@
       if (overlap(p, rect)) {
         if (pt.gate && quests[pt.gate].s !== 'done') {
           showToast(pt.gateMsg || '目前無法前往。');
-          AUDIO.play('ui');
+          sfx('ui');
           return true;
         }
-        AUDIO.play('portal');
+        sfx('portal');
         loadMap(pt.to, pt.arriveX);
         return true;
       }
@@ -720,7 +753,7 @@
         p.vx = (L ? -1 : R ? 1 : 0) * 180;
         p.ropeCD = 0.35;
         p.jumpBuf = 0;
-        AUDIO.play('jump');
+        sfx('jump');
       } else if (p.climb && (L || R)) {
         p.climb = null;
         p.ropeCD = 0.35;
@@ -742,7 +775,7 @@
         p.vy = 120;
       } else {
         p.vy = -640;
-        AUDIO.play('jump');
+        sfx('jump');
       }
       p.jumpBuf = 0;
       p.coyote = 0;
@@ -805,7 +838,7 @@
           target.hp = Math.round(target.hpMax * 0.5);
           target.invT = 2;
           texts.push({ text: '復活！', x: target.x + target.w / 2, y: target.y, vy: -50, life: 1.2, col: '#7dff9a', big: true });
-          AUDIO.play('heal');
+          sfx('heal');
         }
       } else {
         p.reviveProg = 0;
@@ -834,7 +867,7 @@
           b.cdir = target && target.x > b.x ? 1 : -1;
           b.charging = true;
           b.timer = 0.95;
-          AUDIO.play('charge');
+          sfx('charge');
         } else if (nx === 'spore') {
           b.state = 'spore';
           b.spawnLeft = ph2 ? 9 : 6;
@@ -854,7 +887,7 @@
         b.vy = 0;
         shake = Math.max(shake, 10);
         burst(b.x + b.w / 2, FLOOR, ['#d7b8ff', '#fff'], 14);
-        AUDIO.play('explode');
+        sfx('explode');
         if (b.then === 'wave') {
           for (const d of [-1, 1]) {
             projectiles.push({
@@ -1066,10 +1099,10 @@
         if (dist < (d.kind === 'coin' ? 22 : 30)) {
           if (d.kind === 'coin') {
             p.meso += d.val;
-            AUDIO.play('coin');
+            sfx('coin');
           } else {
             p.potions = Math.min(9, p.potions + 1);
-            AUDIO.play('pickup');
+            sfx('pickup');
           }
           d.life = -1;
           d.picked = true;
@@ -1116,20 +1149,20 @@
     const o = ui.owner;
     const n = ui.options.length;
     if (n) {
-      if (pr(o, 'U')) { ui.idx = (ui.idx + n - 1) % n; AUDIO.play('ui'); }
-      if (pr(o, 'D')) { ui.idx = (ui.idx + 1) % n; AUDIO.play('ui'); }
+      if (pr(o, 'U')) { ui.idx = (ui.idx + n - 1) % n; sfx('ui'); }
+      if (pr(o, 'D')) { ui.idx = (ui.idx + 1) % n; sfx('ui'); }
     }
     if (pr(o, 'A') || pressed.has('Enter')) {
       const cur = ui;
       ui = null;
       if (cur.options.length) {
-        AUDIO.play('ui');
+        sfx('ui');
         const opt = cur.options[cur.idx];
         if (opt.fn) opt.fn();
       }
     } else if (pr(o, 'S2')) {
       ui = null;
-      AUDIO.play('ui');
+      sfx('ui');
     }
   }
 
@@ -1149,16 +1182,273 @@
   }
 
   // ---------- 場景輸入 ----------
+  const TITLE_OPTS = ['單機 / 同機雙人', '建立連線（兩台手機）', '加入房間'];
+
   function updateTitle() {
-    if (pressed.has('Enter') || pr(0, 'A')) {
+    if (pr(0, 'U') || pr(1, 'U')) titleIdx = (titleIdx + TITLE_OPTS.length - 1) % TITLE_OPTS.length;
+    if (pr(0, 'D') || pr(1, 'D')) titleIdx = (titleIdx + 1) % TITLE_OPTS.length;
+    if (!(pressed.has('Enter') || pr(0, 'A') || pr(1, 'A'))) return;
+    sfx('ui');
+    if (titleIdx === 0) {
       scene = 'select';
-      AUDIO.play('ui');
+      updateMusic();
+    } else if (titleIdx === 1) {
+      netHost();
+    } else {
+      const input = window.prompt('請輸入主機顯示的 4 碼房號：');
+      if (input && input.trim()) netJoin(input.trim().toUpperCase());
+    }
+  }
+
+  // ---------- 連線：房間 / 大廳 ----------
+  let netCode = '';
+  let netClock = 0;
+  let netSnapT = 0;
+  let netInT = 0;
+  let guestId = null;       // 主機：目前的同伴 id
+  let guestSeen = 0;        // 主機：最後收到同伴輸入的時間
+  let guestReady = false;   // 同伴：主機已回應 ok
+  let guestHelloT = 0;
+  let guestQ = new Set();   // 同伴：等待送出的按下事件
+  let lastSnapAt = 0;       // 同伴：最後收到畫面狀態的時間
+  let myId = '';
+  let netStatus = '';
+  let lastMusicKey = '';
+
+  function netReset() {
+    netRole = null;
+    netActive = false;
+    guestId = null;
+    guestReady = false;
+    guestQ = new Set();
+    remote.held = new Set();
+    remote.pressed = new Set();
+    netSfx = [];
+    netStatus = '';
+    lastMusicKey = '';
+  }
+
+  function netHandlers() {
+    return {
+      message: onNetMessage,
+      status: (s) => {
+        if (s === 'SUBSCRIBED') netStatus = netRole === 'host' ? '等待同伴加入…' : '已連上房間，等待主機回應…';
+        else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') netStatus = '連線失敗，請檢查網路後再試';
+        else if (s === 'CLOSED') netStatus = '連線已關閉';
+      },
+    };
+  }
+
+  function netHost() {
+    netReset();
+    netRole = 'host';
+    netCode = NET.makeCode();
+    netClock = 0;
+    netSnapT = 0;
+    NET.connect(netCode, netHandlers());
+    scene = 'lobby';
+    showToast(`房號：${netCode}`);
+  }
+
+  function netJoin(code) {
+    netReset();
+    netRole = 'guest';
+    netCode = code;
+    netClock = 0;
+    guestHelloT = 0;
+    lastSnapAt = 0;
+    myId = Math.random().toString(36).slice(2, 10);
+    NET.connect(code, netHandlers());
+    scene = 'lobby';
+  }
+
+  function netClose() {
+    NET.disconnect();
+    netReset();
+  }
+
+  function updateLobby() {
+    if (pressed.has('Escape')) {
+      netClose();
+      scene = 'title';
+      updateMusic();
+    }
+  }
+
+  // 主機：收到同伴的訊息
+  function onNetMessage(m) {
+    if (netRole === 'host') {
+      if (m.k === 'hello') {
+        if (guestId && guestId !== m.id) {
+          NET.send({ k: 'full', to: m.id });
+          return;
+        }
+        if (!guestId) showToast('同伴已加入！');
+        guestId = m.id;
+        guestSeen = netClock;
+        NET.send({ k: 'ok', to: m.id });
+        if (!netActive) {
+          netActive = true;
+          if (sel[1].state === 'out') sel[1].state = 'picking';
+        }
+        if (scene === 'lobby') {
+          scene = 'select';
+          updateMusic();
+        }
+      } else if (m.k === 'in' && m.id === guestId) {
+        guestSeen = netClock;
+        remote.held = new Set(m.h);
+        for (const a of m.p) {
+          if (a === 'ENTER') pressed.add('Enter');
+          else if (a === 'ESC') pressed.add('Escape');
+          else remote.pressed.add(a);
+        }
+      }
+      return;
+    }
+    if (netRole === 'guest') {
+      if (m.k === 'ok' && m.to === myId) {
+        guestReady = true;
+        lastSnapAt = netClock;
+        netStatus = '已連上主機，等待主機開始…';
+      } else if (m.k === 'full' && m.to === myId) {
+        netStatus = '房間已有同伴，請換一個房號';
+      } else if (m.k === 'st' && guestReady) {
+        applySnapshot(m.s);
+      }
+    }
+  }
+
+  // 主機：同伴斷線判定（3 秒沒有輸入）
+  function dropGuest() {
+    guestId = null;
+    netActive = false;
+    remote.held = new Set();
+    remote.pressed = new Set();
+    showToast('同伴已離線');
+  }
+
+  // 同伴：每幀只收集按鍵並送出
+  function guestUpdate() {
+    if (pressed.has('Escape') && scene === 'lobby') {
+      netClose();
+      scene = 'title';
+      updateMusic();
+      pressed.clear();
+      return;
+    }
+    for (const a of ACTIONS) if (localPressed(a)) guestQ.add(a);
+    pressed.clear();
+  }
+
+  // 每幀呼叫：主機定時送畫面狀態；同伴定時送輸入
+  function netTick(dt) {
+    if (!netRole) return;
+    netClock += dt;
+    if (netRole === 'host') {
+      if (guestId && netClock - guestSeen > 3) dropGuest();
+      netSnapT -= dt;
+      if (netSnapT <= 0) {
+        netSnapT = 0.05;
+        if (guestId) NET.send({ k: 'st', s: makeSnapshot() });
+        netSfx = [];
+      }
+      return;
+    }
+    if (!guestReady) {
+      guestHelloT -= dt;
+      if (guestHelloT <= 0 && NET.isOpen()) {
+        guestHelloT = 0.5;
+        NET.send({ k: 'hello', id: myId });
+      }
+      return;
+    }
+    netInT -= dt;
+    if (netInT <= 0) {
+      netInT = 0.05;
+      NET.send({ k: 'in', id: myId, h: ACTIONS.filter(localHeld), p: [...guestQ] });
+      guestQ = new Set();
+    }
+    if (netClock - lastSnapAt > 4) netStatus = '與主機連線中斷';
+  }
+
+  // 主機：把會被繪製的狀態打包成可以 JSON 傳送的快照
+  function makeSnapshot() {
+    return {
+      scene, mapId, titleIdx, bossDefeated, kills, paused,
+      cam: cam.x, shake, toast, toastT,
+      sel: sel.map((s) => ({ idx: s.idx, state: s.state })),
+      quests: JSON.parse(JSON.stringify(quests)),
+      ui: ui ? { title: ui.title, lines: ui.lines, labels: ui.options.map((o) => o.label), idx: ui.idx, owner: ui.owner } : null,
+      players: players.map((p) => ({
+        i: p.i, cls: p.C.id, lv: p.lv, exp: p.exp, meso: p.meso, potions: p.potions,
+        x: p.x, y: p.y, w: p.w, h: p.h, vx: p.vx, vy: p.vy, face: p.face, onGround: p.onGround,
+        climb: !!p.climb, walkPh: p.walkPh, hp: p.hp, hpMax: p.hpMax, mp: p.mp, mpMax: p.mpMax,
+        atkT: p.atkT, buffT: p.buffT, shieldT: p.shieldT, invT: p.invT, hurtT: p.hurtT,
+        dead: p.dead, reviveT: p.reviveT, cd1: p.cd1, cd1Max: p.cd1Max, cd2: p.cd2, cd2Max: p.cd2Max,
+      })),
+      monsters: monsters.map((m) => ({
+        boss: m.boss, type: m.type, name: m.name, x: m.x, y: m.y, w: m.w, h: m.h,
+        hp: m.hp, maxHp: m.maxHp, hitT: m.hitT, t: m.t, dir: m.dir, face: m.face,
+        state: m.state, charging: m.charging, flying: m.flying,
+      })),
+      projectiles: projectiles.map((pr) => ({
+        kind: pr.kind, enemy: pr.enemy, x: pr.x, y: pr.y, w: pr.w, h: pr.h,
+        vx: pr.vx, vy: pr.vy, col: pr.col, rot: pr.rot, life: pr.life,
+      })),
+      drops: drops.map((d) => ({ kind: d.kind, x: d.x, y: d.y, t: d.t, r: d.r, landed: d.landed })),
+      fx: fx.slice(-80).map((e) => Object.assign({}, e)),
+      texts: texts.map((t) => Object.assign({}, t)),
+      sfx: netSfx.slice(),
+    };
+  }
+
+  // 同伴：套用主機傳來的畫面狀態
+  function applySnapshot(s) {
+    lastSnapAt = netClock;
+    netStatus = '';
+    if (s.mapId !== mapId || !map) {
+      mapId = s.mapId;
+      map = MAPS[mapId];
+      surfaces = [
+        ...map.floor.map((f) => ({ x: f.x, y: f.y, w: f.w, ground: true })),
+        ...map.platforms.map((f) => ({ x: f.x, y: f.y, w: f.w, ground: false })),
+      ];
+    }
+    scene = s.scene;
+    titleIdx = s.titleIdx;
+    bossDefeated = s.bossDefeated;
+    kills = s.kills;
+    paused = s.paused;
+    cam.x = s.cam;
+    shake = s.shake;
+    toast = s.toast;
+    toastT = s.toastT;
+    s.sel.forEach((v, i) => { sel[i].idx = v.idx; sel[i].state = v.state; });
+    quests = s.quests;
+    ui = s.ui ? {
+      title: s.ui.title, lines: s.ui.lines, options: s.ui.labels.map((l) => ({ label: l })),
+      idx: s.ui.idx, owner: s.ui.owner,
+    } : null;
+    players = s.players.map((p) => Object.assign(p, { C: CLASSES[p.cls] }));
+    monsters = s.monsters;
+    projectiles = s.projectiles;
+    drops = s.drops;
+    fx = s.fx;
+    texts = s.texts;
+    for (const name of s.sfx) AUDIO.play(name);
+    const bossAlive = monsters.some((m) => m.boss && !m.dead);
+    const key = scene + '|' + mapId + '|' + bossAlive;
+    if (key !== lastMusicKey) {
+      lastMusicKey = key;
+      musicBoss = bossAlive;
       updateMusic();
     }
   }
 
   function updateSelect() {
     if (pressed.has('Escape')) {
+      if (netRole === 'host') netClose();
       scene = 'title';
       updateMusic();
       return;
@@ -1168,22 +1458,22 @@
     if (s0.state !== 'ready') {
       if (pr(0, 'L')) s0.idx = (s0.idx + 2) % 3;
       if (pr(0, 'R')) s0.idx = (s0.idx + 1) % 3;
-      if (pr(0, 'A')) { s0.state = 'ready'; AUDIO.play('ui'); }
+      if (pr(0, 'A')) { s0.state = 'ready'; sfx('ui'); }
     } else if (pr(0, 'A')) {
       s0.state = 'picking';
-      AUDIO.play('ui');
+      sfx('ui');
     }
     // P2：A/D 選職業、G 加入 / 確認
     const s1 = sel[1];
     if (s1.state === 'out') {
-      if (pr(1, 'A')) { s1.state = 'picking'; AUDIO.play('ui'); }
+      if (pr(1, 'A')) { s1.state = 'picking'; sfx('ui'); }
     } else if (s1.state === 'picking') {
       if (pr(1, 'L')) s1.idx = (s1.idx + 2) % 3;
       if (pr(1, 'R')) s1.idx = (s1.idx + 1) % 3;
-      if (pr(1, 'A')) { s1.state = 'ready'; AUDIO.play('ui'); }
+      if (pr(1, 'A')) { s1.state = 'ready'; sfx('ui'); }
     } else if (pr(1, 'A')) {
       s1.state = 'picking';
-      AUDIO.play('ui');
+      sfx('ui');
     }
     if (pressed.has('Enter') && s0.state === 'ready') startGame();
   }
@@ -1196,10 +1486,13 @@
   }
 
   function update(dt) {
-    if (scene === 'title') updateTitle();
+    if (netRole === 'guest') guestUpdate();
+    else if (scene === 'title') updateTitle();
     else if (scene === 'select') updateSelect();
+    else if (scene === 'lobby') updateLobby();
     else updatePlay(dt);
     pressed.clear();
+    remote.pressed.clear();
   }
 
   // ---------- 繪製 ----------
@@ -1226,15 +1519,19 @@
     ctx.font = '19px "Microsoft JhengHei","PingFang TC",sans-serif';
     STORY.forEach((line, i) => ctx.fillText(line, W / 2, 302 + i * 30));
 
-    const blink = Math.sin(time * 4) > -0.2;
-    if (blink) {
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 26px "Microsoft JhengHei","PingFang TC",sans-serif';
-      ctx.fillText('按 Enter 開始冒險', W / 2, 560);
-    }
+    TITLE_OPTS.forEach((label, k) => {
+      const on = k === titleIdx;
+      ctx.fillStyle = on ? 'rgba(255,211,110,0.9)' : 'rgba(20,12,40,0.6)';
+      ctx.beginPath();
+      ctx.roundRect(W / 2 - 220, 520 + k * 46 - 26, 440, 38, 10);
+      ctx.fill();
+      ctx.fillStyle = on ? '#2b1d3a' : '#ffffff';
+      ctx.font = (on ? 'bold ' : '') + '20px "Microsoft JhengHei","PingFang TC",sans-serif';
+      ctx.fillText((on ? '▶ ' : '') + label, W / 2, 520 + k * 46);
+    });
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.font = '16px "Microsoft JhengHei","PingFang TC",sans-serif';
-    ctx.fillText('M：靜音 / 開啟音效與配樂　　Esc：暫停', W / 2, 610);
+    ctx.fillText('M：靜音 / 開啟音效與配樂　　Esc：暫停', W / 2, 668);
   }
 
   function drawSelect() {
@@ -1645,10 +1942,40 @@
     drawUI();
   }
 
+  function drawLobby() {
+    ART.drawBackground(ctx, 'dawn', 0, time);
+    ctx.fillStyle = 'rgba(20,12,40,0.6)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff6d6';
+    ctx.font = 'bold 40px "Microsoft JhengHei","PingFang TC",sans-serif';
+    if (netRole === 'host') {
+      ctx.fillText('房間已建立', W / 2, 200);
+      ctx.fillStyle = '#ffe9a6';
+      ctx.font = 'bold 110px "Arial Black",sans-serif';
+      ctx.fillText(netCode, W / 2, 340);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '22px "Microsoft JhengHei","PingFang TC",sans-serif';
+      ctx.fillText('請在另一台手機選擇「加入房間」，輸入上面的房號', W / 2, 410);
+    } else {
+      ctx.fillText('已加入房間 ' + netCode, W / 2, 240);
+      ctx.fillStyle = '#ffe9a6';
+      ctx.font = '22px "Microsoft JhengHei","PingFang TC",sans-serif';
+      ctx.fillText('同伴模式：你的手機負責控制 P2', W / 2, 300);
+    }
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '22px "Microsoft JhengHei","PingFang TC",sans-serif';
+    ctx.fillText(netStatus || '連線中…', W / 2, 500);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = '16px "Microsoft JhengHei","PingFang TC",sans-serif';
+    ctx.fillText('按 Esc 或暫停鍵離開房間', W / 2, 560);
+  }
+
   function render() {
     ctx.clearRect(0, 0, W, H);
     if (scene === 'title') drawTitle();
     else if (scene === 'select') drawSelect();
+    else if (scene === 'lobby') drawLobby();
     else drawPlay();
   }
 
@@ -1666,6 +1993,7 @@
       update(DT);
       acc -= DT;
     }
+    netTick(dt);
     render();
     requestAnimationFrame(frame);
   }
@@ -1675,4 +2003,11 @@
     last = t;
     frame(t);
   });
+// 唯讀的除錯介面（測試連線用，不影響遊玩）
+window.STARSAND = {
+  role: () => netRole,
+  code: () => netCode,
+  scene: () => scene,
+  players: () => players.map((p) => ({ i: p.i, x: Math.round(p.x), y: Math.round(p.y), dead: p.dead })),
+};
 })();
