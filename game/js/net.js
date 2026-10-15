@@ -32,9 +32,14 @@ const NET = (() => {
     }
     if (!client) client = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false } });
     disconnect();
-    channel = client.channel('starsand-room-' + code, { config: { broadcast: { self: false, ack: false } } });
-    channel.on('broadcast', { event: 'msg' }, ({ payload }) => handlers.message(payload));
-    channel.subscribe((status) => {
+    const ch = client.channel('starsand-room-' + code, { config: { broadcast: { self: false, ack: false } } });
+    channel = ch;
+    // 只處理目前這條頻道的事件；舊頻道的 CLOSED 回呼不能蓋掉新頻道的狀態
+    ch.on('broadcast', { event: 'msg' }, ({ payload }) => {
+      if (ch === channel) handlers.message(payload);
+    });
+    ch.subscribe((status) => {
+      if (ch !== channel) return;
       open = status === 'SUBSCRIBED';
       handlers.status(status);
     });

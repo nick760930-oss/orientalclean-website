@@ -1209,7 +1209,8 @@
   let guestSeen = 0;        // 主機：最後收到同伴輸入的時間
   let guestReady = false;   // 同伴：主機已回應 ok
   let guestHelloT = 0;
-  let guestQ = new Set();   // 同伴：等待送出的按下事件
+  let guestQ = [];          // 同伴：等待送出的按下事件（保留每一次按下）
+  let netFull = false;      // 同伴：房間已滿，停止重送 hello
   let lastSnapAt = 0;       // 同伴：最後收到畫面狀態的時間
   let myId = '';
   let netStatus = '';
@@ -1220,7 +1221,8 @@
     netActive = false;
     guestId = null;
     guestReady = false;
-    guestQ = new Set();
+    guestQ = [];
+    netFull = false;
     remote.held = new Set();
     remote.pressed = new Set();
     netSfx = [];
@@ -1257,6 +1259,7 @@
     netClock = 0;
     guestHelloT = 0;
     lastSnapAt = 0;
+    mapId = null; // 強制第一個快照重建地板與平台
     myId = Math.random().toString(36).slice(2, 10);
     NET.connect(code, netHandlers());
     scene = 'lobby';
@@ -1312,6 +1315,7 @@
         lastSnapAt = netClock;
         netStatus = '已連上主機，等待主機開始…';
       } else if (m.k === 'full' && m.to === myId) {
+        netFull = true;
         netStatus = '房間已有同伴，請換一個房號';
       } else if (m.k === 'st' && guestReady) {
         applySnapshot(m.s);
@@ -1329,15 +1333,20 @@
   }
 
   // 同伴：每幀只收集按鍵並送出
-  function guestUpdate() {
-    if (pressed.has('Escape') && scene === 'lobby') {
+  function guestUpdate(dt) {
+    time += dt;
+    if (pressed.has('Escape') && scene !== 'play') {
       netClose();
       scene = 'title';
       updateMusic();
       pressed.clear();
       return;
     }
-    for (const a of ACTIONS) if (localPressed(a)) guestQ.add(a);
+    for (const a of ACTIONS) {
+      if (a === 'ESC' && scene !== 'play') continue;
+      if (a === 'ENTER' && scene === 'play') continue;
+      if (localPressed(a)) guestQ.push(a);
+    }
     pressed.clear();
   }
 
@@ -1355,9 +1364,14 @@
       }
       return;
     }
+    if (guestReady && netClock - lastSnapAt > 2) {
+      guestReady = false;
+      netStatus = '與主機連線中斷，重新連線中…';
+      guestHelloT = 0;
+    }
     if (!guestReady) {
       guestHelloT -= dt;
-      if (guestHelloT <= 0 && NET.isOpen()) {
+      if (guestHelloT <= 0 && NET.isOpen() && !netFull) {
         guestHelloT = 0.5;
         NET.send({ k: 'hello', id: myId });
       }
@@ -1366,10 +1380,9 @@
     netInT -= dt;
     if (netInT <= 0) {
       netInT = 0.05;
-      NET.send({ k: 'in', id: myId, h: ACTIONS.filter(localHeld), p: [...guestQ] });
-      guestQ = new Set();
+      NET.send({ k: 'in', id: myId, h: ACTIONS.filter(localHeld), p: guestQ });
+      guestQ = [];
     }
-    if (netClock - lastSnapAt > 4) netStatus = '與主機連線中斷';
   }
 
   // 主機：把會被繪製的狀態打包成可以 JSON 傳送的快照
@@ -1387,7 +1400,7 @@
         atkT: p.atkT, buffT: p.buffT, shieldT: p.shieldT, invT: p.invT, hurtT: p.hurtT,
         dead: p.dead, reviveT: p.reviveT, cd1: p.cd1, cd1Max: p.cd1Max, cd2: p.cd2, cd2Max: p.cd2Max,
       })),
-      monsters: monsters.map((m) => ({
+      monsters: monsters.filter((m) => !m.dead).map((m) => ({
         boss: m.boss, type: m.type, name: m.name, x: m.x, y: m.y, w: m.w, h: m.h,
         hp: m.hp, maxHp: m.maxHp, hitT: m.hitT, t: m.t, dir: m.dir, face: m.face,
         state: m.state, charging: m.charging, flying: m.flying,
@@ -1486,7 +1499,7 @@
   }
 
   function update(dt) {
-    if (netRole === 'guest') guestUpdate();
+    if (netRole === 'guest') guestUpdate(dt);
     else if (scene === 'title') updateTitle();
     else if (scene === 'select') updateSelect();
     else if (scene === 'lobby') updateLobby();
@@ -1977,6 +1990,16 @@
     else if (scene === 'select') drawSelect();
     else if (scene === 'lobby') drawLobby();
     else drawPlay();
+    if (netRole === 'guest' && netStatus && scene !== 'lobby') {
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(18,12,36,0.85)';
+      ctx.beginPath();
+      ctx.roundRect(W / 2 - 200, H - 44, 400, 32, 10);
+      ctx.fill();
+      ctx.fillStyle = '#ffe9a6';
+      ctx.font = '15px "Microsoft JhengHei","PingFang TC",sans-serif';
+      ctx.fillText(netStatus, W / 2, H - 23);
+    }
   }
 
   // ---------- 迴圈 ----------
