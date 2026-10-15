@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>星砂群島 · Starsand Isles</title>
+  <meta name="description" content="橫向捲軸雙人合作冒險：原創劇情、楓之谷式地圖、傳送門、繩索與任務，附程式合成音效與配樂。">
+  <meta name="robots" content="noindex">
+  <style>
+    :root { color-scheme: dark; }
+    html, body { margin: 0; height: 100%; background: #0d0a1c; }
+    body {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; padding: 12px 12px 24px; box-sizing: border-box;
+      font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif; color: #e8e0ff;
+    }
+    #stage {
+      width: min(100vw - 24px, (100vh - 220px) * 16 / 9, 1280px);
+      aspect-ratio: 16 / 9;
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+    #game { width: 100%; height: 100%; display: block; background: #1d1438; }
+    .info {
+      width: min(100%, 1000px); display: grid; gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .card {
+      background: rgba(30, 22, 56, 0.7); border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px; padding: 14px 16px; line-height: 1.7; font-size: 14px;
+    }
+    .card h2 { margin: 0 0 6px; font-size: 16px; color: #ffe9a6; }
+    table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+    td, th { padding: 3px 6px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+    th { color: #ffd36e; font-weight: 600; }
+    kbd {
+      display: inline-block; min-width: 1.6em; padding: 1px 6px; text-align: center;
+      border-radius: 5px; background: #3a2d62; border: 1px solid #5a4a8a; font-family: inherit; font-size: 12px;
+    }
+    @media (max-width: 720px) {
+      #stage { width: calc(100vw - 16px); }
+    }
+
+    /* ---------- 手機觸控 ---------- */
+    #touch { display: none; }
+    #rotate { display: none; }
+    @media (pointer: coarse) {
+      html, body { background: #000; }
+      body { gap: 0; padding: 0; justify-content: center; }
+      #stage {
+        width: min(100vw, 100dvh * 16 / 9); border-radius: 0; box-shadow: none;
+        position: relative; touch-action: none; user-select: none; -webkit-user-select: none;
+      }
+      .info { display: none; }
+      #touch {
+        display: block; position: absolute; inset: 0; pointer-events: none; touch-action: none;
+      }
+      /* 避開畫面底部的技能欄（約占底部 12%） */
+      #touch .pad { position: absolute; bottom: 14%; display: flex; gap: 2vmin; pointer-events: none; }
+      #touch .left { left: 2.5%; align-items: flex-end; }
+      #touch .right { right: 2.5%; align-items: flex-end; }
+      #touch .dpad { display: grid; grid-template-columns: repeat(3, 11vmin); grid-template-rows: repeat(2, 11vmin); gap: 1.2vmin; }
+      #touch .dpad [data-k="ArrowUp"] { grid-column: 2; grid-row: 1; }
+      #touch .dpad [data-k="ArrowLeft"] { grid-column: 1; grid-row: 2; }
+      #touch .dpad [data-k="ArrowDown"] { grid-column: 2; grid-row: 2; }
+      #touch .dpad [data-k="ArrowRight"] { grid-column: 3; grid-row: 2; }
+      #touch .btns { display: grid; grid-template-columns: repeat(3, 11vmin); gap: 1.6vmin; align-items: end; }
+      #touch .btns [data-k="KeyV"] { grid-column: 1; grid-row: 1; }
+      #touch .btns [data-k="KeyX"] { grid-column: 2; grid-row: 1; }
+      #touch .btns [data-k="KeyC"] { grid-column: 3; grid-row: 1; }
+      #touch .btns .jump { grid-column: 1 / span 1; grid-row: 2; }
+      #touch .btns .atk { grid-column: 2 / span 2; grid-row: 2; justify-self: end; }
+      #touch .top { position: absolute; top: 3%; right: 2.5%; display: flex; gap: 1.5vmin; pointer-events: none; }
+      #touch button {
+        pointer-events: auto; touch-action: none; -webkit-tap-highlight-color: transparent;
+        width: 11vmin; height: 11vmin; border-radius: 50%; border: 2px solid rgba(255,255,255,0.45);
+        background: rgba(30, 22, 56, 0.45); color: #fff6d6; font: bold 3.2vmin "Microsoft JhengHei", sans-serif;
+      }
+      #touch button.on { background: rgba(255, 211, 110, 0.55); }
+      #touch .atk, #touch .jump { width: 14vmin; height: 14vmin; font-size: 3.6vmin; }
+      #touch .top button { width: auto; height: 7vmin; padding: 0 2.2vmin; border-radius: 12px; font-size: 2.8vmin; white-space: nowrap; }
+      #touch .dpad button { width: 11vmin; height: 11vmin; }
+      #rotate {
+        position: fixed; inset: 0; z-index: 10; background: #0d0a1c; color: #fff6d6;
+        flex-direction: column; align-items: center; justify-content: center; gap: 12px; font-size: 18px;
+      }
+      @media (orientation: portrait) {
+        #rotate { display: flex; }
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game" width="1280" height="720" aria-label="星砂群島遊戲畫面"></canvas>
+    <div id="touch" aria-label="觸控按鈕">
+      <div class="pad left">
+        <div class="dpad">
+          <button data-k="ArrowUp" aria-label="上">↑</button>
+          <button data-k="ArrowDown" aria-label="下">↓</button>
+          <button data-k="ArrowLeft" aria-label="左">◀</button>
+          <button data-k="ArrowRight" aria-label="右">▶</button>
+        </div>
+      </div>
+      <div class="pad right">
+        <div class="btns">
+          <button data-k="KeyV" aria-label="藥水">藥</button>
+          <button data-k="KeyX" aria-label="技能1">技1</button>
+          <button data-k="KeyC" aria-label="技能2">技2</button>
+          <button data-k="AltLeft" class="jump" aria-label="跳">跳</button>
+          <button data-k="KeyZ" class="atk" aria-label="攻擊">攻</button>
+        </div>
+      </div>
+      <div class="top">
+        <button data-k="Enter" aria-label="開始或確認">確認</button>
+        <button data-k="Escape" aria-label="暫停">暫停</button>
+        <button data-k="KeyM" aria-label="靜音">音</button>
+      </div>
+    </div>
+    <div id="rotate">請將手機橫向遊玩<span style="font-size:14px;opacity:.7">（橫向後即可開始）</span></div>
+  </div>
+
+  <div class="info">
+    <div class="card">
+      <h2>操作（同一台電腦雙人）</h2>
+      <table>
+        <tr><th></th><th>P1</th><th>P2</th></tr>
+        <tr><td>移動</td><td><kbd>←</kbd><kbd>→</kbd></td><td><kbd>A</kbd><kbd>D</kbd></td></tr>
+        <tr><td>跳躍 / 往下跳穿平台</td><td><kbd>Alt</kbd>（↓+Alt）</td><td><kbd>Space</kbd>（S+Space）</td></tr>
+        <tr><td>攻擊</td><td><kbd>Z</kbd></td><td><kbd>G</kbd></td></tr>
+        <tr><td>技能 1 / 技能 2</td><td><kbd>X</kbd> <kbd>C</kbd></td><td><kbd>H</kbd> <kbd>J</kbd></td></tr>
+        <tr><td>藥水</td><td><kbd>V</kbd></td><td><kbd>K</kbd></td></tr>
+        <tr><td>上：NPC / 傳送門 / 爬繩</td><td><kbd>↑</kbd></td><td><kbd>W</kbd></td></tr>
+        <tr><td>下：下繩索</td><td><kbd>↓</kbd></td><td><kbd>S</kbd></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>其他</h2>
+      <table>
+        <tr><td><kbd>Enter</kbd></td><td>開始 / 確認</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>暫停 / 返回</td></tr>
+        <tr><td><kbd>M</kbd></td><td>靜音 / 開啟音效與配樂</td></tr>
+      </table>
+      <p style="margin:8px 0 0; font-size:13px; color:#b9b0d8;">
+        P2 在選角畫面按 <kbd>G</kbd> 加入；單人也能玩。同伴倒地時，站在旁邊按住 <kbd>↑</kbd>（P2 為 <kbd>W</kbd>）約 1.5 秒即可復活。
+        音效與配樂皆為瀏覽器即時合成，不需下載音檔。
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/art.js"></script>
+  <script src="js/net.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
