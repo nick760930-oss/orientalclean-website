@@ -35,7 +35,48 @@
     }
   });
   addEventListener('keyup', (e) => down.delete(e.code));
-  addEventListener('blur', () => down.clear());
+  addEventListener('blur', () => {
+    down.clear();
+    for (const k of Object.keys(vcount)) delete vcount[k];
+  });
+
+  // ---------- 觸控按鈕（手機）：與鍵盤共用 down / pressed ----------
+  // 同一按鍵可能被多根手指按住，用計數避免提早放開
+  const vcount = {};
+  const activePointers = new Map();
+  function vpress(code, on) {
+    if (on) {
+      vcount[code] = (vcount[code] || 0) + 1;
+      if (vcount[code] === 1) {
+        down.add(code);
+        pressed.add(code);
+      }
+      AUDIO.ensure();
+    } else if (vcount[code]) {
+      vcount[code]--;
+      if (vcount[code] === 0) down.delete(code);
+    }
+  }
+  document.querySelectorAll('#touch [data-k]').forEach((btn) => {
+    const code = btn.dataset.k;
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (activePointers.has(e.pointerId)) return;
+      activePointers.set(e.pointerId, code);
+      try { btn.setPointerCapture(e.pointerId); } catch (_) { /* 合成事件沒有對應指標時忽略 */ }
+      btn.classList.add('on');
+      vpress(code, true);
+    });
+    const release = (e) => {
+      if (!activePointers.has(e.pointerId)) return;
+      activePointers.delete(e.pointerId);
+      btn.classList.remove('on');
+      vpress(code, false);
+    };
+    btn.addEventListener('pointerup', release);
+    btn.addEventListener('pointercancel', release);
+    btn.addEventListener('lostpointercapture', release);
+  });
 
   const dn = (pi, a) => {
     const b = BIND[pi][a];
