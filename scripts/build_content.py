@@ -265,7 +265,7 @@ def crumb(*parts):return '<p class="crumb">'+' ／ '.join(parts)+'</p>'
 # ---------- home ----------
 FEATURES=[
  ('一條繩，到得了的牆',None),
- ('整片玻璃帷幕',('/images/cases/fubon-xihua-2.jpg','西華富邦玻璃立面清洗作業','/images/case-4.jpg','玻璃帷幕上的三位師傅')),
+ ('整片玻璃帷幕',('/images/case-2.jpg','玻璃帷幕上垂降清洗的師傅','/images/case-4.jpg','玻璃帷幕上的三位師傅')),
  ('磁磚與石材立面',('/images/service-inspection.jpg','師傅在石材外牆上執行檢查','/images/cases/metrowalk-sealant-2.jpg','師傅沿窗框與玻璃接縫施作')),
  ('屋頂圓頂接縫',('/images/cases/guomei-star-1.jpg','國美之星屋頂圓頂','/images/cases/guomei-star-2.jpg','國美之星屋頂金屬構件接縫')),
  ('商場挑高燈箱',('/images/case-dajiang.jpg','大江購物中心挑高空間的燈箱維護','/images/cases/metrowalk-sealant-3.jpg','師傅掛雙繩在商場玻璃立面施作')),
@@ -276,7 +276,7 @@ def features():
     pairs=''.join(f'<div class="pair" data-i="{i}">{img(p[0],p[1],"a")}{img(p[2],p[3],"b")}</div>' for i,(t,p) in enumerate(FEATURES) if p)
     marks='<i></i>'*len(FEATURES)
     return ('<section class="features" aria-labelledby="f-h"><div class="features__stage">'
-      f'{img("/images/cases/tonlin-facade-cleaning.webp","師傅在台北統領百貨外牆垂降清洗",cls="features__bg",lazy=True)}<div class="features__scrim"></div>'
+      f'{img("/images/cases/fubon-xihua-2.jpg","師傅在西華富邦玻璃帷幕垂降清洗",cls="features__bg",lazy=True)}<div class="features__scrim"></div>'
       f'<div class="features__stack">{st}</div>{pairs}</div><div class="features__marks" aria-hidden="true">{marks}</div></section>')
 HERO_EXTRA='fetchpriority="high"'
 def hero():
