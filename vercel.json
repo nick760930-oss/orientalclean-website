@@ -2,8 +2,12 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
       "source": "/admin/:path*",
-      "destination": "/index.html"
+      "destination": "/admin.html"
     }
   ],
   "headers": [
