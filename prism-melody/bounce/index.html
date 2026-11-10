@@ -2,16 +2,25 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="光譜旋律">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>光譜旋律 · 彈跳版 Prism Bounce</title>
 <meta name="description" content="光球碰到框線的瞬間點擊反彈，每一次反彈都奏出名曲的下一個音符。球越來越快，障礙隆起，考驗反應與手眼協調。">
 <meta name="theme-color" content="#05060f">
 <style>
 :root{--bg:#05060f;--fg:#e8ecff;--dim:#8a93c0;--accent:#7cf0ff}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
-canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
-.hud{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0);padding:6px 16px 0;pointer-events:none;display:flex;align-items:center;gap:14px}
+html,body{margin:0;position:fixed;inset:0;width:100%;height:100%;background:var(--bg);color:var(--fg);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;overflow:hidden;overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-touch-callout:none}
+#safe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
+.hud{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0);padding:6px max(16px,env(safe-area-inset-right,0)) 0 max(16px,env(safe-area-inset-left,0));pointer-events:none;display:flex;align-items:center;gap:14px}
 .hl{flex:0 0 auto}
 h1{margin:0;font-size:17px;letter-spacing:.08em;font-weight:800;background:linear-gradient(90deg,#7cf0ff,#b794ff,#ff8fd1);-webkit-background-clip:text;background-clip:text;color:transparent}
 .sub{font-size:11px;color:var(--dim);letter-spacing:.05em;white-space:nowrap}
@@ -19,6 +28,8 @@ h1{margin:0;font-size:17px;letter-spacing:.08em;font-weight:800;background:linea
 #prog i{display:block;width:8px;height:8px;border-radius:50%;background:#2a3058;transition:.2s}
 #prog i.on{box-shadow:0 0 8px currentColor}
 .hr{flex:0 0 auto;text-align:right}
+.hud button{pointer-events:auto}
+#bFs{padding:4px 10px;font-size:15px;line-height:1;margin-bottom:2px}
 #score{font-size:18px;font-weight:800;letter-spacing:.04em}
 #spdw{position:absolute;left:16px;right:16px;bottom:-6px;height:3px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}
 #spd{height:100%;width:0;background:linear-gradient(90deg,#7cf0ff,#ffd36b,#ff6b6b)}
@@ -47,11 +58,12 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
 </head>
 <body>
 <canvas id="c"></canvas>
+<div id="safe"></div>
 
 <div class="hud" id="hud">
   <div class="hl"><h1>光譜旋律 · 彈跳</h1><div class="sub" id="sub">PRISM BOUNCE</div></div>
   <div id="prog"></div>
-  <div class="hr"><div id="score">0</div><div class="sub" id="combo">&nbsp;</div></div>
+  <div class="hr"><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end"><div id="score">0</div><button id="bFs" aria-label="全螢幕">⛶</button></div><div class="sub" id="combo">&nbsp;</div></div>
   <div id="spdw"><div id="spd"></div></div>
 </div>
 
@@ -59,12 +71,13 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
   <div class="kicker">REFLEX × MELODY</div>
   <h2>光譜旋律 · 彈跳版</h2>
   <ul>
-    <li>光球飛到框線時會停住 → <b>點擊那一邊的框線附近</b>就彈回，並奏出下一個音符</li>
-    <li><b>位置</b>＝角度；<b>離框線越近（或壓得越重）</b>＝力道越強、球越快；<b>時機越準</b>＝評價越高</li>
+    <li>光球飛到框線時會停住 → <b>在倒數結束前點一下畫面</b>，球就彈回，並奏出下一個音符</li>
+    <li>雙手橫握，用<b>左右大拇指</b>點：<b>點哪裡，球就飛向哪裡</b>；點得越遠（或壓得越重）球越快；<b>時機越準</b>評價越高</li>
     <li>撞到障礙會加速；吃道具有特效；<b>來不及點就結束</b>。速度越快、越準，分數越高</li>
   </ul>
   <div class="chips" id="chips"></div>
-  <div class="row"><button class="pri" id="bGo">開始</button></div>
+  <div class="row"><button class="pri" id="bGo">開始（全螢幕）</button></div>
+  <p id="fsHint" style="display:none;font-size:12px;color:#8a93c0;margin:8px 0 0">iPhone 想要全螢幕：點瀏覽器的「分享」→「加入主畫面」，再從主畫面圖示開啟</p>
 </div></div>
 
 <div class="ov hidden" id="end"><div class="card">
@@ -144,7 +157,7 @@ const songHue=i=>(i*53+200)%360;
 let F={x:0,y:0,w:0,h:0,band:80},BR=9,V0=420,portrait=false;
 let st='menu',si=0,song=SONGS[0],notes=[],k=0,score=0,combo=0,maxCombo=0,tierCount=[0,0,0,0],paused=false;
 let balls=[],boost=1,slowT=0,starT=0,shield=0,shake=0,time=0,ts=1,badTap=0,flash={a:0,hue:0},pressureSeen=false;
-let bumps=[],items=[],rings=[],floats=[],parts=[],pre=null,fin=null,edgeGlow=[0,0,0,0],edgeHue=[0,0,0,0];
+let aims=[],bumps=[],items=[],rings=[],floats=[],parts=[],pre=null,fin=null,edgeGlow=[0,0,0,0],edgeHue=[0,0,0,0];
 let spawnT=2,itemT=4,ball2T=0;
 const NORM=[[0,1],[-1,0],[0,-1],[1,0]];   // inward normal for top,right,bottom,left
 const TIERS=[
@@ -157,13 +170,16 @@ const tierOf=u=>u<.18?0:u<.4?1:u<.7?2:3;
 const speedMult=()=>clamp((1+Math.min(1.2,k*.05))*song.spd*boost*(slowT>0?.6:1),.5,4);
 const hueNow=()=>(songHue(si)+(notes.length?k/notes.length:0)*140)%360;
 
+function safeIns(){const c=getComputedStyle($('#safe'));return{t:parseFloat(c.paddingTop)||0,r:parseFloat(c.paddingRight)||0,b:parseFloat(c.paddingBottom)||0,l:parseFloat(c.paddingLeft)||0}}
 function layout(){
-  dpr=Math.min(2.5,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+  dpr=Math.min(2.5,window.devicePixelRatio||1);
+  const vv=window.visualViewport;W=Math.round(vv?vv.width:innerWidth);H=Math.round(vv?vv.height:innerHeight);
   cv.width=W*dpr;cv.height=H*dpr;
   portrait=H>W*1.05;
   $('#rot').classList.toggle('hidden',!portrait);
-  const top=Math.max(52,Math.min(66,H*.14)),bot=Math.max(10,H*.03);
-  F.w=Math.min(W*.9,900);F.h=Math.min(H-top-bot,F.w*.5);F.w=Math.min(F.w,F.h*2.4);
+  const sa=safeIns(),top=Math.max(52,Math.min(66,H*.14))+sa.t*.5,bot=Math.max(12,H*.04)+sa.b;
+  const side=Math.max(24,W*.04)+Math.max(sa.l,sa.r);
+  F.w=Math.min(W-side*2,900);F.h=Math.min(H-top-bot,F.w*.5);F.w=Math.min(F.w,F.h*2.4);
   F.x=Math.round((W-F.w)/2);F.y=Math.round(top+(H-top-bot-F.h)/2);
   F.band=Math.max(56,Math.min(F.w,F.h)*.3);
   BR=Math.max(7,Math.min(F.w,F.h)*.03);V0=(F.w+F.h)*.5;
@@ -184,7 +200,7 @@ function hud(){
 function newBall(){return{x:F.x+F.w*rand(.4,.6),y:F.y+F.h/2,dx:0,dy:0,pop:0,stuck:null,trail:[],sm:1}}
 function startRun(){
   song=SONGS[si];notes=song.notes;k=0;score=0;combo=0;maxCombo=0;tierCount=[0,0,0,0];boost=1;slowT=0;starT=0;shield=0;shake=0;
-  bumps=[];items=[];rings=[];floats=[];parts=[];pre=null;fin=null;spawnT=3;itemT=5;ball2T=0;paused=false;flash.a=0;edgeGlow=[0,0,0,0];
+  bumps=[];items=[];rings=[];floats=[];parts=[];aims=[];pre=null;fin=null;spawnT=3;itemT=5;ball2T=0;paused=false;flash.a=0;edgeGlow=[0,0,0,0];
   balls=[newBall()];st='ready';
   $('#sub').textContent='《'+song.name+'》 · '+notes.length+' 音'+(song.dual?' · 雙球':'');
   buildProg();hud();
@@ -194,17 +210,12 @@ function aim(b){let a,dx,dy;do{a=rand(0,Math.PI*2);dx=Math.cos(a);dy=Math.sin(a)
 function launch(){aim(balls[0]);st='play';tone(ROOT*2,0,.1,.4,'sine')}
 
 /* ---------- input ---------- */
-function edgeAt(x,y){
-  if(x<F.x-20||x>F.x+F.w+20||y<F.y-20||y>F.y+F.h+20)return -1;
-  const d=[y-F.y,F.x+F.w-x,F.y+F.h-y,x-F.x];
-  let e=0;for(let i=1;i<4;i++)if(d[i]<d[e])e=i;
-  return d[e]<=F.band?e:-1;
-}
-const edgeDist=(e,x,y)=>e===0?y-F.y:e===1?F.x+F.w-x:e===2?F.y+F.h-y:x-F.x;
-function power(e,x,y,pr,pt){
-  const depth=1-clamp(edgeDist(e,x,y)/F.band,0,1);
-  if((pt==='touch'||pt==='pen')&&pr>0&&pr!==.5&&pr!==1){pressureSeen=true;return clamp(depth*.5+clamp((pr-.08)/.6,0,1)*.5,0,1)}
-  return depth;
+// Tap anywhere (thumbs rest at the left/right edges): the ball is sent toward the tapped point;
+// distance to the target (or real pointer pressure, when reported) sets the power.
+function power(tx,ty,b,pr,pt){
+  const p0=clamp(Math.hypot(tx-b.x,ty-b.y)/(F.w*.5),0,1);
+  if((pt==='touch'||pt==='pen')&&pr>0&&pr!==.5&&pr!==1){pressureSeen=true;return clamp(p0*.5+clamp((pr-.08)/.6,0,1)*.5,0,1)}
+  return p0;
 }
 function tap(x,y,pr,pt){
   initAudio();startPad();
@@ -213,33 +224,52 @@ function tap(x,y,pr,pt){
   rings.push({x,y,r0:6,life:.35,max:.35,hue:hueNow(),w:2});
   if(st==='ready'){launch();return}
   if(st!=='play'||!balls.length)return;
-  const e=edgeAt(x,y);
-  if(e>=0){
-    let best=null,bd=1e9;
-    for(const b of balls)if(b.stuck&&b.stuck.edge===e){const d=Math.abs((e===0||e===2?b.x-x:b.y-y));if(d<bd){bd=d;best=b}}
-    if(best){bounce(best,x,y,power(e,x,y,pr,pt),false);return}
-    pre={edge:e,x,y,t:time,p:power(e,x,y,pr,pt)};return;
-  }
-  badTap=.3;
+  let best=null,bl=1e9;
+  for(const b of balls)if(b.stuck){const left=b.stuck.win-b.stuck.el;if(left<bl){bl=left;best=b}}   // most urgent ball
+  if(best){bounce(best,x,y,power(x,y,best,pr,pt),false);return}
+  pre={x,y,t:time,pr,pt};
 }
 cv.addEventListener('pointerdown',e=>{e.preventDefault();tap(e.clientX,e.clientY,e.pressure,e.pointerType)});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&st==='play')paused=true});
+
+/* ---- fullscreen + no scroll / zoom / long-press ---- */
+const DE=document.documentElement;
+const inFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+async function goFs(){
+  try{if(!inFs()){const r=DE.requestFullscreen||DE.webkitRequestFullscreen;if(r)await r.call(DE,{navigationUI:'hide'})}}catch(e){}
+  try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape')}catch(e){}
+}
+async function toggleFs(){
+  if(inFs()){try{(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(e){}}
+  else await goFs();
+}
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
+document.addEventListener('touchmove',e=>{if(!(e.target.closest&&e.target.closest('.card')))e.preventDefault()},{passive:false});
+document.addEventListener('touchstart',e=>{if(e.touches.length>1&&!(e.target.closest&&e.target.closest('.card')))e.preventDefault()},{passive:false});
+document.addEventListener('dblclick',e=>e.preventDefault());
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('selectstart',e=>e.preventDefault());
+document.addEventListener('wheel',e=>{if(e.ctrlKey||!(e.target.closest&&e.target.closest('.card')))e.preventDefault()},{passive:false});
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['+','-','=','0'].includes(e.key))e.preventDefault()});
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const standalone=!!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches));
+if(!(DE.requestFullscreen||DE.webkitRequestFullscreen)&&!standalone)$('#fsHint').style.display='block';
 
 /* ---------- game logic ---------- */
 function windowLen(){return clamp(.6-.12*(speedMult()-1),.18,.6)}
 function contact(b,edge){
   b.stuck={edge,el:0,win:windowLen()};
   rings.push({x:b.x,y:b.y,r0:BR,life:.5,max:.5,hue:hueNow(),w:3});
-  if(pre&&pre.edge===edge&&time-pre.t<.14){const p=pre;pre=null;bounce(b,p.x,p.y,p.p,true)}
+  if(pre&&time-pre.t<.14){const p=pre;pre=null;bounce(b,p.x,p.y,power(p.x,p.y,b,p.pr,p.pt),true)}
 }
 function burst(x,y,hue,n,sp,life){
   for(let i=0;i<n;i++){const a=rand(0,6.283),v=rand(.3,1)*sp;parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(.4,1)*life,max:life,hue:hue+rand(-18,18),r:rand(1.2,3)})}
 }
 function bounce(b,tx,ty,p,early){
-  const s=b.stuck,e=s.edge,n=NORM[e],horiz=e===0||e===2;
-  const ballT=horiz?b.x:b.y,tapT=horiz?tx:ty,len=horiz?F.w:F.h;
-  const a=clamp((ballT-tapT)/(len*.16),-1,1)*1.05;
-  const td=horiz?[1,0]:[0,1];
+  const s=b.stuck,e=s.edge,n=NORM[e],horiz=e===0||e===2,td=horiz?[1,0]:[0,1];
+  const vx=tx-b.x,vy=ty-b.y,dd=Math.hypot(vx,vy);
+  let a=0;if(dd>6){a=clamp(Math.atan2((vx*td[0]+vy*td[1])/dd,(vx*n[0]+vy*n[1])/dd),-1.1,1.1)}
+  aims.push({x1:b.x,y1:b.y,x2:tx,y2:ty,life:.4,max:.4,hue:TIERS[tierOf(early?.08:s.el/s.win)].hue});
   b.dx=n[0]*Math.cos(a)+td[0]*Math.sin(a);b.dy=n[1]*Math.cos(a)+td[1]*Math.sin(a);
   b.sm=.85+.6*p;
   const u=early?.08:s.el/s.win,ti=tierOf(u),T=TIERS[ti];
@@ -330,6 +360,7 @@ function update(dt){
   for(let i=0;i<4;i++)edgeGlow[i]=Math.max(0,edgeGlow[i]-dt*2.2);
   for(let i=rings.length-1;i>=0;i--){rings[i].life-=dt;if(rings[i].life<=0)rings.splice(i,1)}
   for(let i=floats.length-1;i>=0;i--){floats[i].life-=dt;if(floats[i].life<=0)floats.splice(i,1)}
+  for(let i=aims.length-1;i>=0;i--){aims[i].life-=dt;if(aims[i].life<=0)aims.splice(i,1)}
   for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.life-=dt;if(p.life<=0){parts.splice(i,1);continue}p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.96}
   if(st==='finale'&&fin&&!fin.done&&time-fin.t0>=fin.end)endFinale();
   if(st!=='play'||!balls.length||paused||portrait)return;
@@ -405,11 +436,9 @@ function drawField(x){
   rr(x,F.x,F.y,F.w,F.h,16);x.fillStyle='rgba(10,14,40,.55)';x.fill();
   if(flash.a>0){rr(x,F.x,F.y,F.w,F.h,16);x.fillStyle=`hsla(${flash.hue},100%,60%,${flash.a})`;x.fill()}
   for(const b of balls)if(b.stuck){
-    const s=b.stuck,r=bandRect(s.edge),p=.5+.5*Math.sin(time*14),u=s.el/s.win;
-    x.save();rr(x,F.x,F.y,F.w,F.h,16);x.clip();
-    const g=x.createLinearGradient(r[4],r[5],r[6],r[7]);
-    g.addColorStop(0,`hsla(${120*(1-u)},100%,60%,${.55+.2*p})`);g.addColorStop(1,'transparent');
-    x.fillStyle=g;x.fillRect(r[0],r[1],r[2],r[3]);x.restore();
+    const s=b.stuck,l=edgeLine(s.edge),u=s.el/s.win,p=.5+.5*Math.sin(time*14);
+    x.save();x.globalCompositeOperation='lighter';x.lineCap='round';x.strokeStyle=`hsla(${120*(1-u)},100%,62%,${.6+.3*p})`;x.lineWidth=6;x.shadowColor=x.strokeStyle;x.shadowBlur=20;
+    x.beginPath();x.moveTo(l[0],l[1]);x.lineTo(l[2],l[3]);x.stroke();x.restore();
   }
   x.save();x.lineWidth=3;x.strokeStyle=badTap>0?'hsl(350,100%,65%)':`hsla(${h},100%,68%,.95)`;x.shadowColor=badTap>0?'#ff4d6d':`hsl(${h},100%,60%)`;x.shadowBlur=16;
   rr(x,F.x,F.y,F.w,F.h,16);x.stroke();x.restore();
@@ -470,6 +499,7 @@ function drawFx(x){
   x.save();x.globalCompositeOperation='lighter';
   for(const r of rings){const a=r.life/r.max,rad=r.r0+(1-a)*BR*5;x.strokeStyle=`hsla(${r.hue},100%,70%,${a*.8})`;x.lineWidth=Math.max(.5,r.w*a);x.beginPath();x.arc(r.x,r.y,rad,0,6.283);x.stroke()}
   for(const p of parts){const a=p.life/p.max;x.fillStyle=`hsla(${p.hue},100%,70%,${a})`;x.beginPath();x.arc(p.x,p.y,p.r*(.5+a),0,6.283);x.fill()}
+  for(const a of aims){const k=a.life/a.max;x.strokeStyle=`hsla(${a.hue},100%,75%,${k*.7})`;x.lineWidth=2;x.setLineDash([6,6]);x.beginPath();x.moveTo(a.x1,a.y1);x.lineTo(a.x2,a.y2);x.stroke();x.setLineDash([]);x.beginPath();x.arc(a.x2,a.y2,8*(2-k),0,6.283);x.stroke()}
   x.restore();
   x.textAlign='center';x.textBaseline='middle';
   for(const f of floats){
@@ -504,7 +534,7 @@ function draw(){
   if(st!=='menu'){drawField(ctx);drawBumps(ctx);drawItems(ctx);drawBalls(ctx);drawFx(ctx)}
   ctx.restore();
   ctx.textAlign='center';ctx.textBaseline='alphabetic';
-  if(st==='ready'){ctx.fillStyle='#e8ecff';ctx.font='700 19px "Noto Sans TC",sans-serif';ctx.fillText('點一下，發射光球',W/2,F.y+F.h/2+BR*5)}
+  if(st==='ready'){ctx.fillStyle='#e8ecff';ctx.font='700 19px "Noto Sans TC",sans-serif';ctx.fillText('點一下，發射光球',W/2,F.y+F.h/2+BR*5);ctx.fillStyle='#8a93c0';ctx.font='400 13px "Noto Sans TC",sans-serif';ctx.fillText('雙手橫握，用左右大拇指點：點哪裡，球就飛向哪裡（越遠越快）',W/2,F.y+F.h/2+BR*5+24)}
   if(paused){ctx.fillStyle='rgba(4,5,13,.7)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#e8ecff';ctx.font='700 22px "Noto Sans TC",sans-serif';ctx.fillText('已暫停 · 點一下繼續',W/2,H/2)}
   if(st==='finale'&&fin)drawRoll(ctx);
 }
@@ -528,11 +558,15 @@ function buildChips(){
     b.onclick=()=>{si=i;buildChips()};c.appendChild(b);
   });
 }
-$('#bGo').onclick=()=>{initAudio();startPad();startRun()};
+$('#bGo').onclick=()=>{initAudio();startPad();goFs();startRun()};
 $('#bRetry').onclick=()=>{initAudio();startRun()};
 $('#bMenu').onclick=()=>{st='menu';balls=[];fin=null;buildChips();$('#end').classList.add('hidden');$('#menu').classList.remove('hidden')};
 $('#bAgain').onclick=()=>{$('#end').classList.add('hidden');playFull()};
 addEventListener('resize',layout);
+if(window.visualViewport)visualViewport.addEventListener('resize',layout);
+document.addEventListener('fullscreenchange',()=>setTimeout(layout,100));
+document.addEventListener('webkitfullscreenchange',()=>setTimeout(layout,100));
+$('#bFs').onclick=toggleFs;
 addEventListener('orientationchange',()=>setTimeout(layout,200));
 layout();buildChips();hud();
 requestAnimationFrame(frame);
