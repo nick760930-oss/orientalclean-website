@@ -50,7 +50,7 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
 #rot{z-index:9;background:rgba(3,4,12,.96);flex-direction:column;font-size:18px;text-align:center;gap:14px}
 #rot b{font-size:46px;display:block;animation:rt 1.6s ease-in-out infinite}
 @keyframes rt{0%,100%{transform:rotate(0)}50%{transform:rotate(-90deg)}}
-@media (max-height:480px){.card{padding:10px 18px}.card h2{font-size:20px}.card ul{font-size:12px;line-height:1.5;margin:4px 0}.row{margin-top:8px}}
+@media (max-height:480px){.chip{padding:5px 10px;font-size:12px}.chips{margin:4px 0 0}.kicker{font-size:11px}.card p{font-size:12px;margin:4px 0}.card{padding:8px 18px}.card h2{font-size:20px}.card ul{font-size:12px;line-height:1.5;margin:4px 0}.row{margin-top:8px}}
 </style>
 </head>
 <body>
@@ -69,10 +69,14 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
   <ul>
     <li>整首名曲會<b>連續播放</b>（伴奏不會停）。光球飛到<b>左右框線</b>時，在拍子上用大拇指<b>碰一下球</b>，<b>主旋律才會響起</b>；沒碰到、碰錯地方或太晚，主旋律就缺席（不會有難聽的聲音）</li>
     <li><b>碰球的位置</b>決定方向（碰球上方→往下、碰球下方→往上），<b>壓得越重</b>轉得越大；球會依音樂算好速度準時到線，越快、越準，分數越高</li>
-    <li>場中會<b>突然冒出障礙</b>，球撞上會改變方向（不影響音樂）。球飛過框線沒碰到就結束</li>
+    <li>覺得太慢就選<b>「普通／困難」</b>（音符更密、雙球輪流來）。場中會<b>突然冒出障礙</b>，撞上只改變方向、不影響音樂。球飛過框線沒碰到就結束</li>
   </ul>
+  <div class="kicker" style="margin-top:8px">難度</div>
+  <div class="chips" id="diffs"></div>
+  <div class="kicker" style="margin-top:6px">曲目</div>
   <div class="chips" id="chips"></div>
-  <div class="row"><button class="pri" id="bGo">開始（全螢幕）</button></div>
+  <div class="row"><button class="pri" id="bGo">開始（全螢幕）</button><button id="bTest">測試聲音</button></div>
+  <p id="aud" style="font-size:12px;margin:6px 0 0;color:#ffb86b">🔇 聲音尚未啟動：請按「測試聲音」，並關閉手機的靜音開關</p>
   <p style="font-size:11px;color:#6f78a8;margin:8px 0 0">曲目來自 Mutopia Project 的公共領域 MIDI（莫札特、貝多芬、蕭邦、葛魯伯等），主旋律與伴奏皆為原曲音符</p>
   <p id="fsHint" style="display:none;font-size:12px;color:#8a93c0;margin:8px 0 0">iPhone 想要全螢幕：點瀏覽器的「分享」→「加入主畫面」，再從主畫面圖示開啟</p>
 </div></div>
@@ -104,8 +108,29 @@ function rr(x,px,py,w,h,r){x.beginPath();x.moveTo(px+r,py);x.arcTo(px+w,py,px+w,
    Rhythm-game style mix: the BACKING (everything except the melody line) plays continuously and quietly;
    the MELODY is the foreground voice and only sounds when the player hits the matching beat. */
 let AC=null,master=null,wet=null,useAC=false;
+let silentEl=null;
+function wavUri(){   // 0.25 s of silence as a data URI (keeps iOS audio session in "playback" mode)
+  const n=2000,b=new Uint8Array(44+n),v=new DataView(b.buffer),w=(o,t)=>{for(let i=0;i<t.length;i++)b[o+i]=t.charCodeAt(i)};
+  w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);
+  for(let i=0;i<n;i++)b[44+i]=128;
+  let s='';for(const x of b)s+=String.fromCharCode(x);return 'data:audio/wav;base64,'+btoa(s);
+}
+function unlockAudio(){
+  try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+  try{if(!silentEl){silentEl=new Audio(wavUri());silentEl.loop=true;silentEl.volume=.01;silentEl.setAttribute('playsinline','')}
+      const p=silentEl.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}
+  if(AC){
+    if(AC.state!=='running'&&AC.resume){const p=AC.resume();if(p&&p.catch)p.catch(()=>{})}
+    try{const bf=AC.createBuffer(1,1,22050),src=AC.createBufferSource();src.buffer=bf;src.connect(AC.destination);src.start(0)}catch(e){}
+  }
+}
+function audioStatus(){
+  const el=$('#aud');if(!el)return;
+  el.textContent=AC&&AC.state==='running'?'🔊 聲音已啟動':'🔇 聲音尚未啟動：請按「測試聲音」，並關閉手機的靜音開關';
+  el.style.color=AC&&AC.state==='running'?'#7cf0ff':'#ffb86b';
+}
 function initAudio(){
-  if(AC){if(AC.state==='suspended')AC.resume();return}
+  if(AC){unlockAudio();return}
   try{
     AC=new(window.AudioContext||window.webkitAudioContext)();
     master=AC.createGain();master.gain.value=.75;
@@ -115,7 +140,9 @@ function initAudio(){
     const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2800;
     wet=AC.createGain();wet.gain.value=.35;
     wet.connect(dly);dly.connect(lp);lp.connect(fb);fb.connect(dly);lp.connect(comp);
+    AC.onstatechange=audioStatus;
   }catch(e){AC=null}
+  unlockAudio();
 }
 const live=[];
 function voice(midi,when,dur,vol,cents,lead){
@@ -157,7 +184,7 @@ function prepare(s){
   melList=[];bkList=[];
   for(const n of s.n)(n[3]?melList:bkList).push(n);
   tg=[];let last=-1e9;
-  melList.forEach((n,i)=>{const t=n[0]/100;if(t-last>=s.gap){tg.push({t,mi:i,mend:0});last=t}});
+  melList.forEach((n,i)=>{const t=n[0]/100;if(t-last>=DIFFS[di].gap){tg.push({t,mi:i,mend:0});last=t}});
   tg.forEach((x,i)=>{x.mend=i+1<tg.length?tg[i+1].mi:melList.length});
 }
 
@@ -168,6 +195,8 @@ let score=0,combo=0,maxCombo=0,tierCount=[0,0,0,0],time=0,ts=1,gAC=0,gT=0,cp={ti
 let balls=[],bumps=[],items=[],rings=[],floats=[],parts=[],aims=[],fin=null;
 let shake=0,flash={a:0,hue:0},easeT=0,starT=0,shield=0,edgeGlow=[0,0,0,0],edgeHue=[0,0,0,0],spawnT=4,itemT=8;
 const LEADIN=2.6,CPN=25;
+const DIFFS=[{n:'簡單',nb:1,gap:1.0,spd:1.0},{n:'普通',nb:2,gap:.55,spd:1.0},{n:'困難',nb:2,gap:.4,spd:1.2}];
+let di=Math.min(2,Math.max(0,parseInt(lsGet('pmb6-di')||'1',10)||1)),SPD=1;
 const TIERS=[
   {n:'PERFECT',hue:48,m:3,ring:3,part:28,shake:5,vol:.4},
   {n:'GREAT',hue:185,m:2,ring:2,part:15,shake:3,vol:.37},
@@ -176,7 +205,7 @@ const TIERS=[
 ];
 const tierOf=a=>a<.045?0:a<.09?1:a<.15?2:3;      // |seconds| away from the beat
 const G=()=>useAC?AC.currentTime-gAC:gT;          // game clock (seconds; first beat arrives at LEADIN)
-const timeOf=t=>t-offset+LEADIN;                  // song time -> game clock
+const timeOf=t=>(t-offset)/SPD+LEADIN;                  // song time -> game clock
 const tT=i=>timeOf(tg[i].t);
 const sideOf=i=>(Math.floor(i/nb)+(i%nb))%2?3:1;  // 1 = right line, 3 = left line (alternate thumbs)
 const hueNow=()=>(songHue(si)+(tg.length?resolved/tg.length:0)*140)%360;
@@ -208,7 +237,7 @@ function newBall(ti){
   return{x:FR.x+FR.w*(s===1?rand(.25,.4):rand(.6,.75)),y:FR.y+FR.h*(nb===2?(ti%2?.7:.3):.5),dx:(s===1?1:-1)/l,dy:dy/l,v:0,pop:0,ti,side:s,win:null,trail:[],sq:0,sqn:0};
 }
 function startRun(from){
-  from=from||0;song=SONGS[si];prepare(song);nb=song.dual?2:1;
+  from=from||0;song=SONGS[si];SPD=DIFFS[di].spd;nb=DIFFS[di].nb;prepare(song);
   from=Math.min(from,Math.max(0,tg.length-1));
   offset=from>0?tg[from].t-.02:0;
   bi=bkList.findIndex(n=>n[0]/100>=offset);if(bi<0)bi=bkList.length;
@@ -218,7 +247,7 @@ function startRun(from){
   balls=[];for(let j=0;j<nb;j++)if(from+j<tg.length)balls.push(newBall(from+j));
   endAt=timeOf(song.dur)+1.2;
   st='ready';
-  $('#sub').textContent='《'+song.name+'》 · '+tg.length+' 拍'+(song.dual?' · 雙球':'')+(from?' · 從第 '+(from+1)+' 拍':'');
+  $('#sub').textContent='《'+song.name+'》 · '+DIFFS[di].n+' · '+tg.length+' 拍'+(nb===2?' · 雙球':'')+(from?' · 從第 '+(from+1)+' 拍':'');
   hud();
   $('#menu').classList.add('hidden');$('#end').classList.add('hidden');hideSkip();
 }
@@ -226,13 +255,15 @@ function ballWant(b){
   const tau=Math.max(.04,tT(b.ti)-G()),lineX=b.side===1?FR.x+FR.w:FR.x,remX=(lineX-b.x)*(b.side===1?1:-1);
   return clamp(remX/Math.max(.3,Math.abs(b.dx))/tau,.2*V0,3.4*V0);
 }
-function launch(){
+async function launch(){
+  st='starting';
   initAudio();
+  if(AC&&AC.state!=='running'&&AC.resume){try{await Promise.race([AC.resume(),new Promise(r=>setTimeout(r,900))])}catch(e){}}
   useAC=!!(AC&&AC.state==='running');
   if(useAC)gAC=AC.currentTime+.08;else gT=-.08;
-  st='play';
   tickQ=[LEADIN-1.5,LEADIN-1,LEADIN-.5];
   for(const b of balls)b.v=ballWant(b);
+  st='play';audioStatus();
 }
 
 /* ================= input ================= */
@@ -254,6 +285,7 @@ function tap(x,y,e){
   initAudio();
   if(portrait)return;
   if(paused){paused=false;if(AC&&AC.resume)AC.resume();return}
+  if(st==='starting')return;
   if(st==='ready'){launch();return}
   if(st!=='play')return;
   let best=null,bd=1e9;
@@ -299,7 +331,7 @@ function playMel(ti,cents,vol){
   for(let i=t.mi;i<t.mend;i++){
     const n=melList[i],w=timeOf(n[0]/100)-Gn;
     if(w<-.05&&i>t.mi)continue;                    // notes already in the past are dropped
-    voice(n[2],Math.max(0,w),n[1]/100,vol,cents,true);
+    voice(n[2],Math.max(0,w),n[1]/100/SPD,vol,cents,true);
   }
 }
 function resolveTarget(b){
@@ -368,7 +400,7 @@ function spawnItem(){
 const ITEM_HUE={star:50,ease:190,shield:165};
 function over(msg){
   st='over';exitT=1.2;cutAll();
-  const key='pmb5-'+si,best=Math.max(parseInt(lsGet(key)||'0',10),score);lsSet(key,String(best));
+  const key='pmb6-'+si+'-'+di,best=Math.max(parseInt(lsGet(key)||'0',10),score);lsSet(key,String(best));
   $('#ek').textContent='GAME OVER';$('#et').textContent=msg;
   $('#es').innerHTML='《'+song.name+'》奏到 '+resolved+' / '+tg.length+' 拍<br>分數 '+score.toLocaleString()+' · 最高連擊 '+maxCombo+'<br>PERFECT '+tierCount[0]+' · GREAT '+tierCount[1]+' · GOOD '+tierCount[2]+' · OK '+tierCount[3];
   $('#bAgain').style.display='none';
@@ -377,7 +409,7 @@ function over(msg){
 }
 function win(){
   st='done';
-  const key='pmb5-'+si,best=Math.max(parseInt(lsGet(key)||'0',10),score);lsSet(key,String(best));
+  const key='pmb6-'+si+'-'+di,best=Math.max(parseInt(lsGet(key)||'0',10),score);lsSet(key,String(best));
   cp={ti:0,score:0};
   $('#ek').textContent='FULL MELODY';$('#et').textContent='《'+song.name+'》完成！';
   $('#es').innerHTML='分數 '+score.toLocaleString()+' · 最高連擊 '+maxCombo+'<br>PERFECT '+tierCount[0]+' · GREAT '+tierCount[1]+' · GOOD '+tierCount[2]+' · OK '+tierCount[3];
@@ -470,7 +502,7 @@ function update(dt){
   const Gn=G();
   // count-in ticks and the continuous backing track
   while(tickQ.length&&tickQ[0]<Gn+.3){const w=tickQ.shift()-Gn;tick(Math.max(0,w),.1)}
-  while(bi<bkList.length&&timeOf(bkList[bi][0]/100)<Gn+1){const n=bkList[bi++],w=timeOf(n[0]/100)-Gn;if(w>-.05)voice(n[2],Math.max(0,w),n[1]/100,.17,0,false)}
+  while(bi<bkList.length&&timeOf(bkList[bi][0]/100)<Gn+1){const n=bkList[bi++],w=timeOf(n[0]/100)-Gn;if(w>-.05)voice(n[2],Math.max(0,w),n[1]/100/SPD,.17,0,false)}
   if(easeT>0)easeT-=dt;
   if(starT>0){starT-=dt;if(starT<=0)hud()}
   const prog=tg.length?resolved/tg.length:0;
@@ -621,6 +653,7 @@ function draw(){
   ctx.textAlign='center';ctx.textBaseline='alphabetic';
   if(st==='ready'){ctx.fillStyle='#e8ecff';ctx.font='700 19px "Noto Sans TC",sans-serif';ctx.fillText('點一下開始（先有 3 拍預備）',W/2,FR.y+FR.h/2+BR*6);ctx.fillStyle='#8a93c0';ctx.font='400 13px "Noto Sans TC",sans-serif';ctx.fillText('球會依音樂準時飛到亮起的那一邊；在拍子上碰球，主旋律才會響起',W/2,FR.y+FR.h/2+BR*6+24)}
   if(st==='play'&&G()<LEADIN&&!paused){const n=Math.ceil((LEADIN-G())/.5);if(n<=3&&n>=1){ctx.fillStyle='rgba(232,236,255,.55)';ctx.font='800 '+Math.round(Math.min(FR.h*.3,90))+'px "Noto Sans TC",sans-serif';ctx.fillText(String(n),W/2,FR.y+FR.h*.62)}}
+  if(st==='play'&&AC&&AC.state!=='running'&&!paused){ctx.fillStyle='#ffb86b';ctx.font='700 15px "Noto Sans TC",sans-serif';ctx.fillText('🔇 沒有聲音？點一下畫面，並確認手機沒開靜音',W/2,FR.y+FR.h-12)}
   if(paused){ctx.fillStyle='rgba(4,5,13,.7)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#e8ecff';ctx.font='700 22px "Noto Sans TC",sans-serif';ctx.fillText('已暫停 · 點一下繼續',W/2,H/2)}
   if(st==='replay'&&fin)drawRoll(ctx);
 }
@@ -636,15 +669,18 @@ function frame(now){
 /* ================= menu ================= */
 const mmss=t=>{t=Math.round(t);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
 function buildChips(){
+  const d=$('#diffs');d.innerHTML='';
+  DIFFS.forEach((df,i)=>{const b=document.createElement('button');b.className='chip'+(i===di?' sel':'');b.innerHTML=df.n+'<small>'+(df.nb===2?'雙球':'單球')+(df.spd>1?' · 速度×'+df.spd:'')+'</small>';b.onclick=()=>{di=i;lsSet('pmb6-di',String(i));buildChips()};d.appendChild(b)});
   const c=$('#chips');c.innerHTML='';
   SONGS.forEach((s,i)=>{
     const b=document.createElement('button');b.className='chip'+(i===si?' sel':'');
-    const best=parseInt(lsGet('pmb5-'+i)||'0',10);
-    b.innerHTML=s.name+'<small>'+mmss(s.dur)+(s.dual?' ·雙球':'')+(best?' · 最高 '+best.toLocaleString():'')+'</small>';
+    const best=parseInt(lsGet('pmb6-'+i+'-'+di)||'0',10);
+    b.innerHTML=s.name+'<small>'+mmss(s.dur)+(best?' · 最高 '+best.toLocaleString():'')+'</small>';
     b.onclick=()=>{si=i;buildChips()};c.appendChild(b);
   });
 }
 $('#bGo').onclick=()=>{initAudio();goFs();startRun(0)};
+$('#bTest').onclick=()=>{initAudio();[60,64,67,72].forEach((p,i)=>voice(p,i*.14,.6,.3,0,true));voice(48,0,1.2,.17,0,false);setTimeout(audioStatus,250);setTimeout(audioStatus,900)};
 $('#bRetry').onclick=()=>{initAudio();startRun(0)};
 $('#bCont').onclick=()=>{initAudio();startRun(cp.ti)};
 $('#bSkip').onclick=endReplay;
@@ -656,7 +692,7 @@ if(window.visualViewport)visualViewport.addEventListener('resize',layout);
 document.addEventListener('fullscreenchange',()=>setTimeout(layout,100));
 document.addEventListener('webkitfullscreenchange',()=>setTimeout(layout,100));
 addEventListener('orientationchange',()=>setTimeout(layout,200));
-layout();buildChips();hud();
+layout();buildChips();hud();audioStatus();
 requestAnimationFrame(frame);
 window.__pb={get S(){const Gn=st==='play'?G():0;return{st,resolved,n:tg.length,score,combo,balls:balls.map(b=>({x:b.x,y:b.y,v:b.v,ti:b.ti,win:b.win?b.win.edge:-1,depth:b.win?b.win.depth:-1e9,dtT:b.ti>=0?tT(b.ti)-Gn:9,lead:LEAD(b.v)})),F:FR,HR,tiers:tierCount,cents:lastCents,p:lastP,pSrc,cp:cp.ti,G:Gn,useAC}},setTs(v){ts=v},setSong(i){si=i}};
 })();
