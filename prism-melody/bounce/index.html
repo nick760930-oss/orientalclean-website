@@ -30,11 +30,11 @@ h1{margin:0;font-size:17px;letter-spacing:.08em;font-weight:800;background:linea
 .hud button{pointer-events:auto}
 #bFs{padding:4px 10px;font-size:15px;line-height:1;margin-bottom:2px}
 #score{font-size:18px;font-weight:800;letter-spacing:.04em}
-button{font:inherit;font-size:14px;color:var(--fg);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:9px 16px;cursor:pointer;backdrop-filter:blur(8px);transition:.15s}
+button{font:inherit;font-size:14px;color:var(--fg);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:9px 16px;cursor:pointer;transition:.15s}
 button:hover{background:rgba(255,255,255,.14)}
 button:active{transform:scale(.96)}
 button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transparent;color:#04060f;font-weight:700}
-.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,4,12,.78);backdrop-filter:blur(6px);padding:12px;transition:opacity .4s;z-index:5}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,4,12,.88);padding:12px;transition:opacity .4s;z-index:5}
 .ov.hidden{opacity:0;pointer-events:none;visibility:hidden;transition:opacity .4s,visibility 0s .4s}
 .ov.hidden *{pointer-events:none!important}
 .card{max-width:580px;width:100%;max-height:96vh;overflow:auto;background:linear-gradient(160deg,rgba(30,36,80,.85),rgba(14,16,40,.94));border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:16px 22px;text-align:center;box-shadow:0 20px 80px rgba(80,120,255,.25)}
@@ -64,32 +64,32 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
 </div>
 
 <div class="ov" id="menu"><div class="card">
-  <div class="kicker">REFLEX × MELODY</div>
+  <div class="kicker">操作說明</div>
   <h2>光譜旋律 · 彈跳版</h2>
   <ul>
-    <li>整首名曲會<b>連續播放</b>（伴奏不會停）。光球飛到<b>左右框線</b>時，在拍子上用大拇指<b>碰一下球</b>，<b>主旋律才會響起</b>；沒碰到、碰錯地方或太晚，主旋律就缺席（不會有難聽的聲音）</li>
-    <li><b>碰球的位置</b>決定方向（碰球上方→往下、碰球下方→往上），<b>壓得越重</b>轉得越大；球會依音樂算好速度準時到線，越快、越準，分數越高</li>
-    <li>覺得太慢就選<b>「普通／困難」</b>（音符更密、雙球輪流來）。場中會<b>突然冒出障礙</b>，撞上只改變方向、不影響音樂。球飛過框線沒碰到就結束</li>
+    <li>曲目全程播放。光球抵達亮起的框線時，於節拍上觸碰光球，主旋律即隨之演奏；未觸碰或時機不符，該段主旋律不發聲。</li>
+    <li>觸碰位置決定反彈方向，力道越大轉向越大。節拍越準、球速越快，得分越高。</li>
+    <li>場中會出現障礙，碰撞僅改變行進方向。光球越過框線仍未被觸碰，即告失敗。</li>
   </ul>
   <div class="kicker" style="margin-top:8px">難度</div>
   <div class="chips" id="diffs"></div>
   <div class="kicker" style="margin-top:6px">曲目</div>
   <div class="chips" id="chips"></div>
   <div class="row"><button class="pri" id="bGo">開始（全螢幕）</button><button id="bTest">測試聲音</button></div>
-  <p id="aud" style="font-size:12px;margin:6px 0 0;color:#ffb86b">🔇 聲音尚未啟動：請按「測試聲音」，並關閉手機的靜音開關</p>
-  <p style="font-size:11px;color:#6f78a8;margin:8px 0 0">曲目來自 Mutopia Project 的公共領域 MIDI（莫札特、貝多芬、蕭邦、葛魯伯等），主旋律與伴奏皆為原曲音符</p>
-  <p id="fsHint" style="display:none;font-size:12px;color:#8a93c0;margin:8px 0 0">iPhone 想要全螢幕：點瀏覽器的「分享」→「加入主畫面」，再從主畫面圖示開啟</p>
+  <p id="aud" style="font-size:12px;margin:6px 0 0;color:#ffb86b"></p>
+  <p style="font-size:11px;color:#6f78a8;margin:8px 0 0">曲目來源：Mutopia Project 公共領域 MIDI。</p>
+  <p id="fsHint" style="display:none;font-size:12px;color:#8a93c0;margin:8px 0 0">iPhone 全螢幕：點選「分享」→「加入主畫面」，並由主畫面圖示開啟。</p>
 </div></div>
 
 <div class="ov hidden" id="end"><div class="card">
   <div class="kicker" id="ek"></div>
   <h2 id="et"></h2>
   <p id="es"></p>
-  <div class="row"><button class="pri" id="bCont">從上一個存檔點繼續</button><button id="bRetry">從頭再來</button><button id="bMenu">選曲</button><button id="bAgain">再聽完整演奏</button></div>
+  <div class="row"><button class="pri" id="bCont">從存檔點繼續</button><button id="bRetry">重新開始</button><button id="bMenu">選曲</button><button id="bAgain">再聽完整演奏</button></div>
 </div></div>
 
-<button id="bSkip" style="display:none;position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:6">跳過演奏</button>
-<div class="ov hidden" id="rot"><b>⟳</b>請把手機橫放<br><small style="color:#8a93c0;font-size:13px">橫向的場地跨距更合適</small></div>
+<button id="bSkip" style="display:none;position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:6">略過</button>
+<div class="ov hidden" id="rot"><b>⟳</b>請將裝置橫向使用</div>
 
 <script src="songs.js"></script>
 <script>
@@ -97,7 +97,7 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
 'use strict';
 const $=s=>document.querySelector(s);
 const cv=$('#c'),ctx=cv.getContext('2d');
-let W=0,H=0,dpr=1;
+let W=0,H=0,dpr=1,rscale=Math.min(window.devicePixelRatio||1,1.75);
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -126,7 +126,7 @@ function unlockAudio(){
 }
 function audioStatus(){
   const el=$('#aud');if(!el)return;
-  el.textContent=AC&&AC.state==='running'?'🔊 聲音已啟動':'🔇 聲音尚未啟動：請按「測試聲音」，並關閉手機的靜音開關';
+  el.textContent=AC&&AC.state==='running'?'聲音已啟用':'聲音未啟用：請按「測試聲音」，並確認裝置未開啟靜音。';
   el.style.color=AC&&AC.state==='running'?'#7cf0ff':'#ffb86b';
 }
 function initAudio(){
@@ -148,10 +148,16 @@ const live=[];
 function voice(midi,when,dur,vol,cents,lead){
   if(!AC)return;
   const f=440*Math.pow(2,(midi-69)/12),t=AC.currentTime+Math.max(0,when),d=Math.max(.25,Math.min(dur*1.3,2.6));
-  const g=AC.createGain(),lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=Math.min(9000,f*(lead?9:4.2));lp.Q.value=.4;
+  const g=AC.createGain();
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.004);
   g.gain.exponentialRampToValueAtTime(Math.max(.0005,vol*.35),t+Math.min(.3,d*.4));g.gain.exponentialRampToValueAtTime(.0005,t+d);
-  const parts=lead?[[1,'triangle',1],[2,'sine',.4],[3,'sine',.14]]:[[1,'sine',1],[2,'triangle',.2]];
+  if(!lead){   // backing: one plain oscillator (cheap on CPU/battery)
+    const o=AC.createOscillator();o.type='sine';o.frequency.value=f;o.connect(g);o.start(t);o.stop(t+d+.05);g.connect(master);
+    const now=AC.currentTime;for(let i=live.length-1;i>=0;i--)if(live[i].end<now-.5)live.splice(i,1);
+    live.push({g,end:t+d});return;
+  }
+  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=Math.min(9000,f*9);lp.Q.value=.4;
+  const parts=[[1,'triangle',1],[2,'sine',.4],[3,'sine',.14]];
   for(const[m,type,a]of parts){
     const o=AC.createOscillator(),og=AC.createGain();o.type=type;o.frequency.value=f*m;o.detune.value=cents||0;og.gain.value=a;
     o.connect(og);og.connect(lp);o.start(t);o.stop(t+d+.05);
@@ -172,7 +178,7 @@ function tick(when,vol){
 }
 // timing error (seconds, negative = early) -> detune in cents: early = flat, late = sharp
 function centsOf(e){const a=Math.abs(e);return a<.025?0:Math.sign(e)*Math.min(80,(a-.025)/.125*80)}
-const pitchTxt=c=>Math.abs(c)<6?'音準 ✓':(c<0?'♭ ':'♯ ')+Math.abs(Math.round(c))+'¢';
+const pitchTxt=c=>Math.abs(c)<6?'音準正確':(c<0?'♭ ':'♯ ')+Math.abs(Math.round(c))+'¢';
 
 /* ================= songs ================= */
 const SD=window.SONGDATA||{};
@@ -213,7 +219,7 @@ const LEAD=v=>Math.max(BR*5,(v||0)*.13)*(easeT>0?1.6:1),GRACE=v=>Math.max(BR*5,(
 
 function safeIns(){const c=getComputedStyle($('#safe'));return{t:parseFloat(c.paddingTop)||0,r:parseFloat(c.paddingRight)||0,b:parseFloat(c.paddingBottom)||0,l:parseFloat(c.paddingLeft)||0}}
 function layout(){
-  dpr=Math.min(2.5,window.devicePixelRatio||1);
+  dpr=rscale;
   const vv=window.visualViewport;W=Math.round(vv?vv.width:innerWidth);H=Math.round(vv?vv.height:innerHeight);
   cv.width=W*dpr;cv.height=H*dpr;
   portrait=H>W*1.05;
@@ -247,13 +253,14 @@ function startRun(from){
   balls=[];for(let j=0;j<nb;j++)if(from+j<tg.length)balls.push(newBall(from+j));
   endAt=timeOf(song.dur)+1.2;
   st='ready';
-  $('#sub').textContent='《'+song.name+'》 · '+DIFFS[di].n+' · '+tg.length+' 拍'+(nb===2?' · 雙球':'')+(from?' · 從第 '+(from+1)+' 拍':'');
+  $('#sub').textContent='《'+song.name+'》 · '+DIFFS[di].n+' · '+tg.length+' 拍'+(nb===2?' · 雙球':'')+(from?' · 自第 '+(from+1)+' 拍':'');
   hud();
   $('#menu').classList.add('hidden');$('#end').classList.add('hidden');hideSkip();
 }
 function ballWant(b){
   const tau=Math.max(.04,tT(b.ti)-G()),lineX=b.side===1?FR.x+FR.w:FR.x,remX=(lineX-b.x)*(b.side===1?1:-1);
-  return clamp(remX/Math.max(.3,Math.abs(b.dx))/tau,.2*V0,3.4*V0);
+  const raw=remX/Math.max(.3,Math.abs(b.dx))/tau;
+  return b.vr?clamp(raw,.6*b.vr,1.5*b.vr):clamp(raw,.2*V0,2.4*V0);   // after the first hit, speed may only drift within -40%..+50%
 }
 async function launch(){
   st='starting';
@@ -262,7 +269,7 @@ async function launch(){
   useAC=!!(AC&&AC.state==='running');
   if(useAC)gAC=AC.currentTime+.08;else gT=-.08;
   tickQ=[LEADIN-1.5,LEADIN-1,LEADIN-.5];
-  for(const b of balls)b.v=ballWant(b);
+  for(const b of balls){b.vr=0;b.v=ballWant(b);b.vr=b.v}
   st='play';audioStatus();
 }
 
@@ -356,28 +363,28 @@ function bounce(b,tx,ty,p){
   score+=pts;
   const hue=T.hue,fx=b.x+nx*40,fy=b.y;
   floats.push({x:fx,y:fy-6,text:T.n,hue,life:.9,max:.9,size:ti===0?1.5:ti===1?1.25:1});
-  floats.push({x:fx,y:fy+14,text:'+'+pts+'  '+pitchTxt(cents)+'  力道'+Math.round(p*100)+'%',hue,life:.9,max:.9,size:.7});
+  floats.push({x:fx,y:fy+14,text:'+'+pts+' · '+pitchTxt(cents)+' · 力道 '+Math.round(p*100)+'%',hue,life:.9,max:.9,size:.7});
   for(let i=0;i<T.ring;i++)rings.push({x:b.x,y:b.y,r0:BR*(1+i*.4),life:.5+i*.12,max:.5+i*.12,hue:hue+i*20,w:4-i*.8});
   burst(b.x,b.y,hue,T.part,BR*16,.8);
   shake=Math.max(shake,T.shake);
   const ei=old;edgeGlow[ei]=ti===0?1:ti===1?.75:ti===2?.5:.3;edgeHue[ei]=hue;
   if(ti===0){flash.a=.18;flash.hue=hue}
   resolveTarget(b);
-  if(b.ti>=0)b.v=ballWant(b);
+  if(b.ti>=0){b.vr=0;b.v=ballWant(b);b.vr=b.v}
 }
 function miss(b){
   const old=b.side,nx=old===1?-1:1;
-  floats.push({x:b.x+nx*40,y:b.y,text:shield>0?'護盾擋下！':'MISS',hue:shield>0?190:350,life:1,max:1,size:1.2});
+  floats.push({x:b.x+nx*40,y:b.y,text:shield>0?'護盾抵銷':'MISS',hue:shield>0?190:350,life:1,max:1,size:1.2});
   if(shield>0){
     shield--;combo=0;
     rings.push({x:b.x,y:b.y,r0:BR,life:.7,max:.7,hue:190,w:5});burst(b.x,b.y,190,24,BR*14,.8);
     const lineX=old===1?FR.x+FR.w:FR.x,a=rand(-.5,.5);
     b.x=lineX+nx*BR*.3;b.dx=nx*Math.cos(a);b.dy=Math.sin(a);b.win=null;
-    resolveTarget(b);if(b.ti>=0)b.v=ballWant(b);
+    resolveTarget(b);if(b.ti>=0){b.vr=0;b.v=ballWant(b);b.vr=b.v}
     return;
   }
   rings.push({x:b.x,y:b.y,r0:BR,life:.7,max:.7,hue:350,w:5});burst(b.x,b.y,350,26,BR*14,.9);
-  over('光球飛出框外了！');
+  over('光球越過框線');
 }
 function bumpH(o){
   if(o.age<.35)return 0;                                       // telegraph phase
@@ -401,8 +408,8 @@ const ITEM_HUE={star:50,ease:190,shield:165};
 function over(msg){
   st='over';exitT=1.2;cutAll();
   const key='pmb6-'+si+'-'+di,best=Math.max(parseInt(lsGet(key)||'0',10),score);lsSet(key,String(best));
-  $('#ek').textContent='GAME OVER';$('#et').textContent=msg;
-  $('#es').innerHTML='《'+song.name+'》奏到 '+resolved+' / '+tg.length+' 拍<br>分數 '+score.toLocaleString()+' · 最高連擊 '+maxCombo+'<br>PERFECT '+tierCount[0]+' · GREAT '+tierCount[1]+' · GOOD '+tierCount[2]+' · OK '+tierCount[3];
+  $('#ek').textContent='遊戲結束';$('#et').textContent=msg;
+  $('#es').innerHTML='《'+song.name+'》 · 完成 '+resolved+' / '+tg.length+' 拍<br>得分 '+score.toLocaleString()+' · 最高連擊 '+maxCombo+'<br>PERFECT '+tierCount[0]+' · GREAT '+tierCount[1]+' · GOOD '+tierCount[2]+' · OK '+tierCount[3];
   $('#bAgain').style.display='none';
   const cb=$('#bCont');if(cp.ti>0){cb.style.display='';cb.textContent='從第 '+(cp.ti+1)+' 拍繼續'}else cb.style.display='none';
   setTimeout(()=>$('#end').classList.remove('hidden'),1000);
@@ -411,8 +418,8 @@ function win(){
   st='done';
   const key='pmb6-'+si+'-'+di,best=Math.max(parseInt(lsGet(key)||'0',10),score);lsSet(key,String(best));
   cp={ti:0,score:0};
-  $('#ek').textContent='FULL MELODY';$('#et').textContent='《'+song.name+'》完成！';
-  $('#es').innerHTML='分數 '+score.toLocaleString()+' · 最高連擊 '+maxCombo+'<br>PERFECT '+tierCount[0]+' · GREAT '+tierCount[1]+' · GOOD '+tierCount[2]+' · OK '+tierCount[3];
+  $('#ek').textContent='演奏完成';$('#et').textContent='《'+song.name+'》';
+  $('#es').innerHTML='得分 '+score.toLocaleString()+' · 最高連擊 '+maxCombo+'<br>PERFECT '+tierCount[0]+' · GREAT '+tierCount[1]+' · GOOD '+tierCount[2]+' · OK '+tierCount[3];
   $('#bAgain').style.display='';$('#bCont').style.display='none';
   $('#end').classList.remove('hidden');
 }
@@ -440,10 +447,10 @@ function updateBall(b,dt){
     return;
   }
   // speed is derived from the music: arrive at the target line exactly on the beat
-  b.v+=(ballWant(b)-b.v)*Math.min(1,dt*10);
+  b.v+=(ballWant(b)-b.v)*Math.min(1,dt*6);
   b.x+=b.dx*b.v*dt;b.y+=b.dy*b.v*dt;
   const last=b.trail[b.trail.length-1];
-  if(!last||Math.hypot(b.x-last.x,b.y-last.y)>BR*.45){b.trail.push({x:b.x,y:b.y});if(b.trail.length>26)b.trail.shift()}
+  if(!last||Math.hypot(b.x-last.x,b.y-last.y)>BR*.45){b.trail.push({x:b.x,y:b.y});if(b.trail.length>16)b.trail.shift()}
   else if(b.trail.length>4)b.trail.shift();
   // top / bottom walls and the far side line are plain walls (silent)
   if(b.y<FR.y+BR){b.y=FR.y+BR;b.dy=Math.abs(b.dy);wallFx(b,0)}
@@ -456,7 +463,7 @@ function updateBall(b,dt){
     const dx=b.x-o.x,dy=b.y-o.y,d=Math.hypot(dx,dy)||1;
     if(d<h+BR){
       const nx=dx/d,ny=dy/d,dot=b.dx*nx+b.dy*ny;
-      if(dot<0){b.dx-=2*dot*nx;b.dy-=2*dot*ny}
+      if(dot<0){const rx=b.dx-2*dot*nx,ry=b.dy-2*dot*ny;b.dx=.45*b.dx+.55*rx;b.dy=.45*b.dy+.55*ry;const l=Math.hypot(b.dx,b.dy)||1;b.dx/=l;b.dy/=l}   // mild deflection
       b.x=o.x+nx*(h+BR+1);b.y=o.y+ny*(h+BR+1);
       b.win=null;shake=Math.max(shake,5);flash.a=.16;flash.hue=345;keyBell(.06);
       burst(b.x,b.y,345,14,BR*14,.6);
@@ -464,7 +471,7 @@ function updateBall(b,dt){
     }
   }
   const want=b.side===1?1:-1;
-  if(b.dx*want<.3){b.dx=.3*want;const l=Math.hypot(b.dx,b.dy);b.dx/=l;b.dy/=l}
+  if(b.dx*want<.5){b.dx=.5*want;const l=Math.hypot(b.dx,b.dy);b.dx/=l;b.dy/=l}
   // items
   for(let i=items.length-1;i>=0;i--){
     const it=items[i];
@@ -516,15 +523,30 @@ function update(dt){
 
 /* ================= draw ================= */
 const stars=(()=>{let s=7;const r=()=>{s=(s*16807)%2147483647;return s/2147483647};return Array.from({length:90},()=>({x:r(),y:r(),r:r()*1.4+.3,p:r()*6.28}))})();
-function drawBG(x){
+let bgC=null,bgKey='';
+function paintBG(x,h){
   const g=x.createRadialGradient(W/2,H*.5,0,W/2,H*.5,Math.max(W,H)*.8);g.addColorStop(0,'#10173a');g.addColorStop(1,'#04050d');
   x.fillStyle=g;x.fillRect(0,0,W,H);
-  const h=hueNow();x.save();x.globalCompositeOperation='lighter';
+  x.save();x.globalCompositeOperation='lighter';
   const b=x.createRadialGradient(W*.15,H*.3,0,W*.15,H*.3,Math.max(W,H)*.5);b.addColorStop(0,`hsla(${h},80%,50%,.10)`);b.addColorStop(1,'transparent');x.fillStyle=b;x.fillRect(0,0,W,H);
   const b2=x.createRadialGradient(W*.88,H*.75,0,W*.88,H*.75,Math.max(W,H)*.5);b2.addColorStop(0,`hsla(${(h+140)%360},80%,50%,.09)`);b2.addColorStop(1,'transparent');x.fillStyle=b2;x.fillRect(0,0,W,H);
   x.restore();
-  for(const s of stars){x.globalAlpha=.25+.45*(.5+.5*Math.sin(time*1.3+s.p));x.fillStyle='#cfe0ff';x.beginPath();x.arc(s.x*W,s.y*H,s.r,0,6.283);x.fill()}
+  x.fillStyle='#cfe0ff';for(const s of stars){x.globalAlpha=.3+.3*((s.p*7)%1);x.beginPath();x.arc(s.x*W,s.y*H,s.r,0,6.283);x.fill()}
   x.globalAlpha=1;
+}
+function drawBG(x){   // rendered once per size/hue step, then blitted
+  const h=hueNow(),key=W+'x'+H+'/'+Math.round(h/8);
+  if(!bgC||key!==bgKey){bgKey=key;bgC=document.createElement('canvas');bgC.width=W;bgC.height=H;paintBG(bgC.getContext('2d'),h)}
+  x.drawImage(bgC,0,0);
+}
+const hsl=(h,a,l)=>`hsla(${h},100%,${l||65}%,${a})`;
+function gline(x,a,b,c,d,h,al,w){x.lineWidth=w*2.8;x.strokeStyle=hsl(h,al*.28,62);seg(x,a,b,c,d);x.lineWidth=w;x.strokeStyle=hsl(h,al,70);seg(x,a,b,c,d)}   // cheap glow (no shadowBlur)
+const sprites={};
+function sprite(h){
+  const k=Math.round(h/12)%30;if(sprites[k])return sprites[k];
+  const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
+  const g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.25,`hsla(${k*12},100%,66%,.7)`);g.addColorStop(1,'transparent');
+  x.fillStyle=g;x.fillRect(0,0,128,128);return sprites[k]=c;
 }
 function edgeLine(e){return e===0?[FR.x,FR.y,FR.x+FR.w,FR.y]:e===1?[FR.x+FR.w,FR.y,FR.x+FR.w,FR.y+FR.h]:e===2?[FR.x,FR.y+FR.h,FR.x+FR.w,FR.y+FR.h]:[FR.x,FR.y,FR.x,FR.y+FR.h]}
 function seg(x,a,b,c,d){x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.stroke()}
@@ -535,18 +557,17 @@ function drawField(x){
   // frame: top/bottom are walls (dim); the two thumb lines are bright
   x.save();x.lineCap='round';
   x.lineWidth=2;x.strokeStyle='rgba(150,170,255,.35)';seg(x,R.x,R.y,R.x+R.w,R.y);seg(x,R.x,R.y+R.h,R.x+R.w,R.y+R.h);
-  x.lineWidth=3;x.strokeStyle=`hsla(${h},100%,68%,.9)`;x.shadowColor=`hsl(${h},100%,60%)`;x.shadowBlur=14;
-  seg(x,R.x,R.y,R.x,R.y+R.h);seg(x,R.x+R.w,R.y,R.x+R.w,R.y+R.h);
+  gline(x,R.x,R.y,R.x,R.y+R.h,h,.9,3);gline(x,R.x+R.w,R.y,R.x+R.w,R.y+R.h,h,.9,3);
   x.restore();
   // the line the next beat will arrive at
   if(st==='play'||st==='ready')for(const b of balls){
     if(b.ti<0)continue;
     const tau=tT(b.ti)-G(),a=st==='ready'?.5:clamp(1.3-tau,0,1)*(.4+.3*Math.sin(time*10)),l=edgeLine(b.side);
     if(a<=0)continue;
-    x.save();x.globalCompositeOperation='lighter';x.lineCap='round';x.strokeStyle=`hsla(${190+tau*40},100%,65%,${a})`;x.lineWidth=7;x.shadowColor=x.strokeStyle;x.shadowBlur=18;seg(x,l[0],l[1],l[2],l[3]);x.restore();
+    x.save();x.globalCompositeOperation='lighter';x.lineCap='round';gline(x,l[0],l[1],l[2],l[3],190+tau*40,a,7);x.restore();
   }
   x.save();x.globalCompositeOperation='lighter';x.lineCap='round';
-  for(let e=0;e<4;e++)if(edgeGlow[e]>0){const l=edgeLine(e);x.strokeStyle=`hsla(${edgeHue[e]},100%,70%,${edgeGlow[e]})`;x.lineWidth=6;x.shadowColor=x.strokeStyle;x.shadowBlur=22;seg(x,l[0],l[1],l[2],l[3])}
+  for(let e=0;e<4;e++)if(edgeGlow[e]>0){const l=edgeLine(e);gline(x,l[0],l[1],l[2],l[3],edgeHue[e],edgeGlow[e],6)}
   x.restore();
 }
 function drawBumps(x){
@@ -561,8 +582,8 @@ function drawBumps(x){
     const g=x.createRadialGradient(o.x,o.y,h*.2,o.x,o.y,h*1.4);
     g.addColorStop(0,`hsla(340,95%,60%,${.85*a})`);g.addColorStop(.7,`hsla(330,90%,45%,${.55*a})`);g.addColorStop(1,'transparent');
     x.fillStyle=g;x.beginPath();x.arc(o.x,o.y,h*1.4,0,6.283);x.fill();
-    x.lineWidth=2.5;x.strokeStyle=`hsla(340,100%,75%,${a})`;x.shadowColor='#ff4d8d';x.shadowBlur=14;
-    x.beginPath();x.arc(o.x,o.y,h,0,6.283);x.stroke();x.shadowBlur=0;
+    x.lineWidth=7;x.strokeStyle=`hsla(340,100%,70%,${.22*a})`;x.beginPath();x.arc(o.x,o.y,h,0,6.283);x.stroke();
+    x.lineWidth=2.5;x.strokeStyle=`hsla(340,100%,75%,${a})`;x.beginPath();x.arc(o.x,o.y,h,0,6.283);x.stroke();
   }
   x.restore();
 }
@@ -589,9 +610,7 @@ function drawBalls(x){
       const f=i/b.trail.length;x.strokeStyle=`hsla(${col},100%,65%,${f*f*.6})`;x.lineWidth=BR*1.7*f;
       x.beginPath();x.moveTo(b.trail[i-1].x,b.trail[i-1].y);x.lineTo(b.trail[i].x,b.trail[i].y);x.stroke();
     }
-    const g=x.createRadialGradient(b.x,b.y,0,b.x,b.y,r*3.6);
-    g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.25,`hsla(${col},100%,66%,.7)`);g.addColorStop(1,'transparent');
-    x.fillStyle=g;x.beginPath();x.arc(b.x,b.y,r*3.6,0,6.283);x.fill();x.restore();
+    x.drawImage(sprite(col),b.x-r*3.6,b.y-r*3.6,r*7.2,r*7.2);x.restore();
     x.save();x.translate(b.x,b.y);
     if(b.sq>0){const horiz=b.sqn===1||b.sqn===3,s=b.sq*.35;x.scale(horiz?1-s:1+s*.6,horiz?1+s*.6:1-s)}
     x.fillStyle='#fff';x.beginPath();x.arc(0,0,r*.7,0,6.283);x.fill();x.restore();
@@ -600,8 +619,8 @@ function drawBalls(x){
       const tau=tT(b.ti)-G();
       if(b.win){   // inside the hit window: the beat ring has closed; colour shows how close to the beat
         const u=clamp((b.win.depth+LEAD(b.v))/(LEAD(b.v)+GRACE(b.v)),0,1);
-        x.strokeStyle=`hsl(${120*(1-u)},100%,60%)`;x.lineWidth=3.5;x.shadowColor=x.strokeStyle;x.shadowBlur=12;
-        x.beginPath();x.arc(b.x,b.y,BR*2.2,0,6.283);x.stroke();x.shadowBlur=0;
+        x.strokeStyle=`hsla(${120*(1-u)},100%,60%,.25)`;x.lineWidth=9;x.beginPath();x.arc(b.x,b.y,BR*2.2,0,6.283);x.stroke();
+        x.strokeStyle=`hsl(${120*(1-u)},100%,60%)`;x.lineWidth=3.5;x.beginPath();x.arc(b.x,b.y,BR*2.2,0,6.283);x.stroke();
         x.strokeStyle='rgba(255,255,255,.18)';x.lineWidth=1.5;x.setLineDash([4,5]);x.beginPath();x.arc(b.x,b.y,HR,0,6.283);x.stroke();x.setLineDash([]);   // where to touch
       }else if(st==='play'){
         const k=clamp(tau/1.2,0,1);   // approach ring: shrinks onto the ball exactly on the beat
@@ -640,7 +659,7 @@ function drawRoll(x){
   x.restore();
   if(tt<fin.total){x.fillStyle='rgba(255,255,255,.5)';x.fillRect(pad+clamp(tt/fin.total,0,1)*aw,ay-24,2,ah+48)}
   x.textAlign='center';x.textBaseline='alphabetic';
-  if(tt<fin.total){x.fillStyle='#8a93c0';x.font='400 15px "Noto Sans TC",sans-serif';x.fillText('♪ 完整演奏 · '+song.name,W/2,H*.2)}
+  if(tt<fin.total){x.fillStyle='#8a93c0';x.font='400 15px "Noto Sans TC",sans-serif';x.fillText('完整演奏 · '+song.name,W/2,H*.2)}
   else{x.globalAlpha=Math.min(1,(tt-fin.total)/1.2);x.fillStyle='#e8ecff';x.font='800 '+Math.round(Math.min(H*.12,52))+'px "Noto Sans TC",sans-serif';x.fillText('《'+song.name+'》',W/2,H*.22);x.globalAlpha=1}
 }
 function draw(){
@@ -651,18 +670,25 @@ function draw(){
   if(st!=='menu'&&st!=='replay'){drawField(ctx);drawBumps(ctx);drawItems(ctx);drawBalls(ctx);drawFx(ctx)}
   ctx.restore();
   ctx.textAlign='center';ctx.textBaseline='alphabetic';
-  if(st==='ready'){ctx.fillStyle='#e8ecff';ctx.font='700 19px "Noto Sans TC",sans-serif';ctx.fillText('點一下開始（先有 3 拍預備）',W/2,FR.y+FR.h/2+BR*6);ctx.fillStyle='#8a93c0';ctx.font='400 13px "Noto Sans TC",sans-serif';ctx.fillText('球會依音樂準時飛到亮起的那一邊；在拍子上碰球，主旋律才會響起',W/2,FR.y+FR.h/2+BR*6+24)}
+  if(st==='ready'){ctx.fillStyle='#e8ecff';ctx.font='700 19px "Noto Sans TC",sans-serif';ctx.fillText('點擊畫面開始（含 3 拍預備）',W/2,FR.y+FR.h/2+BR*6);ctx.fillStyle='#8a93c0';ctx.font='400 13px "Noto Sans TC",sans-serif';ctx.fillText('光球將於節拍抵達亮起的框線，請於節拍觸碰光球。',W/2,FR.y+FR.h/2+BR*6+24)}
   if(st==='play'&&G()<LEADIN&&!paused){const n=Math.ceil((LEADIN-G())/.5);if(n<=3&&n>=1){ctx.fillStyle='rgba(232,236,255,.55)';ctx.font='800 '+Math.round(Math.min(FR.h*.3,90))+'px "Noto Sans TC",sans-serif';ctx.fillText(String(n),W/2,FR.y+FR.h*.62)}}
-  if(st==='play'&&AC&&AC.state!=='running'&&!paused){ctx.fillStyle='#ffb86b';ctx.font='700 15px "Noto Sans TC",sans-serif';ctx.fillText('🔇 沒有聲音？點一下畫面，並確認手機沒開靜音',W/2,FR.y+FR.h-12)}
-  if(paused){ctx.fillStyle='rgba(4,5,13,.7)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#e8ecff';ctx.font='700 22px "Noto Sans TC",sans-serif';ctx.fillText('已暫停 · 點一下繼續',W/2,H/2)}
+  if(st==='play'&&AC&&AC.state!=='running'&&!paused){ctx.fillStyle='#ffb86b';ctx.font='700 15px "Noto Sans TC",sans-serif';ctx.fillText('聲音未啟用：請點擊畫面，並確認裝置未開啟靜音。',W/2,FR.y+FR.h-12)}
+  if(paused){ctx.fillStyle='rgba(4,5,13,.7)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#e8ecff';ctx.font='700 22px "Noto Sans TC",sans-serif';ctx.fillText('已暫停，點擊畫面繼續',W/2,H/2)}
   if(st==='replay'&&fin)drawRoll(ctx);
 }
-let last=performance.now();
+let last=performance.now(),lastIdle=0,costEMA=0,fc=0;
 function frame(now){
+  if(now-last<15){requestAnimationFrame(frame);return}                 // cap at ~60 fps (halves work on 120 Hz screens)
+  const idle=st==='menu'||(st==='done'&&!fin)||(st==='over'&&exitT<=0&&!floats.length&&!rings.length&&!parts.length);
+  if(idle&&now-lastIdle<250){requestAnimationFrame(frame);return}        // menus / end cards: redraw rarely
+  if(idle)lastIdle=now;
+  const t0=performance.now();
   const dt=Math.min(.05,(now-last)/1000)*ts;last=now;
   const n=Math.max(1,Math.ceil(dt/(1/90))),h=dt/n;       // sub-steps keep the motion smooth
   for(let i=0;i<n;i++)update(h);
   draw();
+  costEMA=costEMA*.9+(performance.now()-t0)*.1;
+  if(++fc%90===0&&costEMA>10&&rscale>1){rscale=Math.max(1,rscale-.25);layout()}   // adaptive resolution if drawing is expensive
   requestAnimationFrame(frame);
 }
 
