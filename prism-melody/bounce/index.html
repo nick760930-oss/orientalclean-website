@@ -12,7 +12,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>光譜旋律 · 彈跳版 Prism Bounce</title>
-<meta name="description" content="光球飛到框線時用左右大拇指點擊反彈，每一次反彈都奏出整首名曲的下一個音符，並帶出和聲。球越來越快，障礙隆起，考驗反應與手眼協調。">
+<meta name="description" content="整首名曲連續播放；光球飛到框線時在拍子上碰球，主旋律才會響起。球的方向由碰到球的位置與力道決定。">
 <meta name="theme-color" content="#05060f">
 <style>
 :root{--bg:#05060f;--fg:#e8ecff;--dim:#8a93c0;--accent:#7cf0ff}
@@ -30,19 +30,17 @@ h1{margin:0;font-size:17px;letter-spacing:.08em;font-weight:800;background:linea
 .hud button{pointer-events:auto}
 #bFs{padding:4px 10px;font-size:15px;line-height:1;margin-bottom:2px}
 #score{font-size:18px;font-weight:800;letter-spacing:.04em}
-#spdw{position:absolute;left:16px;right:16px;bottom:-6px;height:3px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}
-#spd{height:100%;width:0;background:linear-gradient(90deg,#7cf0ff,#ffd36b,#ff6b6b)}
 button{font:inherit;font-size:14px;color:var(--fg);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:9px 16px;cursor:pointer;backdrop-filter:blur(8px);transition:.15s}
 button:hover{background:rgba(255,255,255,.14)}
 button:active{transform:scale(.96)}
 button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transparent;color:#04060f;font-weight:700}
-.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,4,12,.76);backdrop-filter:blur(6px);padding:12px;transition:opacity .4s;z-index:5}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,4,12,.78);backdrop-filter:blur(6px);padding:12px;transition:opacity .4s;z-index:5}
 .ov.hidden{opacity:0;pointer-events:none;visibility:hidden;transition:opacity .4s,visibility 0s .4s}
 .ov.hidden *{pointer-events:none!important}
-.card{max-width:560px;width:100%;max-height:96vh;overflow:auto;background:linear-gradient(160deg,rgba(30,36,80,.85),rgba(14,16,40,.94));border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:18px 22px;text-align:center;box-shadow:0 20px 80px rgba(80,120,255,.25)}
+.card{max-width:580px;width:100%;max-height:96vh;overflow:auto;background:linear-gradient(160deg,rgba(30,36,80,.85),rgba(14,16,40,.94));border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:16px 22px;text-align:center;box-shadow:0 20px 80px rgba(80,120,255,.25)}
 .card h2{margin:4px 0 8px;font-size:24px}
 .card p{color:#b9c1ea;line-height:1.6;margin:6px 0;font-size:14px}
-.card ul{text-align:left;color:#cfd5f5;line-height:1.7;font-size:13px;padding-left:20px;margin:8px 0}
+.card ul{text-align:left;color:#cfd5f5;line-height:1.65;font-size:13px;padding-left:20px;margin:8px 0}
 .kicker{font-size:12px;letter-spacing:.2em;color:var(--accent)}
 .row{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
 .chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:8px 0 2px}
@@ -52,7 +50,7 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
 #rot{z-index:9;background:rgba(3,4,12,.96);flex-direction:column;font-size:18px;text-align:center;gap:14px}
 #rot b{font-size:46px;display:block;animation:rt 1.6s ease-in-out infinite}
 @keyframes rt{0%,100%{transform:rotate(0)}50%{transform:rotate(-90deg)}}
-@media (max-height:480px){.card{padding:12px 18px}.card h2{font-size:20px}.card ul{font-size:12px;line-height:1.55;margin:4px 0}.row{margin-top:8px}}
+@media (max-height:480px){.card{padding:10px 18px}.card h2{font-size:20px}.card ul{font-size:12px;line-height:1.5;margin:4px 0}.row{margin-top:8px}}
 </style>
 </head>
 <body>
@@ -63,16 +61,15 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
   <div class="hl"><h1>光譜旋律 · 彈跳</h1><div class="sub" id="sub">PRISM BOUNCE</div></div>
   <div id="prog"><div id="pf"></div></div>
   <div class="hr"><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end"><div id="score">0</div><button id="bFs" aria-label="全螢幕">⛶</button></div><div class="sub" id="combo">&nbsp;</div></div>
-  <div id="spdw"><div id="spd"></div></div>
 </div>
 
 <div class="ov" id="menu"><div class="card">
   <div class="kicker">REFLEX × MELODY</div>
   <h2>光譜旋律 · 彈跳版</h2>
   <ul>
-    <li>光球飛到<b>左右兩側的框線</b>時，在它穿過框線前後的<b>短短一瞬間點一下</b>就彈回，並奏出原曲的下一段；沒點到，球會<b>飛出去</b>就結束</li>
-    <li>只用<b>雙手大拇指</b>：點左側或右側的拇指區，<b>點哪裡球就飛向哪裡</b>；點得越遠球越快。中間上下框線會<b>自動反彈</b>（不用點）</li>
-    <li>每次反彈都會奏出<b>原曲的下一段（旋律＋伴奏）</b>：點得越準，音就越準；<b>太早會偏低、太晚會偏高（走音）</b>。越準、球越快，分數越高</li>
+    <li>整首名曲會<b>連續播放</b>（伴奏不會停）。光球飛到<b>左右框線</b>時，在拍子上用大拇指<b>碰一下球</b>，<b>主旋律才會響起</b>；沒碰到、碰錯地方或太晚，主旋律就缺席（不會有難聽的聲音）</li>
+    <li><b>碰球的位置</b>決定方向（碰球上方→往下、碰球下方→往上），<b>壓得越重</b>轉得越大；球會依音樂算好速度準時到線，越快、越準，分數越高</li>
+    <li>場中會<b>突然冒出障礙</b>，球撞上會改變方向（不影響音樂）。球飛過框線沒碰到就結束</li>
   </ul>
   <div class="chips" id="chips"></div>
   <div class="row"><button class="pri" id="bGo">開始（全螢幕）</button></div>
@@ -84,7 +81,7 @@ button.pri{background:linear-gradient(90deg,#3fd8ff,#8f6bff);border-color:transp
   <div class="kicker" id="ek"></div>
   <h2 id="et"></h2>
   <p id="es"></p>
-  <div class="row"><button class="pri" id="bCont">從上一個存檔點繼續</button><button id="bRetry">從頭再來</button><button id="bMenu">選曲</button><button id="bAgain">再聽完整樂章</button></div>
+  <div class="row"><button class="pri" id="bCont">從上一個存檔點繼續</button><button id="bRetry">從頭再來</button><button id="bMenu">選曲</button><button id="bAgain">再聽完整演奏</button></div>
 </div></div>
 
 <button id="bSkip" style="display:none;position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:6">跳過演奏</button>
@@ -103,57 +100,31 @@ function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 function rr(x,px,py,w,h,r){x.beginPath();x.moveTo(px+r,py);x.arcTo(px+w,py,px+w,py+h,r);x.arcTo(px+w,py+h,px,py+h,r);x.arcTo(px,py+h,px,py,r);x.arcTo(px,py,px+w,py,r);x.closePath()}
 
-/* ---------- audio ---------- */
-let AC=null,master=null,wet=null,padOn=false;
-const ROOT=261.63;
+/* ================= audio =================
+   Rhythm-game style mix: the BACKING (everything except the melody line) plays continuously and quietly;
+   the MELODY is the foreground voice and only sounds when the player hits the matching beat. */
+let AC=null,master=null,wet=null,useAC=false;
 function initAudio(){
   if(AC){if(AC.state==='suspended')AC.resume();return}
   try{
     AC=new(window.AudioContext||window.webkitAudioContext)();
-    master=AC.createGain();master.gain.value=.7;
+    master=AC.createGain();master.gain.value=.75;
     const comp=AC.createDynamicsCompressor();master.connect(comp);comp.connect(AC.destination);
-    const dly=AC.createDelay(1);dly.delayTime.value=.22;
-    const fb=AC.createGain();fb.gain.value=.34;
-    const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2600;
-    wet=AC.createGain();wet.gain.value=.4;
+    const dly=AC.createDelay(1);dly.delayTime.value=.2;
+    const fb=AC.createGain();fb.gain.value=.3;
+    const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2800;
+    wet=AC.createGain();wet.gain.value=.35;
     wet.connect(dly);dly.connect(lp);lp.connect(fb);fb.connect(dly);lp.connect(comp);
   }catch(e){AC=null}
 }
-function tone(f,when,vol,dur,type){
-  if(!AC)return;const t=AC.currentTime+(when||0);dur=dur||1.4;
-  const o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain(),g2=AC.createGain();
-  o.type=type||'triangle';o2.type='sine';o.frequency.value=f;o2.frequency.value=f*2;g2.gain.value=.25;
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.3,t+.006);g.gain.exponentialRampToValueAtTime(.0008,t+dur);
-  o.connect(g);o2.connect(g2);g2.connect(g);g.connect(master);g.connect(wet);
-  o.start(t);o2.start(t);o.stop(t+dur+.05);o2.stop(t+dur+.05);
-}
-function crash(){ // obstacle hit: heavy thud + crackle + noise burst
-  if(!AC)return;
-  tone(70,0,.5,.45,'square');tone(140,.01,.3,.3,'sawtooth');tone(55,0,.4,.6,'sine');
-  const n=AC.sampleRate*.18,buf=AC.createBuffer(1,n,AC.sampleRate),d=buf.getChannelData(0);
-  for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
-  const s=AC.createBufferSource(),g=AC.createGain(),f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=900;
-  g.gain.value=.5;s.buffer=buf;s.connect(f);f.connect(g);g.connect(master);s.start();
-}
-function startPad(){
-  return; // songs are in many keys, so no fixed drone
-  if(!AC||padOn)return;padOn=true;
-  [ROOT/2,ROOT*.75].forEach(f=>{
-    const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;
-    g.gain.setValueAtTime(0,AC.currentTime);g.gain.linearRampToValueAtTime(.02,AC.currentTime+3);
-    o.connect(g);g.connect(master);o.start();
-  });
-}
-/* richer voice: filtered partials with a decaying envelope; lead can be detuned (cents) */
-const fr=s=>ROOT*Math.pow(2,s/12);
 const live=[];
 function voice(midi,when,dur,vol,cents,lead){
   if(!AC)return;
-  const f=440*Math.pow(2,(midi-69)/12),t=AC.currentTime+Math.max(0,when),d=Math.max(.25,Math.min(dur*1.3,2.4));
-  const g=AC.createGain(),lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=Math.min(9000,f*(lead?9:4.5));lp.Q.value=.4;
+  const f=440*Math.pow(2,(midi-69)/12),t=AC.currentTime+Math.max(0,when),d=Math.max(.25,Math.min(dur*1.3,2.6));
+  const g=AC.createGain(),lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=Math.min(9000,f*(lead?9:4.2));lp.Q.value=.4;
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.004);
   g.gain.exponentialRampToValueAtTime(Math.max(.0005,vol*.35),t+Math.min(.3,d*.4));g.gain.exponentialRampToValueAtTime(.0005,t+d);
-  const parts=lead?[[1,'triangle',1],[2,'sine',.4],[3,'sine',.14]]:[[1,'sine',1],[2,'triangle',.22]];
+  const parts=lead?[[1,'triangle',1],[2,'sine',.4],[3,'sine',.14]]:[[1,'sine',1],[2,'triangle',.2]];
   for(const[m,type,a]of parts){
     const o=AC.createOscillator(),og=AC.createGain();o.type=type;o.frequency.value=f*m;o.detune.value=cents||0;og.gain.value=a;
     o.connect(og);og.connect(lp);o.start(t);o.stop(t+d+.05);
@@ -167,40 +138,49 @@ function cutAll(){
   for(const v of live)if(v.end>now){try{v.g.gain.cancelScheduledValues(now);v.g.gain.setTargetAtTime(.0001,now,.025)}catch(e){}}
   live.length=0;
 }
-function playChunk(k,cents,vol){
-  if(!AC)return;cutAll();
-  const a=song.ch[k],b=k+1<song.ch.length?song.ch[k+1]:song.n.length;
-  for(let i=a;i<b;i++){const n=song.n[i];voice(n[2],n[0]/100,n[1]/100,n[3]?vol:vol*.5,n[3]?cents:0,!!n[3])}
+function tick(when,vol){
+  if(!AC)return;const t=AC.currentTime+Math.max(0,when),o=AC.createOscillator(),g=AC.createGain();
+  o.type='sine';o.frequency.value=1400;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.1,t+.003);g.gain.exponentialRampToValueAtTime(.0005,t+.07);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.1);
 }
-// timing error (seconds; negative = early) -> detune: early = flat, late = sharp
-function centsOf(tc){const a=Math.abs(tc);return a<.025?0:Math.sign(tc)*Math.min(80,(a-.025)/.125*80)}
+// timing error (seconds, negative = early) -> detune in cents: early = flat, late = sharp
+function centsOf(e){const a=Math.abs(e);return a<.025?0:Math.sign(e)*Math.min(80,(a-.025)/.125*80)}
 const pitchTxt=c=>Math.abs(c)<6?'音準 ✓':(c<0?'♭ ':'♯ ')+Math.abs(Math.round(c))+'¢';
 
-/* ---------- songs: note data extracted from public-domain MIDI (see songs.js) ---------- */
+/* ================= songs ================= */
 const SD=window.SONGDATA||{};
 const ORDER=['twinkle','ode','silent','green','elise','minute','turkish'];
 const SONGS=ORDER.filter(k=>SD[k]).map(k=>Object.assign({key:k},SD[k]));
 const songHue=i=>(i*53+200)%360;
-const CPN=20;   // checkpoint every 20 bounces
+let song=SONGS[0],melList=[],bkList=[],tg=[];
+function prepare(s){
+  melList=[];bkList=[];
+  for(const n of s.n)(n[3]?melList:bkList).push(n);
+  tg=[];let last=-1e9;
+  melList.forEach((n,i)=>{const t=n[0]/100;if(t-last>=s.gap){tg.push({t,mi:i,mend:0});last=t}});
+  tg.forEach((x,i)=>{x.mend=i+1<tg.length?tg[i+1].mi:melList.length});
+}
 
-/* ---------- state ---------- */
-let F_={},FR={x:0,y:0,w:0,h:0},BR=9,V0=360,portrait=false;
-let st='menu',si=0,song=SONGS[0],notes=[],cp={k:0,score:0},k=0,score=0,combo=0,maxCombo=0,tierCount=[0,0,0,0],paused=false;
-let balls=[],boost=1,slowT=0,starT=0,shield=0,shake=0,time=0,ts=1,flash={a:0,hue:0},pressureSeen=false,exitT=0;
-let lastCents=0,aims=[],bumps=[],items=[],rings=[],floats=[],parts=[],fin=null,edgeGlow=[0,0,0,0],edgeHue=[0,0,0,0];
-let spawnT=2,itemT=4,ball2T=0;
-const NORM=[[0,1],[-1,0],[0,-1],[1,0]];   // inward normal for top,right,bottom,left
+/* ================= state ================= */
+let FR={x:0,y:0,w:0,h:0},BR=9,V0=420,HR=50,portrait=false;
+let st='menu',si=0,offset=0,nt=0,resolved=0,nb=1,bi=0,tickQ=[],endAt=0,paused=false,exitT=0;
+let score=0,combo=0,maxCombo=0,tierCount=[0,0,0,0],time=0,ts=1,gAC=0,gT=0,cp={ti:0,score:0},lastCents=0,lastP=.5,pSrc='none';
+let balls=[],bumps=[],items=[],rings=[],floats=[],parts=[],aims=[],fin=null;
+let shake=0,flash={a:0,hue:0},easeT=0,starT=0,shield=0,edgeGlow=[0,0,0,0],edgeHue=[0,0,0,0],spawnT=4,itemT=8;
+const LEADIN=2.6,CPN=25;
 const TIERS=[
-  {n:'PERFECT',hue:48,m:3,ring:3,part:28,shake:5,vol:.42},
-  {n:'GREAT',hue:185,m:2,ring:2,part:15,shake:3,vol:.38},
+  {n:'PERFECT',hue:48,m:3,ring:3,part:28,shake:5,vol:.4},
+  {n:'GREAT',hue:185,m:2,ring:2,part:15,shake:3,vol:.37},
   {n:'GOOD',hue:125,m:1.2,ring:1,part:6,shake:1.5,vol:.34},
-  {n:'OK',hue:225,m:1,ring:1,part:0,shake:0,vol:.28}
+  {n:'OK',hue:225,m:1,ring:1,part:0,shake:0,vol:.3}
 ];
-const tierOf=a=>a<.045?0:a<.09?1:a<.15?2:3;   // |seconds| from crossing the line
-const speedMult=()=>clamp((1+.8*(notes.length?k/notes.length:0))*song.spd*boost*(slowT>0?.65:1),.5,2.4);
-const hueNow=()=>(songHue(si)+(notes.length?k/notes.length:0)*140)%360;
-const zoneW=()=>FR.w*.3;                       // each thumb zone = 30% of the field width
-const LEAD=v=>Math.max(BR*6,(v||0)*.1),GRACE=v=>Math.max(BR*7,(v||0)*.12);   // hit window before / after the line (never shorter than ~0.22s)
+const tierOf=a=>a<.045?0:a<.09?1:a<.15?2:3;      // |seconds| away from the beat
+const G=()=>useAC?AC.currentTime-gAC:gT;          // game clock (seconds; first beat arrives at LEADIN)
+const timeOf=t=>t-offset+LEADIN;                  // song time -> game clock
+const tT=i=>timeOf(tg[i].t);
+const sideOf=i=>(Math.floor(i/nb)+(i%nb))%2?3:1;  // 1 = right line, 3 = left line (alternate thumbs)
+const hueNow=()=>(songHue(si)+(tg.length?resolved/tg.length:0)*140)%360;
+const LEAD=v=>Math.max(BR*5,(v||0)*.13)*(easeT>0?1.6:1),GRACE=v=>Math.max(BR*5,(v||0)*.11)*(easeT>0?1.6:1);
 
 function safeIns(){const c=getComputedStyle($('#safe'));return{t:parseFloat(c.paddingTop)||0,r:parseFloat(c.paddingRight)||0,b:parseFloat(c.paddingBottom)||0,l:parseFloat(c.paddingLeft)||0}}
 function layout(){
@@ -213,58 +193,78 @@ function layout(){
   const side=Math.max(24,W*.04)+Math.max(sa.l,sa.r);
   FR.w=Math.min(W-side*2,900);FR.h=Math.min(H-top-bot,FR.w*.5);FR.w=Math.min(FR.w,FR.h*2.4);
   FR.x=Math.round((W-FR.w)/2);FR.y=Math.round(top+(H-top-bot-FR.h)/2);
-  BR=Math.max(8,Math.min(FR.w,FR.h)*.032);V0=(FR.w+FR.h)*.37;
+  BR=Math.max(8,Math.min(FR.w,FR.h)*.032);V0=FR.w*.55;HR=Math.max(46,BR*5.5);
   for(const b of balls){b.x=clamp(b.x,FR.x+BR,FR.x+FR.w-BR);b.y=clamp(b.y,FR.y+BR,FR.y+FR.h-BR)}
 }
 
-/* ---------- run control ---------- */
+/* ================= run control ================= */
 function hud(){
   $('#score').textContent=score.toLocaleString();
-  $('#pf').style.width=(notes.length?k/notes.length*100:0)+'%';
-  $('#combo').innerHTML=(combo>1?'連擊 '+combo+' · ':'')+k+' / '+notes.length+(shield?' · 護盾':'')+(starT>0?' · ×2':'');
+  $('#pf').style.width=(tg.length?resolved/tg.length*100:0)+'%';
+  $('#combo').innerHTML=(combo>1?'連擊 '+combo+' · ':'')+resolved+' / '+tg.length+(shield?' · 護盾':'')+(starT>0?' · ×2':'')+(easeT>0?' · 判定放寬':'');
 }
-function newBall(){return{x:FR.x+FR.w*rand(.4,.6),y:FR.y+FR.h/2,dx:0,dy:0,v:0,pop:0,win:null,trail:[],sm:1,sq:0,sqn:0}}
+function newBall(ti){
+  const s=sideOf(ti),dy=rand(-.35,.35),l=Math.hypot(1,dy);
+  return{x:FR.x+FR.w*(s===1?rand(.25,.4):rand(.6,.75)),y:FR.y+FR.h*(nb===2?(ti%2?.7:.3):.5),dx:(s===1?1:-1)/l,dy:dy/l,v:0,pop:0,ti,side:s,win:null,trail:[],sq:0,sqn:0};
+}
 function startRun(from){
-  from=from||0;song=SONGS[si];notes=song.ch;k=from;score=from?cp.score:0;if(!from)cp={k:0,score:0};combo=0;maxCombo=0;tierCount=[0,0,0,0];boost=1;slowT=0;starT=0;shield=0;shake=0;exitT=0;
-  bumps=[];items=[];rings=[];floats=[];parts=[];aims=[];fin=null;spawnT=3;itemT=5;ball2T=0;paused=false;flash.a=0;edgeGlow=[0,0,0,0];
-  balls=[newBall()];st='ready';
-  $('#sub').textContent='《'+song.name+'》 · '+notes.length+' 段'+(song.dual?' · 雙球':'')+(from?' · 從第 '+(from+1)+' 段':'');
+  from=from||0;song=SONGS[si];prepare(song);nb=song.dual?2:1;
+  from=Math.min(from,Math.max(0,tg.length-1));
+  offset=from>0?tg[from].t-.02:0;
+  bi=bkList.findIndex(n=>n[0]/100>=offset);if(bi<0)bi=bkList.length;
+  resolved=from;nt=from+nb;score=from?cp.score:0;if(!from)cp={ti:0,score:0};
+  combo=0;maxCombo=0;tierCount=[0,0,0,0];shake=0;exitT=0;easeT=0;starT=0;shield=0;paused=false;fin=null;flash.a=0;edgeGlow=[0,0,0,0];
+  bumps=[];items=[];rings=[];floats=[];parts=[];aims=[];spawnT=5;itemT=9;tickQ=[];cutAll();
+  balls=[];for(let j=0;j<nb;j++)if(from+j<tg.length)balls.push(newBall(from+j));
+  endAt=timeOf(song.dur)+1.2;
+  st='ready';
+  $('#sub').textContent='《'+song.name+'》 · '+tg.length+' 拍'+(song.dual?' · 雙球':'')+(from?' · 從第 '+(from+1)+' 拍':'');
   hud();
-  $('#menu').classList.add('hidden');$('#end').classList.add('hidden');
+  $('#menu').classList.add('hidden');$('#end').classList.add('hidden');hideSkip();
 }
-function aim(b){let a,dx,dy;do{a=rand(0,Math.PI*2);dx=Math.cos(a);dy=Math.sin(a)}while(Math.abs(dx)<.35||Math.abs(dy)<.3);b.dx=dx;b.dy=dy}
-function launch(){const b=balls[0];aim(b);b.v=V0*.6;st='play';tone(ROOT*2,0,.1,.4,'sine')}
+function ballWant(b){
+  const tau=Math.max(.04,tT(b.ti)-G()),lineX=b.side===1?FR.x+FR.w:FR.x,remX=(lineX-b.x)*(b.side===1?1:-1);
+  return clamp(remX/Math.max(.3,Math.abs(b.dx))/tau,.2*V0,3.4*V0);
+}
+function launch(){
+  initAudio();
+  useAC=!!(AC&&AC.state==='running');
+  if(useAC)gAC=AC.currentTime+.08;else gT=-.08;
+  st='play';
+  tickQ=[LEADIN-1.5,LEADIN-1,LEADIN-.5];
+  for(const b of balls)b.v=ballWant(b);
+}
 
-/* ---------- input ---------- */
-// Only the two thumb zones (left/right 30% of the field) accept taps. A tap maps to a target point in the
-// field (left zone -> left half, right zone -> right half); the ball is sent toward it. Farther = faster.
-function zoneOf(x){const zw=zoneW();return x<=FR.x+zw?0:x>=FR.x+FR.w-zw?1:-1}
-function aimPoint(x,y,z){
-  const zw=zoneW(),u=z===0?clamp((x-FR.x)/zw,0,1):clamp((FR.x+FR.w-x)/zw,0,1);
-  return[z===0?FR.x+u*FR.w*.5:FR.x+FR.w-u*FR.w*.5,clamp(y,FR.y,FR.y+FR.h)];
+/* ================= input ================= */
+// pressure: real pressure if the device reports it, else contact size; normalised against what this player produces
+const pw=[];
+function pressureOf(e){
+  let raw=null;
+  if(e.pointerType&&e.pointerType!=='mouse'){
+    if(e.pressure>0&&e.pressure!==.5&&e.pressure!==1){raw=e.pressure;pSrc='pressure'}
+    else if(e.width>1&&e.height>1){raw=Math.max(e.width,e.height);pSrc='contact size'}
+  }
+  if(raw==null){pSrc='none';return .5}
+  pw.push(raw);if(pw.length>40)pw.shift();
+  const s=pw.slice().sort((a,b)=>a-b),lo=s[Math.floor(s.length*.1)],hi=s[Math.floor(s.length*.9)];
+  if(hi-lo<=1e-6||pw.length<4)return .5;
+  return clamp((raw-lo)/(hi-lo),0,1);
 }
-function power(tx,ty,b,pr,pt){
-  const p0=clamp(Math.hypot(tx-b.x,ty-b.y)/(FR.w*.5),0,1);
-  if((pt==='touch'||pt==='pen')&&pr>0&&pr!==.5&&pr!==1){pressureSeen=true;return clamp(p0*.5+clamp((pr-.08)/.6,0,1)*.5,0,1)}
-  return p0;
-}
-function tap(x,y,pr,pt){
-  initAudio();startPad();
+function tap(x,y,e){
+  initAudio();
   if(portrait)return;
-  if(paused){paused=false;return}
-  if(st==='ready'){rings.push({x,y,r0:6,life:.35,max:.35,hue:hueNow(),w:2});launch();return}
-  if(st!=='play'||!balls.length)return;
-  const z=zoneOf(x);
-  if(z<0)return;                                   // middle = dead zone
-  rings.push({x,y,r0:6,life:.35,max:.35,hue:hueNow(),w:2});
-  let best=null,bd=-1e9;
-  for(const b of balls)if(b.win&&b.win.depth>bd){bd=b.win.depth;best=b}   // most urgent ball
+  if(paused){paused=false;if(AC&&AC.resume)AC.resume();return}
+  if(st==='ready'){launch();return}
+  if(st!=='play')return;
+  let best=null,bd=1e9;
+  for(const b of balls){if(!b.win)continue;const d=Math.hypot(b.x-x,b.y-y);if(d<=HR&&d<bd){bd=d;best=b}}
+  rings.push({x,y,r0:6,life:.3,max:.3,hue:best?hueNow():220,w:1.5});     // visual only; a wrong tap makes no sound
   if(!best)return;
-  const[tx,ty]=aimPoint(x,y,z);
-  bounce(best,tx,ty,power(tx,ty,best,pr,pt));
+  const p=pressureOf(e);lastP=p;
+  bounce(best,x,y,p);
 }
-cv.addEventListener('pointerdown',e=>{e.preventDefault();tap(e.clientX,e.clientY,e.pressure,e.pointerType)});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&st==='play')paused=true});
+cv.addEventListener('pointerdown',e=>{e.preventDefault();tap(e.clientX,e.clientY,e)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&st==='play'){paused=true;if(AC&&AC.suspend)AC.suspend()}});
 
 /* ---- fullscreen + no scroll / zoom / long-press ---- */
 const DE=document.documentElement;
@@ -288,180 +288,168 @@ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['+','-','=',
 const standalone=!!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches));
 if(!(DE.requestFullscreen||DE.webkitRequestFullscreen)&&!standalone)$('#fsHint').style.display='block';
 
-/* ---------- game logic ---------- */
+/* ================= game logic ================= */
 function burst(x,y,hue,n,sp,life){
   for(let i=0;i<n;i++){const a=rand(0,6.283),v=rand(.3,1)*sp;parts.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(.4,1)*life,max:life,hue:hue+rand(-18,18),r:rand(1.2,3)})}
 }
-function edgePos(e,b){ // put the ball on the line, just inside
-  const n=NORM[e],lx=e===1?FR.x+FR.w:e===3?FR.x:null,ly=e===0?FR.y:e===2?FR.y+FR.h:null;
-  if(lx!==null)b.x=lx+n[0]*BR*.3;if(ly!==null)b.y=ly+n[1]*BR*.3;
+function nextPitch(){const t=tg[Math.min(tg.length-1,Math.max(0,resolved))];return melList[t.mi][2]}
+function keyBell(vol){const p=nextPitch();voice(p+12,0,.7,vol,0,true);voice(p+19,.05,.6,vol*.6,0,true)}   // in-key accent (never a clash)
+function playMel(ti,cents,vol){
+  const t=tg[ti],Gn=G();
+  for(let i=t.mi;i<t.mend;i++){
+    const n=melList[i],w=timeOf(n[0]/100)-Gn;
+    if(w<-.05&&i>t.mi)continue;                    // notes already in the past are dropped
+    voice(n[2],Math.max(0,w),n[1]/100,vol,cents,true);
+  }
+}
+function resolveTarget(b){
+  resolved++;
+  b.ti=nt<tg.length?nt++:-1;
+  if(b.ti>=0)b.side=sideOf(b.ti);
+  if(resolved%CPN===0&&resolved<tg.length)cp={ti:resolved,score};
+  hud();
 }
 function bounce(b,tx,ty,p){
-  const w=b.win,e=w.edge,n=NORM[e],horiz=e===0||e===2,td=horiz?[1,0]:[0,1];
-  const vn=Math.max(40,b.v*(-(b.dx*n[0]+b.dy*n[1])));
-  const tc=Math.abs(w.depth)/vn;                    // seconds away from crossing the line
-  const ti=tierOf(tc),T=TIERS[ti];
-  const vx=tx-b.x,vy=ty-b.y,dd=Math.hypot(vx,vy);
-  let a=0;if(dd>6){a=clamp(Math.atan2((vx*td[0]+vy*td[1])/dd,(vx*n[0]+vy*n[1])/dd),-1.1,1.1)}
+  const e=G()-tT(b.ti),ae=Math.abs(e),ti=tierOf(ae),T=TIERS[ti];
+  const cents=centsOf(e);lastCents=cents;
+  const old=b.side,nx=old===1?-1:1;
+  const off=clamp((b.y-ty)/HR,-1,1),th=(.45+.75*p)*off;      // touch above the ball -> ball goes down; harder = bigger turn
+  b.dx=nx*Math.cos(th);b.dy=Math.sin(th);
+  const lineX=old===1?FR.x+FR.w:FR.x;b.x=lineX+nx*BR*.3;
   aims.push({x1:b.x,y1:b.y,x2:tx,y2:ty,life:.4,max:.4,hue:T.hue});
-  b.dx=n[0]*Math.cos(a)+td[0]*Math.sin(a);b.dy=n[1]*Math.cos(a)+td[1]*Math.sin(a);
-  b.sm=.8+.35*p;edgePos(e,b);b.win=null;b.sq=1;b.sqn=e;
-  const cents=centsOf(w.depth/vn);                  // early = flat, late = sharp
-  lastCents=cents;
-  playChunk(k,cents,T.vol);
-  tierCount[ti]++;
-  combo=ti<=2?combo+1:0;maxCombo=Math.max(maxCombo,combo);
-  const sf=speedMult()*b.sm,pts=Math.round(100*T.m*Math.pow(sf,1.15)*(starT>0?2:1))+combo*5;
+  b.win=null;b.sq=1;b.sqn=old;
+  playMel(b.ti,cents,T.vol);                                   // melody is heard ONLY on a correct hit
+  tierCount[ti]++;combo=ti<=2?combo+1:0;maxCombo=Math.max(maxCombo,combo);
+  const sf=Math.pow(Math.max(.3,b.v/V0),1.1),pts=Math.round(100*T.m*sf*(1+.3*p)*(starT>0?2:1))+combo*5;
   score+=pts;
-  const hue=T.hue,fx=b.x+n[0]*34,fy=b.y+n[1]*34;
-  floats.push({x:fx,y:fy,text:T.n,hue,life:.9,max:.9,size:ti===0?1.5:ti===1?1.25:1});
-  floats.push({x:fx,y:fy+16,text:'+'+pts+'  '+pitchTxt(cents)+'  力道'+Math.round(p*100)+'%',hue:hue,life:.9,max:.9,size:.7});
+  const hue=T.hue,fx=b.x+nx*40,fy=b.y;
+  floats.push({x:fx,y:fy-6,text:T.n,hue,life:.9,max:.9,size:ti===0?1.5:ti===1?1.25:1});
+  floats.push({x:fx,y:fy+14,text:'+'+pts+'  '+pitchTxt(cents)+'  力道'+Math.round(p*100)+'%',hue,life:.9,max:.9,size:.7});
   for(let i=0;i<T.ring;i++)rings.push({x:b.x,y:b.y,r0:BR*(1+i*.4),life:.5+i*.12,max:.5+i*.12,hue:hue+i*20,w:4-i*.8});
   burst(b.x,b.y,hue,T.part,BR*16,.8);
   shake=Math.max(shake,T.shake);
-  edgeGlow[e]=ti===0?1:ti===1?.75:ti===2?.5:.3;edgeHue[e]=hue;
+  const ei=old;edgeGlow[ei]=ti===0?1:ti===1?.75:ti===2?.5:.3;edgeHue[ei]=hue;
   if(ti===0){flash.a=.18;flash.hue=hue}
-  advance();
-}
-function advance(){
-  k++;if(k%CPN===0&&k<notes.length)cp={k,score};
-  hud();if(k>=notes.length)win();
-}
-function autoBounce(b,e){ // middle top/bottom: bounces by itself, adds a quiet harmony note
-  const n=NORM[e];
-  const dot=b.dx*n[0]+b.dy*n[1];b.dx-=2*dot*n[0];b.dy-=2*dot*n[1];
-  const dn=b.dx*n[0]+b.dy*n[1];if(dn<.2){b.dx+=n[0]*(.2-dn);b.dy+=n[1]*(.2-dn);const l=Math.hypot(b.dx,b.dy);b.dx/=l;b.dy/=l}
-  edgePos(e,b);b.sq=.6;b.sqn=e;
-  playChunk(k,0,.3);                                // exact pitch, no tap needed
-  score+=Math.round(40*speedMult());
-  floats.push({x:b.x+n[0]*30,y:b.y+n[1]*30,text:'♪ AUTO',hue:200,life:.6,max:.6,size:.7});
-  rings.push({x:b.x,y:b.y,r0:BR*.6,life:.35,max:.35,hue:hueNow()+60,w:2});
-  edgeGlow[e]=Math.max(edgeGlow[e],.25);edgeHue[e]=hueNow();
-  advance();
+  resolveTarget(b);
+  if(b.ti>=0)b.v=ballWant(b);
 }
 function miss(b){
-  const e=b.win.edge,n=NORM[e];
+  const old=b.side,nx=old===1?-1:1;
+  floats.push({x:b.x+nx*40,y:b.y,text:shield>0?'護盾擋下！':'MISS',hue:shield>0?190:350,life:1,max:1,size:1.2});
   if(shield>0){
-    shield--;combo=0;hud();
-    floats.push({x:b.x+n[0]*40,y:b.y+n[1]*40,text:'護盾擋下！',hue:190,life:1,max:1,size:1.1});
+    shield--;combo=0;
     rings.push({x:b.x,y:b.y,r0:BR,life:.7,max:.7,hue:190,w:5});burst(b.x,b.y,190,24,BR*14,.8);
-    tone(ROOT*3,0,.2,.6,'sine');tone(ROOT*4,.06,.14,.6,'sine');
-    const a=rand(-.5,.5);b.dx=n[0]*Math.cos(a)+(n[1]!==0?Math.sin(a):0);b.dy=n[1]*Math.cos(a)+(n[0]!==0?Math.sin(a):0);
-    edgePos(e,b);b.win=null;b.sm=1;
+    const lineX=old===1?FR.x+FR.w:FR.x,a=rand(-.5,.5);
+    b.x=lineX+nx*BR*.3;b.dx=nx*Math.cos(a);b.dy=Math.sin(a);b.win=null;
+    resolveTarget(b);if(b.ti>=0)b.v=ballWant(b);
     return;
   }
-  tone(98,0,.3,.7,'sine');tone(103.8,0,.2,.7,'sine');
   rings.push({x:b.x,y:b.y,r0:BR,life:.7,max:.7,hue:350,w:5});burst(b.x,b.y,350,26,BR*14,.9);
   over('光球飛出框外了！');
 }
-function bumpH(b){
-  const g=Math.min(1,b.age/.9),e=1-Math.pow(1-g,3);
-  return b.Rm*e*(b.age>b.life?Math.max(0,1-(b.age-b.life)/.6):1);
+function bumpH(o){
+  if(o.age<.35)return 0;                                       // telegraph phase
+  const g=Math.min(1,(o.age-.35)/.22),e=1+2.2*Math.pow(g-1,3)+1.2*Math.pow(g-1,2);   // quick pop with overshoot
+  const out=o.age>o.life?Math.max(0,1-(o.age-o.life)/.4):1;
+  return o.Rm*Math.max(0,e)*out;
 }
 function spawnBump(){
-  const e=Math.floor(rand(0,4)),horiz=e===0||e===2,len=horiz?FR.w:FR.h,t=rand(.1,.9)*len;
-  let x,y;
-  if(e===0){x=FR.x+t;y=FR.y}else if(e===2){x=FR.x+t;y=FR.y+FR.h}else if(e===1){x=FR.x+FR.w;y=FR.y+t}else{x=FR.x;y=FR.y+t}
-  for(const b of balls)if(Math.hypot(b.x-x,b.y-y)<FR.h*.3)return;
-  bumps.push({x,y,Rm:Math.min(FR.w,FR.h)*rand(.09,.15),age:0,life:rand(5,8)});
+  for(let tries=0;tries<12;tries++){
+    const x=FR.x+FR.w*rand(.2,.8),y=FR.y+FR.h*rand(.14,.86);let ok=true;
+    for(const b of balls)if(Math.hypot(b.x-x,b.y-y)<FR.h*.35)ok=false;
+    for(const o of bumps)if(Math.hypot(o.x-x,o.y-y)<FR.h*.4)ok=false;
+    if(ok){bumps.push({x,y,Rm:Math.min(FR.w,FR.h)*rand(.07,.12),age:0,life:rand(3.2,5.5)});return}
+  }
 }
 function spawnItem(){
-  const r=Math.random(),type=r<.34?'boost':r<.62?'slow':r<.82?'star':(shield?'boost':'shield');
-  items.push({x:rand(FR.x+FR.w*.22,FR.x+FR.w*.78),y:rand(FR.y+FR.h*.22,FR.y+FR.h*.78),type,age:0,life:8});
+  const r=Math.random(),type=r<.4?'star':r<.7?'ease':(shield?'star':'shield');
+  items.push({x:FR.x+FR.w*rand(.25,.75),y:FR.y+FR.h*rand(.2,.8),type,age:0,life:7});
 }
-const ITEM_HUE={boost:30,slow:190,star:50,shield:165};
-const nowT=()=>AC?AC.currentTime:time;
-function showSkip(){$('#bSkip').style.display='block'}
-function hideSkip(){$('#bSkip').style.display='none'}
-function win(){
-  st='finale';
-  const best=Math.max(parseInt(lsGet('pmb4-'+si)||'0',10),score);lsSet('pmb4-'+si,String(best));
-  cp={k:0,score:0};
-  playFull();
-}
+const ITEM_HUE={star:50,ease:190,shield:165};
 function over(msg){
   st='over';exitT=1.2;cutAll();
-  const key='pmb4-'+si,best=Math.max(parseInt(lsGet(key)||'0',10),score);lsSet(key,String(best));
+  const key='pmb5-'+si,best=Math.max(parseInt(lsGet(key)||'0',10),score);lsSet(key,String(best));
   $('#ek').textContent='GAME OVER';$('#et').textContent=msg;
-  $('#es').innerHTML='《'+song.name+'》奏到 '+k+' / '+notes.length+' 段<br>分數 '+score.toLocaleString()+' · 最高連擊 '+maxCombo+'<br>PERFECT '+tierCount[0]+' · GREAT '+tierCount[1]+' · GOOD '+tierCount[2]+' · OK '+tierCount[3];
+  $('#es').innerHTML='《'+song.name+'》奏到 '+resolved+' / '+tg.length+' 拍<br>分數 '+score.toLocaleString()+' · 最高連擊 '+maxCombo+'<br>PERFECT '+tierCount[0]+' · GREAT '+tierCount[1]+' · GOOD '+tierCount[2]+' · OK '+tierCount[3];
   $('#bAgain').style.display='none';
-  const cb=$('#bCont');if(cp.k>0){cb.style.display='';cb.textContent='從第 '+(cp.k+1)+' 段繼續'}else cb.style.display='none';
+  const cb=$('#bCont');if(cp.ti>0){cb.style.display='';cb.textContent='從第 '+(cp.ti+1)+' 拍繼續'}else cb.style.display='none';
   setTimeout(()=>$('#end').classList.remove('hidden'),1000);
 }
-function playFull(){
-  initAudio();cutAll();
-  const all=[];
-  song.ch.forEach((a,ci)=>{const b=ci+1<song.ch.length?song.ch[ci+1]:song.n.length,t0=song.ct[ci]/100;for(let i=a;i<b;i++){const n=song.n[i];all.push({t:t0+n[0]/100+.8,d:n[1]/100,p:n[2],m:n[3]})}});
-  all.sort((a,b)=>a.t-b.t);
-  const last=all[all.length-1],total=last.t+last.d;
-  fin={t0:nowT(),all,i:0,total,end:total+2.6,done:false,mel:all.filter(n=>n.m)};
-  st='finale';showSkip();
-}
-function endFinale(){
-  if(!fin||fin.done)return;fin.done=true;hideSkip();
+function win(){
+  st='done';
+  const key='pmb5-'+si,best=Math.max(parseInt(lsGet(key)||'0',10),score);lsSet(key,String(best));
+  cp={ti:0,score:0};
   $('#ek').textContent='FULL MELODY';$('#et').textContent='《'+song.name+'》完成！';
   $('#es').innerHTML='分數 '+score.toLocaleString()+' · 最高連擊 '+maxCombo+'<br>PERFECT '+tierCount[0]+' · GREAT '+tierCount[1]+' · GOOD '+tierCount[2]+' · OK '+tierCount[3];
   $('#bAgain').style.display='';$('#bCont').style.display='none';
   $('#end').classList.remove('hidden');
 }
-
-/* ---------- update ---------- */
-function stepBall(b,dt){
-  // smooth speed toward target
-  const target=V0*speedMult()*b.sm;
-  b.v+=(target-b.v)*Math.min(1,dt*6);
-  b.x+=b.dx*b.v*dt;b.y+=b.dy*b.v*dt;
-  if(b.sq>0)b.sq=Math.max(0,b.sq-dt*6);
-  const last=b.trail[b.trail.length-1];
-  if(!last||Math.hypot(b.x-last.x,b.y-last.y)>BR*.45){b.trail.push({x:b.x,y:b.y});if(b.trail.length>26)b.trail.shift()}
-  else if(b.trail.length>1&&b.trail.length>4)b.trail.shift();
+const nowT=()=>AC?AC.currentTime:time;
+function showSkip(){$('#bSkip').style.display='block'}
+function hideSkip(){$('#bSkip').style.display='none'}
+function playFull(){     // replay of the whole piece (melody + backing), no game
+  initAudio();cutAll();st='replay';
+  const all=song.n.map(n=>({t:n[0]/100+.8,d:n[1]/100,p:n[2],m:n[3]})),last=all[all.length-1];
+  fin={t0:nowT(),all,i:0,total:last.t+last.d,end:last.t+last.d+2.2,done:false,mel:all.filter(n=>n.m)};
+  showSkip();
 }
+function endReplay(){if(!fin||fin.done)return;fin.done=true;hideSkip();cutAll();st='done';$('#end').classList.remove('hidden')}
+
+/* ================= update ================= */
+function wallFx(b,e){rings.push({x:b.x,y:b.y,r0:BR*.5,life:.3,max:.3,hue:hueNow()+80,w:1.5});edgeGlow[e]=Math.max(edgeGlow[e],.18);edgeHue[e]=hueNow()}
+function stepFree(b,dt){b.x+=b.dx*b.v*dt;b.y+=b.dy*b.v*dt}
 function updateBall(b,dt){
   if(b.pop<1)b.pop=Math.min(1,b.pop+dt*3);
-  stepBall(b,dt);
-  // obstacles
+  if(b.sq>0)b.sq=Math.max(0,b.sq-dt*6);
+  if(b.ti<0){                                     // no more targets: drift and fade
+    b.v=Math.max(b.v,V0*.5);stepFree(b,dt);
+    if(b.y<FR.y+BR){b.y=FR.y+BR;b.dy=Math.abs(b.dy)}else if(b.y>FR.y+FR.h-BR){b.y=FR.y+FR.h-BR;b.dy=-Math.abs(b.dy)}
+    if(b.x<FR.x+BR){b.x=FR.x+BR;b.dx=Math.abs(b.dx)}else if(b.x>FR.x+FR.w-BR){b.x=FR.x+FR.w-BR;b.dx=-Math.abs(b.dx)}
+    return;
+  }
+  // speed is derived from the music: arrive at the target line exactly on the beat
+  b.v+=(ballWant(b)-b.v)*Math.min(1,dt*10);
+  b.x+=b.dx*b.v*dt;b.y+=b.dy*b.v*dt;
+  const last=b.trail[b.trail.length-1];
+  if(!last||Math.hypot(b.x-last.x,b.y-last.y)>BR*.45){b.trail.push({x:b.x,y:b.y});if(b.trail.length>26)b.trail.shift()}
+  else if(b.trail.length>4)b.trail.shift();
+  // top / bottom walls and the far side line are plain walls (silent)
+  if(b.y<FR.y+BR){b.y=FR.y+BR;b.dy=Math.abs(b.dy);wallFx(b,0)}
+  else if(b.y>FR.y+FR.h-BR){b.y=FR.y+FR.h-BR;b.dy=-Math.abs(b.dy);wallFx(b,2)}
+  if(b.side===1&&b.x<FR.x+BR){b.x=FR.x+BR;b.dx=Math.abs(b.dx);wallFx(b,3)}
+  else if(b.side===3&&b.x>FR.x+FR.w-BR){b.x=FR.x+FR.w-BR;b.dx=-Math.abs(b.dx);wallFx(b,1)}
+  // obstacles pop up in the field: reflect (never reversing toward the wrong side), no sound
   for(const o of bumps){
     const h=bumpH(o);if(h<4)continue;
     const dx=b.x-o.x,dy=b.y-o.y,d=Math.hypot(dx,dy)||1;
     if(d<h+BR){
       const nx=dx/d,ny=dy/d,dot=b.dx*nx+b.dy*ny;
       if(dot<0){b.dx-=2*dot*nx;b.dy-=2*dot*ny}
-      b.x=o.x+nx*(h+BR+1);b.y=o.y+ny*(h+BR+1);b.win=null;b.v*=1.05;
-      boost=Math.min(1.5,boost*1.08);shake=Math.max(shake,9);flash.a=.22;flash.hue=345;
-      crash();burst(b.x,b.y,345,18,BR*18,.7);
-      rings.push({x:b.x,y:b.y,r0:BR,life:.45,max:.45,hue:345,w:4},{x:o.x,y:o.y,r0:h,life:.35,max:.35,hue:350,w:3});
-      floats.push({x:b.x,y:b.y-20,text:'撞擊 加速!',hue:345,life:.7,max:.7,size:.9});
+      b.x=o.x+nx*(h+BR+1);b.y=o.y+ny*(h+BR+1);
+      b.win=null;shake=Math.max(shake,5);flash.a=.16;flash.hue=345;keyBell(.06);
+      burst(b.x,b.y,345,14,BR*14,.6);
+      rings.push({x:b.x,y:b.y,r0:BR,life:.4,max:.4,hue:345,w:3},{x:o.x,y:o.y,r0:h,life:.3,max:.3,hue:350,w:3});
     }
   }
+  const want=b.side===1?1:-1;
+  if(b.dx*want<.3){b.dx=.3*want;const l=Math.hypot(b.dx,b.dy);b.dx/=l;b.dy/=l}
   // items
   for(let i=items.length-1;i>=0;i--){
     const it=items[i];
     if(Math.hypot(b.x-it.x,b.y-it.y)<BR+17){
       items.splice(i,1);const hue=ITEM_HUE[it.type];let txt;
-      if(it.type==='boost'){boost=Math.min(1.5,boost*1.2);txt='加速!';
-        for(let j=0;j<10;j++)parts.push({x:it.x,y:it.y,vx:rand(-1,1)*BR*30,vy:rand(-1,1)*BR*6,life:.5,max:.5,hue:hue+rand(-10,10),r:2})}
-      else if(it.type==='slow'){slowT=4;txt='減速';rings.push({x:it.x,y:it.y,r0:10,life:.9,max:.9,hue,w:3},{x:it.x,y:it.y,r0:6,life:.7,max:.7,hue:hue+20,w:3})}
-      else if(it.type==='star'){starT=8;txt='分數 ×2';hud()}
-      else{shield=Math.min(2,shield+1);txt='護盾 +1';hud()}
-      burst(it.x,it.y,hue,22,BR*16,.9);flash.a=.2;flash.hue=hue;
-      rings.push({x:it.x,y:it.y,r0:8,life:.6,max:.6,hue,w:4});
+      if(it.type==='star'){starT=8;txt='分數 ×2'}
+      else if(it.type==='ease'){easeT=6;txt='判定放寬'}
+      else{shield=Math.min(2,shield+1);txt='護盾 +1'}
+      hud();burst(it.x,it.y,hue,22,BR*16,.9);flash.a=.2;flash.hue=hue;
+      rings.push({x:it.x,y:it.y,r0:8,life:.6,max:.6,hue,w:4},{x:it.x,y:it.y,r0:6,life:.8,max:.8,hue:hue+25,w:3});
       floats.push({x:it.x,y:it.y-18,text:txt,hue,life:1,max:1,size:1.2});
-      tone(ROOT*4,0,.14,.5,'sine');tone(ROOT*5,.06,.12,.5,'sine');tone(ROOT*6,.12,.1,.6,'sine');
+      keyBell(.1);
     }
   }
-  // edges: the ball keeps moving; within [-LEAD, +GRACE] of a side line it can be tapped; beyond GRACE it is out
-  const outd=[FR.y-b.y,b.x-(FR.x+FR.w),b.y-(FR.y+FR.h),FR.x-b.x];
-  let be=-1,bd=-1e9;
-  for(let e=0;e<4;e++){
-    const n=NORM[e];
-    if(b.dx*(-n[0])+b.dy*(-n[1])<=.02)continue;         // not heading toward this edge
-    if(outd[e]>-LEAD(b.v)&&outd[e]>bd){bd=outd[e];be=e}
-  }
-  if(be<0){b.win=null;return}
-  const manual=be===1||be===3||zoneOf(be===0||be===2?b.x:FR.x)>=0;
-  if(!manual){ if(bd>=0)autoBounce(b,be);else b.win=null; return }
-  b.win={edge:be,depth:bd};
-  if(bd>GRACE(b.v)){miss(b)}
+  // hit window around the target line
+  const lineX=b.side===1?FR.x+FR.w:FR.x,depth=b.side===1?b.x-lineX:lineX-b.x;
+  if(depth>-LEAD(b.v)){b.win={edge:b.side,depth};if(depth>GRACE(b.v))miss(b)}else b.win=null;
 }
 function update(dt){
   time+=dt;
@@ -471,24 +459,30 @@ function update(dt){
   for(let i=floats.length-1;i>=0;i--){floats[i].life-=dt;if(floats[i].life<=0)floats.splice(i,1)}
   for(let i=aims.length-1;i>=0;i--){aims[i].life-=dt;if(aims[i].life<=0)aims.splice(i,1)}
   for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.life-=dt;if(p.life<=0){parts.splice(i,1);continue}p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.96}
-  if(st==='finale'&&fin&&!fin.done){
+  if(st==='replay'&&fin&&!fin.done){
     const el=nowT()-fin.t0;
-    while(fin.i<fin.all.length&&fin.all[fin.i].t<el+1.2){const n=fin.all[fin.i++];voice(n.p,n.t-el,n.d,n.m?.34:.2,0,!!n.m)}
-    if(el>=fin.end)endFinale();
+    while(fin.i<fin.all.length&&fin.all[fin.i].t<el+1.2){const n=fin.all[fin.i++];voice(n.p,n.t-el,n.d,n.m?.34:.17,0,!!n.m)}
+    if(el>=fin.end)endReplay();
   }
-  if(st==='over'&&exitT>0){exitT-=dt;for(const b of balls)stepBall(b,dt);return}   // let the ball fly out
-  if(st!=='play'||!balls.length||paused||portrait)return;
-  boost=1+(boost-1)*Math.exp(-dt/6);if(slowT>0)slowT-=dt;
+  if(st==='over'&&exitT>0){exitT-=dt;for(const b of balls)stepFree(b,dt);return}
+  if(st!=='play'||paused||portrait)return;
+  if(!useAC)gT+=dt;
+  const Gn=G();
+  // count-in ticks and the continuous backing track
+  while(tickQ.length&&tickQ[0]<Gn+.3){const w=tickQ.shift()-Gn;tick(Math.max(0,w),.1)}
+  while(bi<bkList.length&&timeOf(bkList[bi][0]/100)<Gn+1){const n=bkList[bi++],w=timeOf(n[0]/100)-Gn;if(w>-.05)voice(n[2],Math.max(0,w),n[1]/100,.17,0,false)}
+  if(easeT>0)easeT-=dt;
   if(starT>0){starT-=dt;if(starT<=0)hud()}
-  spawnT-=dt;if(spawnT<=0){if(bumps.length<Math.min(6,2+Math.floor(k/8)))spawnBump();spawnT=Math.max(1.2,2.8-k*.02)*rand(.8,1.2)}
-  itemT-=dt;if(itemT<=0){if(items.length<2)spawnItem();itemT=rand(5,8)}
-  if(song.dual&&balls.length<2&&k>=Math.max(3,notes.length*.2)){ball2T+=dt;if(ball2T>.6){const b=newBall();aim(b);b.v=V0*.6;balls.push(b);floats.push({x:b.x,y:b.y-30,text:'雙球！',hue:300,life:1,max:1,size:1.3});rings.push({x:b.x,y:b.y,r0:BR,life:.7,max:.7,hue:300,w:4})}}
-  for(let i=bumps.length-1;i>=0;i--){const b=bumps[i];b.age+=dt;if(b.age>b.life+.6)bumps.splice(i,1)}
+  const prog=tg.length?resolved/tg.length:0;
+  spawnT-=dt;if(spawnT<=0&&Gn>LEADIN){if(bumps.length<1+Math.floor(prog*3))spawnBump();spawnT=Math.max(1.8,4.5-prog*2.6)*rand(.8,1.2)}
+  itemT-=dt;if(itemT<=0&&Gn>LEADIN){if(items.length<1)spawnItem();itemT=rand(8,12)}
+  for(let i=bumps.length-1;i>=0;i--){const o=bumps[i];o.age+=dt;if(o.age>o.life+.4)bumps.splice(i,1)}
   for(let i=items.length-1;i>=0;i--){const it=items[i];it.age+=dt;if(it.age>it.life)items.splice(i,1)}
   for(const b of balls){updateBall(b,dt);if(st!=='play')return}
+  if(resolved>=tg.length&&Gn>endAt)win();
 }
 
-/* ---------- draw ---------- */
+/* ================= draw ================= */
 const stars=(()=>{let s=7;const r=()=>{s=(s*16807)%2147483647;return s/2147483647};return Array.from({length:90},()=>({x:r(),y:r(),r:r()*1.4+.3,p:r()*6.28}))})();
 function drawBG(x){
   const g=x.createRadialGradient(W/2,H*.5,0,W/2,H*.5,Math.max(W,H)*.8);g.addColorStop(0,'#10173a');g.addColorStop(1,'#04050d');
@@ -503,52 +497,40 @@ function drawBG(x){
 function edgeLine(e){return e===0?[FR.x,FR.y,FR.x+FR.w,FR.y]:e===1?[FR.x+FR.w,FR.y,FR.x+FR.w,FR.y+FR.h]:e===2?[FR.x,FR.y+FR.h,FR.x+FR.w,FR.y+FR.h]:[FR.x,FR.y,FR.x,FR.y+FR.h]}
 function seg(x,a,b,c,d){x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.stroke()}
 function drawField(x){
-  const h=hueNow(),zw=zoneW(),R=FR;
+  const h=hueNow(),R=FR;
   rr(x,R.x,R.y,R.w,R.h,10);x.fillStyle='rgba(10,14,40,.55)';x.fill();
   if(flash.a>0){rr(x,R.x,R.y,R.w,R.h,10);x.fillStyle=`hsla(${flash.hue},100%,60%,${flash.a})`;x.fill()}
-  // thumb zones
-  x.save();rr(x,R.x,R.y,R.w,R.h,10);x.clip();
-  for(const side of[0,1]){
-    const x0=side?R.x+R.w:R.x,x1=side?R.x+R.w-zw:R.x+zw,g=x.createLinearGradient(x0,0,x1,0);
-    g.addColorStop(0,`hsla(${h},90%,62%,.14)`);g.addColorStop(1,'transparent');
-    x.fillStyle=g;x.fillRect(side?x1:x0,R.y,zw,R.h);
-  }
-  x.restore();
-  x.save();x.lineWidth=3;x.lineCap='round';
-  // frame: thumb-zone segments bright, middle top/bottom dashed (auto-bounce)
-  x.strokeStyle=`hsla(${h},100%,68%,.95)`;x.shadowColor=`hsl(${h},100%,60%)`;x.shadowBlur=16;
+  // frame: top/bottom are walls (dim); the two thumb lines are bright
+  x.save();x.lineCap='round';
+  x.lineWidth=2;x.strokeStyle='rgba(150,170,255,.35)';seg(x,R.x,R.y,R.x+R.w,R.y);seg(x,R.x,R.y+R.h,R.x+R.w,R.y+R.h);
+  x.lineWidth=3;x.strokeStyle=`hsla(${h},100%,68%,.9)`;x.shadowColor=`hsl(${h},100%,60%)`;x.shadowBlur=14;
   seg(x,R.x,R.y,R.x,R.y+R.h);seg(x,R.x+R.w,R.y,R.x+R.w,R.y+R.h);
-  seg(x,R.x,R.y,R.x+zw,R.y);seg(x,R.x+R.w-zw,R.y,R.x+R.w,R.y);
-  seg(x,R.x,R.y+R.h,R.x+zw,R.y+R.h);seg(x,R.x+R.w-zw,R.y+R.h,R.x+R.w,R.y+R.h);
-  x.shadowBlur=0;x.strokeStyle='rgba(180,200,255,.35)';x.lineWidth=2;x.setLineDash([8,8]);
-  seg(x,R.x+zw,R.y,R.x+R.w-zw,R.y);seg(x,R.x+zw,R.y+R.h,R.x+R.w-zw,R.y+R.h);
   x.restore();
-  // contact highlight (ball inside its hit window)
-  for(const b of balls)if(b.win){
-    const w=b.win,u=clamp((w.depth+LEAD(b.v))/(LEAD(b.v)+GRACE(b.v)),0,1),l=edgeLine(w.edge),horiz=w.edge===0||w.edge===2,half=BR*7;
-    const a0=horiz?clamp(b.x-half,l[0],l[2]):l[0],a1=horiz?clamp(b.x+half,l[0],l[2]):l[2],b0=horiz?l[1]:clamp(b.y-half,l[1],l[3]),b1=horiz?l[3]:clamp(b.y+half,l[1],l[3]);
-    x.save();x.globalCompositeOperation='lighter';x.lineCap='round';x.strokeStyle=`hsla(${120*(1-u)},100%,62%,${.7+.3*Math.sin(time*14)})`;x.lineWidth=7;x.shadowColor=x.strokeStyle;x.shadowBlur=20;
-    seg(x,a0,b0,horiz?a1:a0,horiz?b0:b1);x.restore();
+  // the line the next beat will arrive at
+  if(st==='play'||st==='ready')for(const b of balls){
+    if(b.ti<0)continue;
+    const tau=tT(b.ti)-G(),a=st==='ready'?.5:clamp(1.3-tau,0,1)*(.4+.3*Math.sin(time*10)),l=edgeLine(b.side);
+    if(a<=0)continue;
+    x.save();x.globalCompositeOperation='lighter';x.lineCap='round';x.strokeStyle=`hsla(${190+tau*40},100%,65%,${a})`;x.lineWidth=7;x.shadowColor=x.strokeStyle;x.shadowBlur=18;seg(x,l[0],l[1],l[2],l[3]);x.restore();
   }
   x.save();x.globalCompositeOperation='lighter';x.lineCap='round';
   for(let e=0;e<4;e++)if(edgeGlow[e]>0){const l=edgeLine(e);x.strokeStyle=`hsla(${edgeHue[e]},100%,70%,${edgeGlow[e]})`;x.lineWidth=6;x.shadowColor=x.strokeStyle;x.shadowBlur=22;seg(x,l[0],l[1],l[2],l[3])}
   x.restore();
-  // labels
-  x.save();x.textAlign='center';x.textBaseline='middle';x.fillStyle='rgba(200,215,255,.34)';x.font='600 12px "Noto Sans TC",sans-serif';
-  x.fillText('左拇指區',R.x+zw/2,R.y+R.h-16);x.fillText('右拇指區',R.x+R.w-zw/2,R.y+R.h-16);
-  if(st==='ready'||k<2){x.fillStyle='rgba(180,200,255,.28)';x.fillText('上下框線中段：自動反彈',R.x+R.w/2,R.y+14)}
-  x.restore();
 }
 function drawBumps(x){
   x.save();rr(x,FR.x,FR.y,FR.w,FR.h,10);x.clip();
-  for(const b of bumps){
-    const h=bumpH(b);if(h<1)continue;
-    const a=b.age>b.life?.6:1;
-    const g=x.createRadialGradient(b.x,b.y,h*.2,b.x,b.y,h*1.4);
+  for(const o of bumps){
+    if(o.age<.35){   // telegraph: a shrinking dashed ring just before it pops up
+      const k=o.age/.35;x.save();x.strokeStyle=`hsla(340,100%,75%,${.35+.5*k})`;x.lineWidth=2;x.setLineDash([5,5]);
+      x.beginPath();x.arc(o.x,o.y,o.Rm*(1.7-.7*k),0,6.283);x.stroke();x.restore();continue;
+    }
+    const h=bumpH(o);if(h<1)continue;
+    const a=o.age>o.life?.6:1;
+    const g=x.createRadialGradient(o.x,o.y,h*.2,o.x,o.y,h*1.4);
     g.addColorStop(0,`hsla(340,95%,60%,${.85*a})`);g.addColorStop(.7,`hsla(330,90%,45%,${.55*a})`);g.addColorStop(1,'transparent');
-    x.fillStyle=g;x.beginPath();x.arc(b.x,b.y,h*1.4,0,6.283);x.fill();
+    x.fillStyle=g;x.beginPath();x.arc(o.x,o.y,h*1.4,0,6.283);x.fill();
     x.lineWidth=2.5;x.strokeStyle=`hsla(340,100%,75%,${a})`;x.shadowColor='#ff4d8d';x.shadowBlur=14;
-    x.beginPath();x.arc(b.x,b.y,h,0,6.283);x.stroke();x.shadowBlur=0;
+    x.beginPath();x.arc(o.x,o.y,h,0,6.283);x.stroke();x.shadowBlur=0;
   }
   x.restore();
 }
@@ -560,8 +542,7 @@ function drawItems(x){
     x.globalCompositeOperation='lighter';x.fillStyle=g;x.beginPath();x.arc(0,0,26+p*4,0,6.283);x.fill();
     x.globalCompositeOperation='source-over';x.lineWidth=2.5;x.strokeStyle=`hsl(${hue},100%,72%)`;x.fillStyle=x.strokeStyle;
     x.beginPath();x.arc(0,0,13,0,6.283);x.stroke();
-    if(it.type==='boost'){for(const dx of[-4,3]){x.beginPath();x.moveTo(dx,-6);x.lineTo(dx+6,0);x.lineTo(dx,6);x.stroke()}}
-    else if(it.type==='slow'){x.beginPath();x.moveTo(-6,-3);x.lineTo(6,-3);x.moveTo(-6,3);x.lineTo(6,3);x.stroke()}
+    if(it.type==='ease'){x.beginPath();x.moveTo(-6,-3);x.lineTo(6,-3);x.moveTo(-6,3);x.lineTo(6,3);x.stroke()}
     else if(it.type==='star'){x.beginPath();for(let i=0;i<10;i++){const r=i%2?3.5:8,an=-Math.PI/2+i*Math.PI/5;x.lineTo(Math.cos(an)*r,Math.sin(an)*r)}x.closePath();x.fill()}
     else{x.beginPath();x.moveTo(0,-7);x.lineTo(6,-3);x.lineTo(5,4);x.lineTo(0,8);x.lineTo(-5,4);x.lineTo(-6,-3);x.closePath();x.stroke()}
     x.restore();
@@ -579,15 +560,22 @@ function drawBalls(x){
     const g=x.createRadialGradient(b.x,b.y,0,b.x,b.y,r*3.6);
     g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.25,`hsla(${col},100%,66%,.7)`);g.addColorStop(1,'transparent');
     x.fillStyle=g;x.beginPath();x.arc(b.x,b.y,r*3.6,0,6.283);x.fill();x.restore();
-    // squash on impact
     x.save();x.translate(b.x,b.y);
-    if(b.sq>0){const n=NORM[b.sqn],horiz=n[0]!==0,s=b.sq*.35;x.scale(horiz?1-s:1+s*.6,horiz?1+s*.6:1-s)}
+    if(b.sq>0){const horiz=b.sqn===1||b.sqn===3,s=b.sq*.35;x.scale(horiz?1-s:1+s*.6,horiz?1+s*.6:1-s)}
     x.fillStyle='#fff';x.beginPath();x.arc(0,0,r*.7,0,6.283);x.fill();x.restore();
     if(shield>0){x.strokeStyle=`hsla(165,100%,70%,${.5+.3*Math.sin(time*8)})`;x.lineWidth=2;x.beginPath();x.arc(b.x,b.y,BR*1.9,0,6.283);x.stroke()}
-    if(b.win){
-      const u=clamp((b.win.depth+LEAD(b.v))/(LEAD(b.v)+GRACE(b.v)),0,1);
-      x.strokeStyle=`hsl(${120*(1-u)},100%,60%)`;x.lineWidth=3.5;x.shadowColor=x.strokeStyle;x.shadowBlur=12;
-      x.beginPath();x.arc(b.x,b.y,BR*(4.2-2.4*u),0,6.283);x.stroke();x.shadowBlur=0;
+    if(b.ti>=0&&(st==='play'||st==='ready')){
+      const tau=tT(b.ti)-G();
+      if(b.win){   // inside the hit window: the beat ring has closed; colour shows how close to the beat
+        const u=clamp((b.win.depth+LEAD(b.v))/(LEAD(b.v)+GRACE(b.v)),0,1);
+        x.strokeStyle=`hsl(${120*(1-u)},100%,60%)`;x.lineWidth=3.5;x.shadowColor=x.strokeStyle;x.shadowBlur=12;
+        x.beginPath();x.arc(b.x,b.y,BR*2.2,0,6.283);x.stroke();x.shadowBlur=0;
+        x.strokeStyle='rgba(255,255,255,.18)';x.lineWidth=1.5;x.setLineDash([4,5]);x.beginPath();x.arc(b.x,b.y,HR,0,6.283);x.stroke();x.setLineDash([]);   // where to touch
+      }else if(st==='play'){
+        const k=clamp(tau/1.2,0,1);   // approach ring: shrinks onto the ball exactly on the beat
+        x.strokeStyle=`hsla(${190+k*60},100%,75%,${.25+.5*(1-k)})`;x.lineWidth=2;
+        x.beginPath();x.arc(b.x,b.y,BR*2.2+BR*8*k,0,6.283);x.stroke();
+      }
     }
   }
 }
@@ -601,7 +589,7 @@ function drawFx(x){
   for(const f of floats){
     const a=f.life/f.max;x.globalAlpha=Math.min(1,a*1.6);x.fillStyle=`hsl(${f.hue},100%,75%)`;
     x.font='800 '+Math.round(Math.max(13,BR*1.6)*(f.size||1))+'px "Noto Sans TC",sans-serif';
-    x.fillText(f.text,clamp(f.x,FR.x+60,FR.x+FR.w-60),clamp(f.y,FR.y+16,FR.y+FR.h-16)-(1-a)*26);
+    x.fillText(f.text,clamp(f.x,FR.x+70,FR.x+FR.w-70),clamp(f.y,FR.y+16,FR.y+FR.h-16)-(1-a)*26);
   }
   x.globalAlpha=1;
 }
@@ -620,7 +608,7 @@ function drawRoll(x){
   x.restore();
   if(tt<fin.total){x.fillStyle='rgba(255,255,255,.5)';x.fillRect(pad+clamp(tt/fin.total,0,1)*aw,ay-24,2,ah+48)}
   x.textAlign='center';x.textBaseline='alphabetic';
-  if(tt<fin.total){x.fillStyle='#8a93c0';x.font='400 15px "Noto Sans TC",sans-serif';x.fillText('♪ 完整樂章 · '+song.name,W/2,H*.2)}
+  if(tt<fin.total){x.fillStyle='#8a93c0';x.font='400 15px "Noto Sans TC",sans-serif';x.fillText('♪ 完整演奏 · '+song.name,W/2,H*.2)}
   else{x.globalAlpha=Math.min(1,(tt-fin.total)/1.2);x.fillStyle='#e8ecff';x.font='800 '+Math.round(Math.min(H*.12,52))+'px "Noto Sans TC",sans-serif';x.fillText('《'+song.name+'》',W/2,H*.22);x.globalAlpha=1}
 }
 function draw(){
@@ -628,40 +616,39 @@ function draw(){
   drawBG(ctx);
   ctx.save();
   if(shake>0)ctx.translate(rand(-shake,shake)*.5,rand(-shake,shake)*.5);
-  if(st!=='menu'){drawField(ctx);drawBumps(ctx);drawItems(ctx);drawBalls(ctx);drawFx(ctx)}
+  if(st!=='menu'&&st!=='replay'){drawField(ctx);drawBumps(ctx);drawItems(ctx);drawBalls(ctx);drawFx(ctx)}
   ctx.restore();
   ctx.textAlign='center';ctx.textBaseline='alphabetic';
-  if(st==='ready'){ctx.fillStyle='#e8ecff';ctx.font='700 19px "Noto Sans TC",sans-serif';ctx.fillText('點一下，發射光球',W/2,FR.y+FR.h/2+BR*5);ctx.fillStyle='#8a93c0';ctx.font='400 13px "Noto Sans TC",sans-serif';ctx.fillText('球飛到左右框線時，用左右拇指區點一下反彈；點哪裡，球就飛向哪裡',W/2,FR.y+FR.h/2+BR*5+24)}
+  if(st==='ready'){ctx.fillStyle='#e8ecff';ctx.font='700 19px "Noto Sans TC",sans-serif';ctx.fillText('點一下開始（先有 3 拍預備）',W/2,FR.y+FR.h/2+BR*6);ctx.fillStyle='#8a93c0';ctx.font='400 13px "Noto Sans TC",sans-serif';ctx.fillText('球會依音樂準時飛到亮起的那一邊；在拍子上碰球，主旋律才會響起',W/2,FR.y+FR.h/2+BR*6+24)}
+  if(st==='play'&&G()<LEADIN&&!paused){const n=Math.ceil((LEADIN-G())/.5);if(n<=3&&n>=1){ctx.fillStyle='rgba(232,236,255,.55)';ctx.font='800 '+Math.round(Math.min(FR.h*.3,90))+'px "Noto Sans TC",sans-serif';ctx.fillText(String(n),W/2,FR.y+FR.h*.62)}}
   if(paused){ctx.fillStyle='rgba(4,5,13,.7)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#e8ecff';ctx.font='700 22px "Noto Sans TC",sans-serif';ctx.fillText('已暫停 · 點一下繼續',W/2,H/2)}
-  if(st==='finale'&&fin)drawRoll(ctx);
+  if(st==='replay'&&fin)drawRoll(ctx);
 }
-let last=performance.now(),spdShown=0;
+let last=performance.now();
 function frame(now){
-  let dt=Math.min(.05,(now-last)/1000)*ts;last=now;
-  const n=Math.max(1,Math.ceil(dt/(1/90))),h=dt/n;       // fixed small sub-steps keep the motion smooth
+  const dt=Math.min(.05,(now-last)/1000)*ts;last=now;
+  const n=Math.max(1,Math.ceil(dt/(1/90))),h=dt/n;       // sub-steps keep the motion smooth
   for(let i=0;i<n;i++)update(h);
   draw();
-  let sp=0;if(st==='play'&&balls.length)sp=clamp((speedMult()*Math.max(...balls.map(b=>b.sm))-.5)/2.0,0,1);
-  if(Math.abs(sp-spdShown)>.01){spdShown=sp;$('#spd').style.width=(sp*100)+'%'}
   requestAnimationFrame(frame);
 }
 
-/* ---------- menu ---------- */
+/* ================= menu ================= */
 const mmss=t=>{t=Math.round(t);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
 function buildChips(){
   const c=$('#chips');c.innerHTML='';
   SONGS.forEach((s,i)=>{
     const b=document.createElement('button');b.className='chip'+(i===si?' sel':'');
-    const best=parseInt(lsGet('pmb4-'+i)||'0',10);
+    const best=parseInt(lsGet('pmb5-'+i)||'0',10);
     b.innerHTML=s.name+'<small>'+mmss(s.dur)+(s.dual?' ·雙球':'')+(best?' · 最高 '+best.toLocaleString():'')+'</small>';
     b.onclick=()=>{si=i;buildChips()};c.appendChild(b);
   });
 }
-$('#bGo').onclick=()=>{initAudio();startPad();goFs();startRun()};
+$('#bGo').onclick=()=>{initAudio();goFs();startRun(0)};
 $('#bRetry').onclick=()=>{initAudio();startRun(0)};
-$('#bCont').onclick=()=>{initAudio();startRun(cp.k)};
-$('#bSkip').onclick=endFinale;
-$('#bMenu').onclick=()=>{st='menu';cutAll();hideSkip();balls=[];fin=null;notes=[];hud();buildChips();$('#end').classList.add('hidden');$('#menu').classList.remove('hidden')};
+$('#bCont').onclick=()=>{initAudio();startRun(cp.ti)};
+$('#bSkip').onclick=endReplay;
+$('#bMenu').onclick=()=>{st='menu';cutAll();hideSkip();balls=[];fin=null;tg=[];resolved=0;hud();buildChips();$('#end').classList.add('hidden');$('#menu').classList.remove('hidden')};
 $('#bAgain').onclick=()=>{$('#end').classList.add('hidden');playFull()};
 $('#bFs').onclick=toggleFs;
 addEventListener('resize',layout);
@@ -671,7 +658,7 @@ document.addEventListener('webkitfullscreenchange',()=>setTimeout(layout,100));
 addEventListener('orientationchange',()=>setTimeout(layout,200));
 layout();buildChips();hud();
 requestAnimationFrame(frame);
-window.__pb={get S(){return{st,k,score,combo,n:notes.length,balls:balls.map(b=>({x:b.x,y:b.y,v:b.v,win:b.win?b.win.edge:-1,depth:b.win?b.win.depth:-1e9,lead:LEAD(b.v)})),F:FR,zw:zoneW(),mult:speedMult(),bumps:bumps.length,items:items.length,shield,tiers:tierCount,cents:lastCents,cp:cp.k}},setTs(v){ts=v},setSong(i){si=i}};
+window.__pb={get S(){const Gn=st==='play'?G():0;return{st,resolved,n:tg.length,score,combo,balls:balls.map(b=>({x:b.x,y:b.y,v:b.v,ti:b.ti,win:b.win?b.win.edge:-1,depth:b.win?b.win.depth:-1e9,dtT:b.ti>=0?tT(b.ti)-Gn:9,lead:LEAD(b.v)})),F:FR,HR,tiers:tierCount,cents:lastCents,p:lastP,pSrc,cp:cp.ti,G:Gn,useAC}},setTs(v){ts=v},setSong(i){si=i}};
 })();
 </script>
 </body>
