@@ -20,7 +20,7 @@
   --step-head: clamp(32px, 1.3rem + 2.4vw, 56px);
   --step-display: clamp(44px, 4.4vw, 72px);
 
-  --m: 32px;
+  --m: max(32px, calc((100vw - 1440px) / 2)); /* 內容寬度上限 1440px，寬螢幕置中 */
   --gap: 24px;
   --section: clamp(112px, 12vw, 176px);
   --header: 72px;
@@ -107,6 +107,8 @@ main { position: relative; z-index: 1; background: var(--bg); }
   background: none; border: 0; padding: 0; cursor: pointer;
 }
 .link:active { opacity: 0.7; }
+button.link { display: inline-flex; align-items: center; min-height: 44px; } /* 觸控目標至少 44px */
+@media (max-width: 360px) { .btn { padding: 0 16px; } } /* 320px 寬螢幕上「LINE 預約場勘」不換行 */
 @media (hover: hover) and (pointer: fine) {
   .btn:hover { background: var(--accent-strong); }
   .link:hover { text-underline-offset: 0.5em; }
@@ -395,6 +397,7 @@ legend { padding: 0; margin-bottom: 14px; font-weight: 700; }
 .proof__card figure { margin-bottom: 32px; }
 .proof__card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
 .proof__card p { font-size: 22px; line-height: 1.7; text-wrap: balance; }
+.proof__card .names { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 28px; } /* 案場名稱以間距分隔，不用中間點 */
 @media (prefers-reduced-motion: no-preference) {
   .js .proof__card { transform: rotate(1.5deg) translateY(48px); transition: transform 1100ms var(--ease-expo); }
   .js .proof__card.is-in { transform: rotate(1.5deg); }
