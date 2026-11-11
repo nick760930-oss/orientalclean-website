@@ -56,11 +56,11 @@ button[aria-label="聯絡我們"].animate-pulse {
 }
 
 /* 鍵盤操作時看得到焦點 */
-/* 雙層焦點框：內白外深，淺色、深色、青色底上都達 3:1 以上 */
+/* 雙層焦點框：外深內白（中間留 2px 白色間隔），淺色、深色、青色底上都看得到 */
 :where(#root) :is(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 0;
-  box-shadow: 0 0 0 4px #0b3a4a !important;
+  outline: 3px solid #0b3a4a;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff !important;
 }
 
 /* ── 4. 進場動畫：縮短時間、縮小位移 ─────────────────────────────── */
@@ -127,8 +127,42 @@ button[aria-label="聯絡我們"].animate-pulse {
 #root nav a.hidden[href="/contact"] {
   background-color: #007c96 !important;
 }
-#root .text-brand-500.font-semibold.uppercase {
-  color: #007c96;
+/* 淺色底上的青色文字（連結、標籤、小圖示）：#00728a，白底約 5.6:1、淺青底約 5.1:1 */
+.text-brand-500,
+.text-brand-600 {
+  color: #00728a;
+}
+.btn-outline {
+  color: #00728a;
+  border-color: #007c96;
+}
+.btn-outline:hover {
+  background-color: #007c96;
+}
+/* 淺底上的淡灰小字（案例地點）：#6b7280，白底約 4.8:1。
+ * 只針對 div.text-xs；深色區塊內的 p.text-gray-400 不動。 */
+#root div.text-xs.text-gray-400 {
+  color: #6b7280;
+}
+/* 白字所在的青色漸層（CTA 橫幅、資訊卡）：兩端都加深，白字對比 4.5:1 以上 */
+.bg-gradient-to-r.from-brand-600.to-brand-500 {
+  --tw-gradient-from: #006a80 var(--tw-gradient-from-position);
+  --tw-gradient-to: #007c96 var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+.bg-gradient-to-br.from-brand-500.to-brand-600 {
+  --tw-gradient-from: #007c96 var(--tw-gradient-from-position);
+  --tw-gradient-to: #006a80 var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+/* 案例照片上的分類標籤（白字配半透明青底） */
+.bg-brand-500\/90 {
+  background-color: #007c96f2;
+}
+/* 深色區塊（未捲動的導覽列、頁尾）的焦點框：外白內深 */
+:where(#root) :is(footer, nav.fixed.top-0:not(.backdrop-blur-lg)) :is(a, button):focus-visible {
+  outline-color: #fff;
+  box-shadow: 0 0 0 2px #0b3a4a !important;
 }
 html,
 body {
