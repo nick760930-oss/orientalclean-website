@@ -56,9 +56,11 @@ button[aria-label="聯絡我們"].animate-pulse {
 }
 
 /* 鍵盤操作時看得到焦點 */
+/* 雙層焦點框：內白外深，淺色、深色、青色底上都達 3:1 以上 */
 :where(#root) :is(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid #11afca;
-  outline-offset: 3px;
+  outline: 2px solid #fff;
+  outline-offset: 0;
+  box-shadow: 0 0 0 4px #0b3a4a !important;
 }
 
 /* ── 4. 進場動畫：縮短時間、縮小位移 ─────────────────────────────── */
@@ -116,4 +118,19 @@ button[aria-label="聯絡我們"].animate-pulse {
     background-color: #fff !important;
     border-bottom: 1px solid #183e4a !important;
   }
+}
+
+/* ── 7. 無障礙對比與橫向裁切（Hallmark 檢查結果，2026-11） ───────────
+ * 白字配 #00b4d8 只有 2.47:1（標準 4.5:1）。改用同色相（約 190°）的 #007c96，
+ * 白字對比約 4.86:1，品牌色調不變。移除此區段即可還原。 */
+.btn-primary,
+#root nav a.hidden[href="/contact"] {
+  background-color: #007c96 !important;
+}
+#root .text-brand-500.font-semibold.uppercase {
+  color: #007c96;
+}
+html,
+body {
+  overflow-x: clip;
 }
